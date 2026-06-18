@@ -1,332 +1,162 @@
-# Quicker-pod - React + Vite PWA
+# OpenTripper
 
-Build a Progressive Web App called "OpenTripper".
+**OpenTripper** is an open-source, mobile-first Progressive Web App for exploring and communicating with the Royal Enfield **Tripper Pod** over Bluetooth Low Energy (BLE).
 
-Goal:
-Create an open-source replacement for the Royal Enfield Tripper Pod application.
+It is a community-driven alternative to the official Tripper Pod app. Version 1 focuses on **protocol exploration and BLE diagnostics** — not turn-by-turn navigation. The goal is to reverse-engineer the Tripper Pod communication protocol and build a fully open replacement over time.
 
-Tech Stack:
-
-* React 19
-* Vite
-* TypeScript
-* React Router
-* Zustand for state management
-* Tailwind CSS
-* Vite PWA Plugin
-* Web Bluetooth API
-* OpenStreetMap integration (future)
-* No backend initially
-
-The application should be mobile-first and optimized for Android Chrome.
-
-Important:
-The primary goal of Version 1 is NOT navigation.
-
-The primary goal is Bluetooth protocol exploration and communication with the Tripper Pod.
+**Live demo:** [https://praneth2580.github.io/Quicker-pod/](https://praneth2580.github.io/Quicker-pod/)
 
 ---
 
-## PROJECT STRUCTURE
+## Features
 
-src/
-├── components/
-├── pages/
-├── hooks/
-├── services/
-├── store/
-├── bluetooth/
-├── layouts/
-├── utils/
-├── types/
-└── App.tsx
+| Page | Route | Description |
+|------|-------|-------------|
+| **Dashboard** | `/` | Bluetooth status, connection state, device info, last TX/RX packets |
+| **Device Scanner** | `/scanner` | Scan, filter, connect, and disconnect BLE devices |
+| **Device Explorer** | `/explorer` | Browse GATT services and characteristics; read, write, and subscribe |
+| **Packet Console** | `/console` | Live traffic log with clear, export, and copy |
+| **Packet Sender** | `/transmit` | Send manual HEX payloads; save and repeat packets |
+| **Navigation Simulator** | `/simulator` | Simulate turn maneuvers and preview generated packets |
+| **Settings** | `/settings` | Dark mode, debug/experimental toggles, log import/export |
 
----
-
-## CORE FEATURES
-
-1. Dashboard
-
-Display:
-
-* Bluetooth status
-* Device connection status
-* Current Tripper device name
-* Last packet received
-* Last packet sent
-* Signal strength (if available)
-
-Include large mobile-friendly cards.
+When Web Bluetooth is unavailable (e.g. desktop Firefox), the scanner falls back to **mock devices** so the UI and packet flow can still be tested.
 
 ---
 
-2. Device Scanner
+## Tech Stack
 
-Create a page:
-
-/scanner
-
-Features:
-
-* Scan for BLE devices
-* Filter devices
-* Show discovered devices
-* Connect button
-* Disconnect button
-
-Display:
-
-Device Name
-Device ID
-RSSI
-Available Services
+- **React 19** + **TypeScript**
+- **Vite** — dev server and build tooling
+- **React Router** — client-side routing
+- **Zustand** — state management
+- **Tailwind CSS** — mobile-first styling
+- **vite-plugin-pwa** — installable PWA with offline shell
+- **Web Bluetooth API** — BLE device communication
+- No backend required
 
 ---
 
-3. Device Explorer
+## Getting Started
 
-After connecting:
+### Prerequisites
 
-Display all:
+- Node.js 18+
+- **Chrome on Android** or **Chrome/Edge on desktop** for real BLE (HTTPS or `localhost` required)
 
-* Services
-* Characteristics
-* UUIDs
-* Permissions
+### Local development
 
-For each characteristic:
-
-* Read
-* Write
-* Subscribe
-* Notify
-
-Allow manual interaction.
-
----
-
-4. Packet Console
-
-Page:
-
-/console
-
-Features:
-
-Live log window.
-
-Format:
-
-[Time]
-Direction
-Service UUID
-Characteristic UUID
-Payload
-
-Examples:
-
-12:00:01 TX
-01 FF 20
-
-12:00:03 RX
-AA BB CC DD
-
-Include:
-
-* Clear logs
-* Export logs
-* Copy logs
-
----
-
-5. Packet Sender
-
-Page:
-
-/transmit
-
-Features:
-
-Manual HEX input.
-
-Examples:
-
-01 FF 20
-AA BB CC DD
-
-Buttons:
-
-* Send
-* Save
-* Repeat
-
-Allow testing packets against Tripper Pod.
-
----
-
-6. Navigation Simulator
-
-Page:
-
-/simulator
-
-Allow user to simulate:
-
-* Left turn
-* Right turn
-* U-turn
-* Straight
-* Arrival
-
-Display generated packets.
-
-Later these packets will be mapped to Tripper protocol.
-
----
-
-7. Settings
-
-Features:
-
-Dark mode
-Export logs
-Import logs
-Debug mode
-Experimental mode
-
----
-
-## BLUETOOTH SERVICE
-
-Create:
-
-bluetooth/BluetoothManager.ts
-
-Responsibilities:
-
-* Request device
-* Connect
-* Disconnect
-* Read characteristic
-* Write characteristic
-* Subscribe to notifications
-* Event system
-
-Use Web Bluetooth API.
-
-Design for future protocol implementations.
-
----
-
-## STATE MANAGEMENT
-
-Create Zustand stores:
-
-ConnectionStore
-
-* connected
-* device
-* services
-* characteristics
-
-PacketStore
-
-* sentPackets
-* receivedPackets
-
-SettingsStore
-
-* darkMode
-* debugMode
-
----
-
-## PWA REQUIREMENTS
-
-Use vite-plugin-pwa.
-
-Requirements:
-
-* Installable
-* Offline shell
-* Android optimized
-* Standalone mode
-* App icon
-* Splash screen
-
-Manifest:
-
-Name:
-OpenTripper
-
-Short Name:
-Tripper
-
-Theme Color:
-#111827
-
-Background Color:
-#111827
-
----
-
-## UI DESIGN
-
-Style:
-
-Cyber-meets-motorcycle diagnostics.
-
-Visual inspiration:
-
-* OBD scanners
-* Aircraft instrumentation
-* Network analyzers
-* Rider dashboard
-
-Use:
-
-* Glassmorphism cards
-* Rounded corners
-* Large touch targets
-* Monospace packet viewer
-
-Dark theme by default.
-
----
-
-## FUTURE ROADMAP
-
-Leave architecture ready for:
-
-* OpenStreetMap
-* GPX imports
-* Turn-by-turn navigation
-* Reverse engineered Tripper protocol
-* Ride recording
-* Route history
-* Offline maps
-* Fuel tracking
-
----
-
-## DELIVERABLES
-
-Generate:
-
-1. Full folder structure
-2. React components
-3. Zustand stores
-4. Bluetooth service layer
-5. Tailwind setup
-6. PWA configuration
-7. Example mock data
-8. Clean TypeScript interfaces
-9. Mobile-first responsive UI
-10. README explaining architecture
-
-The application should run immediately after:
-
+```bash
 npm install
 npm run dev
+```
 
-without requiring any backend.
+Open [http://localhost:5173](http://localhost:5173).
+
+### Build
+
+```bash
+npm run build
+npm run preview   # preview production build locally
+```
+
+### Deploy to GitHub Pages
+
+```bash
+npm run deploy
+```
+
+This builds the app, copies `index.html` → `404.html` for SPA routing, and pushes `dist/` to the **`gh-pages`** branch.
+
+**GitHub Pages setup (one-time):** Repo → **Settings** → **Pages** → Source: branch `gh-pages`, folder `/ (root)`.
+
+---
+
+## PWA
+
+OpenTripper is installable as a standalone app on Android and desktop:
+
+- Offline shell via service worker (Workbox)
+- Add to home screen support
+- Standalone display mode
+- Theme color `#111827` (dark diagnostics aesthetic)
+
+On supported browsers, an **Install** banner appears above the bottom navigation.
+
+---
+
+## Architecture
+
+```
+src/
+├── bluetooth/       # BluetoothManager — Web Bluetooth wrapper + event system
+├── components/      # Reusable UI (cards, buttons) and layout (nav, install prompt)
+├── hooks/           # useBluetooth, useTheme
+├── layouts/         # AppLayout shell
+├── pages/           # Route-level views
+├── services/        # Mock data for offline/dev testing
+├── store/           # Zustand stores (connection, packets, settings)
+├── types/           # TypeScript interfaces
+├── utils/           # HEX conversion, formatting, file helpers
+└── App.tsx          # Route definitions
+```
+
+### State management
+
+| Store | Responsibility |
+|-------|----------------|
+| `connectionStore` | Device connection, services, characteristics, scan state |
+| `packetStore` | Sent/received packets, saved packets, log export/import |
+| `settingsStore` | Dark mode, debug mode, experimental mode (persisted) |
+
+### Bluetooth layer
+
+`bluetooth/BluetoothManager.ts` handles device request, connect/disconnect, characteristic read/write, notification subscriptions, and emits events consumed by the packet store. It is designed to be extended as the Tripper protocol is reverse-engineered.
+
+---
+
+## UI
+
+Dark theme by default, inspired by OBD scanners, aircraft instrumentation, and network analyzers:
+
+- Glassmorphism cards with rounded corners
+- Large touch targets (mobile-first)
+- Monospace packet viewer with horizontal scroll
+- Safe-area padding for notched phones
+- Horizontally scrollable bottom navigation
+
+---
+
+## Browser Support
+
+| Feature | Chrome (Android) | Chrome (Desktop) | Firefox | Safari |
+|---------|------------------|------------------|---------|--------|
+| App UI | ✅ | ✅ | ✅ | ✅ |
+| Web Bluetooth | ✅ | ✅ | ❌ | ❌ |
+| PWA install | ✅ | ✅ | Limited | ✅ (iOS 16.4+) |
+
+Real BLE requires a Chromium-based browser. Use mock mode elsewhere.
+
+---
+
+## Roadmap
+
+- [ ] Reverse-engineered Tripper Pod protocol
+- [ ] OpenStreetMap integration
+- [ ] GPX import
+- [ ] Turn-by-turn navigation
+- [ ] Ride recording and route history
+- [ ] Offline maps
+- [ ] Fuel tracking
+
+---
+
+## Contributing
+
+This project is in early development. Issues, protocol findings, and pull requests are welcome — especially packet captures and UUID mappings from real Tripper Pod hardware.
+
+---
+
+## License
+
+Open source. See repository for license details.
