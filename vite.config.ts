@@ -16,9 +16,9 @@ export default defineConfig(({ command }) => {
         registerType: "autoUpdate",
         includeAssets: ["favicon.svg", "apple-touch-icon.png", ".nojekyll"],
         manifest: {
-          name: "OpenTripper",
-          short_name: "Tripper",
-          description: "Open-source replacement for Royal Enfield Tripper Pod",
+          name: "Quicker-pod",
+          short_name: "Quicker-pod",
+          description: "Open-source BLE explorer for Royal Enfield Tripper Pod",
           theme_color: "#111827",
           background_color: "#111827",
           display: "standalone",

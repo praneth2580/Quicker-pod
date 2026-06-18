@@ -1,6 +1,6 @@
-# OpenTripper
+# Quicker-pod
 
-**OpenTripper** is an open-source, mobile-first Progressive Web App for exploring and communicating with the Royal Enfield **Tripper Pod** over Bluetooth Low Energy (BLE).
+**Quicker-pod** is an open-source, mobile-first Progressive Web App for exploring and communicating with the Royal Enfield **Tripper Pod** over Bluetooth Low Energy (BLE).
 
 It is a community-driven alternative to the official Tripper Pod app. Version 1 focuses on **protocol exploration and BLE diagnostics** — not turn-by-turn navigation. The goal is to reverse-engineer the Tripper Pod communication protocol and build a fully open replacement over time.
 
@@ -74,7 +74,7 @@ This builds the app, copies `index.html` → `404.html` for SPA routing, and pus
 
 ## PWA
 
-OpenTripper is installable as a standalone app on Android and desktop:
+Quicker-pod is installable as a standalone app on Android and desktop:
 
 - Offline shell via service worker (Workbox)
 - Add to home screen support

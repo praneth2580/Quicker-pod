@@ -5,10 +5,12 @@ interface SettingsState {
   darkMode: boolean;
   debugMode: boolean;
   experimentalMode: boolean;
+  iosInstallHintOpen: boolean;
 
   toggleDarkMode: () => void;
   setDebugMode: (enabled: boolean) => void;
   setExperimentalMode: (enabled: boolean) => void;
+  setIosInstallHintOpen: (open: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -17,6 +19,7 @@ export const useSettingsStore = create<SettingsState>()(
       darkMode: true,
       debugMode: false,
       experimentalMode: false,
+      iosInstallHintOpen: false,
 
       toggleDarkMode: () =>
         set((state) => {
@@ -27,9 +30,10 @@ export const useSettingsStore = create<SettingsState>()(
 
       setDebugMode: (enabled) => set({ debugMode: enabled }),
       setExperimentalMode: (enabled) => set({ experimentalMode: enabled }),
+      setIosInstallHintOpen: (open) => set({ iosInstallHintOpen: open }),
     }),
     {
-      name: "opentripper-settings",
+      name: "quicker-pod-settings",
       onRehydrateStorage: () => (state) => {
         if (state?.darkMode !== false) {
           document.documentElement.classList.add("dark");

@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import { useBluetooth } from "@/hooks/useBluetooth";
+import { usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ScannerPage } from "@/pages/ScannerPage";
 import { ExplorerPage } from "@/pages/ExplorerPage";
@@ -10,6 +11,7 @@ import { SettingsPage } from "@/pages/SettingsPage";
 
 export default function App() {
   useBluetooth();
+  usePwaInstallInit();
 
   return (
     <Routes>

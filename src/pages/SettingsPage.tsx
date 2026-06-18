@@ -12,7 +12,7 @@ export function SettingsPage() {
   const { exportLogs, importLogs, clearLogs } = usePacketStore();
 
   const handleExport = () => {
-    downloadText(`opentripper-logs-${Date.now()}.txt`, exportLogs());
+    downloadText(`quicker-pod-logs-${Date.now()}.txt`, exportLogs());
   };
 
   const handleImport = async () => {
@@ -65,7 +65,7 @@ export function SettingsPage() {
 
         <Card title="About">
           <p className="text-sm text-gray-400">
-            OpenTripper v0.1.0 — Open-source BLE explorer for Royal Enfield Tripper Pod protocol
+            Quicker-pod v0.1.0 — Open-source BLE explorer for Royal Enfield Tripper Pod protocol
             research.
           </p>
         </Card>

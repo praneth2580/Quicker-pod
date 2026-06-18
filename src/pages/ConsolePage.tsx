@@ -17,7 +17,7 @@ export function ConsolePage() {
   };
 
   const handleExport = () => {
-    downloadText(`opentripper-logs-${Date.now()}.txt`, exportLogs());
+    downloadText(`quicker-pod-logs-${Date.now()}.txt`, exportLogs());
   };
 
   return (
