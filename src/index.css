@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-surface font-sans text-white antialiased;
+    min-height: 100dvh;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+}
+
+@layer utilities {
+  .font-mono {
+    font-variant-ligatures: none;
+  }
+}
