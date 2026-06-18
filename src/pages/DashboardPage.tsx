@@ -60,13 +60,13 @@ export function DashboardPage() {
           <div className="space-y-4">
             <div>
               <p className="mb-1 text-xs uppercase tracking-wider text-gray-500">Last Sent</p>
-              <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 font-mono text-sm text-accent">
+              <pre className="packet-viewer text-accent">
                 {lastSent ? bytesToHex(lastSent.payload) : "—"}
               </pre>
             </div>
             <div>
               <p className="mb-1 text-xs uppercase tracking-wider text-gray-500">Last Received</p>
-              <pre className="overflow-x-auto rounded-lg bg-black/40 p-3 font-mono text-sm text-success">
+              <pre className="packet-viewer text-success">
                 {lastReceived ? bytesToHex(lastReceived.payload) : "—"}
               </pre>
             </div>

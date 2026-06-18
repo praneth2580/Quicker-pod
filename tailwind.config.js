@@ -30,6 +30,16 @@ export default {
       backdropBlur: {
         glass: "12px",
       },
+      spacing: {
+        "safe-bottom": "env(safe-area-inset-bottom, 0px)",
+        "safe-top": "env(safe-area-inset-top, 0px)",
+      },
+      minHeight: {
+        touch: "3rem",
+      },
+      minWidth: {
+        touch: "3rem",
+      },
     },
   },
   plugins: [],

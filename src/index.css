@@ -5,20 +5,63 @@
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
     @apply bg-surface font-sans text-white antialiased;
     min-height: 100dvh;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  button,
+  a,
+  [role="switch"] {
+    touch-action: manipulation;
+  }
+}
+
+@layer components {
+  .mobile-shell {
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
   }
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .touch-target {
+    @apply min-h-12 min-w-12;
+  }
+
+  .packet-viewer {
+    @apply overflow-x-auto rounded-xl bg-black/40 p-3 font-mono text-sm leading-relaxed;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
 @layer utilities {
   .font-mono {
     font-variant-ligatures: none;
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
   }
 }

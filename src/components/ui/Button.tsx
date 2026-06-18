@@ -27,7 +27,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`min-h-12 rounded-xl px-5 py-3 text-sm font-medium transition-all disabled:cursor-not-allowed disabled:opacity-40 ${variants[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
+      className={`touch-target min-h-12 rounded-xl px-5 py-3 text-sm font-medium transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 ${variants[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
       disabled={disabled}
       {...props}
     >
