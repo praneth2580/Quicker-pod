@@ -87,9 +87,19 @@ This builds the app, copies `index.html` → `404.html` for SPA routing, and pus
 Quicker-pod is installable as a standalone app on Android and desktop:
 
 - Offline shell via service worker (Workbox)
-- Add to home screen support
-- Standalone display mode
+- Add to home screen support (`short_name`: **Quicker**)
+- Standalone display mode with maskable Android icon
 - Theme color `#111827` (dark diagnostics aesthetic)
+- Install screenshots in the web manifest (Chrome install UI)
+- Open Graph / Twitter meta for link previews
+
+Icons are generated from `public/icon.svg` via `@vite-pwa/assets-generator`:
+
+```bash
+npm run generate-pwa-assets
+```
+
+This produces `favicon.ico`, `icon.svg`, `pwa-64/192/512`, `maskable-icon-512x512`, `apple-touch-icon-180x180`, and screenshot PNGs.
 
 On supported browsers, an **Install** banner appears above the bottom navigation.
 
