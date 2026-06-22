@@ -80,7 +80,7 @@ export function DashboardPage() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <Link to="/scanner">
+          <Link to="/connect">
             <Button fullWidth variant="primary">
               Connect Device
             </Button>

@@ -6,6 +6,8 @@ import type {
   BluetoothServiceInfo,
 } from "@/types";
 import { bytesToHex } from "@/utils";
+import { ROYAL_ENFIELD_DEVICE_FILTERS, ROYAL_ENFIELD_OPTIONAL_SERVICES } from "./filters";
+import { BluetoothError, mapBluetoothError } from "./errors";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
 
@@ -54,18 +56,45 @@ class BluetoothManager {
     return Boolean(this.server?.connected);
   }
 
-  async requestDevice(filters?: BluetoothLEScanFilter[]): Promise<BluetoothDeviceInfo> {
+  async connectNewDevice(): Promise<BluetoothDevice> {
     if (!this.isSupported()) {
-      throw new Error("Web Bluetooth is not supported in this browser");
+      throw new BluetoothError(
+        "UNAVAILABLE",
+        "Bluetooth is not available. Use Chrome on Android or desktop with BLE support.",
+      );
     }
 
-    const device = await navigator.bluetooth.requestDevice({
-      acceptAllDevices: !filters?.length,
-      optionalServices: filters?.length ? undefined : ["battery_service", "device_information"],
-      filters,
-    });
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: ROYAL_ENFIELD_DEVICE_FILTERS,
+        optionalServices: ROYAL_ENFIELD_OPTIONAL_SERVICES,
+      });
+      this.attachDevice(device);
+      return device;
+    } catch (error) {
+      throw mapBluetoothError(error);
+    }
+  }
 
-    return this.attachDevice(device);
+  async requestDevice(filters?: BluetoothLEScanFilter[]): Promise<BluetoothDeviceInfo> {
+    if (!this.isSupported()) {
+      throw new BluetoothError(
+        "UNAVAILABLE",
+        "Bluetooth is not available. Use Chrome on Android or desktop with BLE support.",
+      );
+    }
+
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        acceptAllDevices: !filters?.length,
+        optionalServices: filters?.length ? undefined : ["battery_service", "device_information"],
+        filters,
+      });
+
+      return this.attachDevice(device);
+    } catch (error) {
+      throw mapBluetoothError(error);
+    }
   }
 
   async getPermittedDevices(): Promise<BluetoothDeviceInfo[]> {
@@ -81,19 +110,32 @@ class BluetoothManager {
 
   async connectToPermittedDevice(deviceId: string): Promise<BluetoothDeviceInfo> {
     if (!this.isSupported()) {
-      throw new Error("Web Bluetooth is not supported in this browser");
+      throw new BluetoothError(
+        "UNAVAILABLE",
+        "Bluetooth is not available. Use Chrome on Android or desktop with BLE support.",
+      );
     }
     if (!navigator.bluetooth.getDevices) {
-      throw new Error("Reconnect requires a browser with getDevices() support");
+      throw new BluetoothError(
+        "UNAVAILABLE",
+        "Reconnect requires a browser with getDevices() support.",
+      );
     }
 
-    const devices = await navigator.bluetooth.getDevices();
-    const device = devices.find((d) => d.id === deviceId);
-    if (!device) {
-      throw new Error("Device not permitted. Scan and connect once, then try again.");
-    }
+    try {
+      const devices = await navigator.bluetooth.getDevices();
+      const device = devices.find((d) => d.id === deviceId);
+      if (!device) {
+        throw new BluetoothError(
+          "NOT_FOUND",
+          "Device not permitted. Use Connect once, then try Reconnect.",
+        );
+      }
 
-    return this.attachDevice(device);
+      return this.attachDevice(device);
+    } catch (error) {
+      throw mapBluetoothError(error);
+    }
   }
 
   private attachDevice(device: BluetoothDevice): BluetoothDeviceInfo {
@@ -111,13 +153,17 @@ class BluetoothManager {
 
   async connect(): Promise<BluetoothServiceInfo[]> {
     if (!this.device?.gatt) {
-      throw new Error("No device selected");
+      throw new BluetoothError("NOT_FOUND", "No device selected.");
     }
 
-    this.server = await this.device.gatt.connect();
-    const services = await this.discoverServices();
-    this.emit({ type: "connected", payload: services });
-    return services;
+    try {
+      this.server = await this.device.gatt.connect();
+      const services = await this.discoverServices();
+      this.emit({ type: "connected", payload: services });
+      return services;
+    } catch (error) {
+      throw mapBluetoothError(error);
+    }
   }
 
   async disconnect(): Promise<void> {
@@ -261,3 +307,9 @@ class BluetoothManager {
 
 export const bluetoothManager = new BluetoothManager();
 export { BluetoothManager };
+export { BluetoothError, mapBluetoothError, getBluetoothErrorMessage } from "./errors";
+export {
+  ROYAL_ENFIELD_NAME_PREFIX,
+  ROYAL_ENFIELD_DEVICE_FILTERS,
+  ROYAL_ENFIELD_OPTIONAL_SERVICES,
+} from "./filters";

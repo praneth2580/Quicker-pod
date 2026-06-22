@@ -5,7 +5,7 @@ import { usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
 import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
 import { DashboardPage } from "@/pages/DashboardPage";
-import { ScannerPage } from "@/pages/ScannerPage";
+import { ConnectPage } from "@/pages/ConnectPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
 
@@ -23,8 +23,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<DashboardPage />} />
-      <Route path="/scanner" element={<ScannerPage />} />
-      <Route path="/connect" element={<Navigate to="/scanner" replace />} />
+      <Route path="/connect" element={<ConnectPage />} />
+      <Route path="/scanner" element={<Navigate to="/connect" replace />} />
       <Route path="/lab" element={<Navigate to="/protocol-lab" replace />} />
       <Route path="/monitor" element={<Navigate to="/protocol-lab?tab=notifications" replace />} />
       <Route path="/send" element={<Navigate to="/protocol-lab?tab=sender" replace />} />
