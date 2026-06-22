@@ -7,6 +7,7 @@ export const ROYAL_ENFIELD_NAME_PREFIX = "RE_";
  */
 export const ROYAL_ENFIELD_DEVICE_FILTERS: BluetoothLEScanFilter[] = [
   { namePrefix: ROYAL_ENFIELD_NAME_PREFIX },
+  { namePrefix: "RE_DISP" },
 ];
 
 /** Optional GATT services to request access during pairing. */

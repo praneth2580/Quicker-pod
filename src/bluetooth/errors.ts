@@ -4,6 +4,8 @@ export type BluetoothErrorCode =
   | "PERMISSION_DENIED"
   | "CONNECTION_FAILED"
   | "NOT_FOUND"
+  | "PAIRING_FAILED"
+  | "PAIRING_TIMEOUT"
   | "UNKNOWN";
 
 export class BluetoothError extends Error {
@@ -24,7 +26,9 @@ const ERROR_MESSAGES: Record<BluetoothErrorCode, string> = {
   UNAVAILABLE: "Bluetooth is not available. Use Chrome on Android or desktop with BLE support.",
   PERMISSION_DENIED: "Bluetooth permission was denied. Allow access in your browser settings.",
   CONNECTION_FAILED: "Could not connect to the device. Move closer and try again.",
-  NOT_FOUND: "Device not found. Pair via Scan first, then use Reconnect.",
+  NOT_FOUND: "Device not found. Pair via Connect first, then use Reconnect.",
+  PAIRING_FAILED: "PIN pairing failed. Check the 6-digit code on your Tripper display.",
+  PAIRING_TIMEOUT: "PIN pairing timed out. Make sure ignition is on and try again.",
   UNKNOWN: "An unexpected Bluetooth error occurred.",
 };
 

@@ -1,9 +1,12 @@
+import { useState } from "react";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
+import { PinInput } from "@/components/connect/PinInput";
 import { useBluetoothConnect } from "@/hooks/useBluetoothConnect";
 import { ROYAL_ENFIELD_NAME_PREFIX } from "@/bluetooth/filters";
+import { validateTripperPin } from "@/bluetooth/pairingConfig";
 
 function formatTimestamp(ms: number): string {
   try {
@@ -14,15 +17,23 @@ function formatTimestamp(ms: number): string {
 }
 
 export function ConnectPage() {
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
   const {
     connected,
     connecting,
+    awaitingPin,
+    submittingPin,
+    awaitingPinDevice,
     bluetoothSupported,
     currentDevice,
     knownDevices,
     lastError,
+    pairingMessage,
     hasPairedDevice,
-    connectNewDevice,
+    startPairing,
+    submitPin,
+    cancelPairing,
     reconnect,
     reconnectDevice,
     forgetDevice,
@@ -31,28 +42,96 @@ export function ConnectPage() {
   } = useBluetoothConnect();
 
   const otherDevices = knownDevices.filter((d) => d.id !== currentDevice?.id);
+  const showInitialConnect = !hasPairedDevice && !awaitingPin;
+  const activeDeviceName = awaitingPinDevice?.name ?? currentDevice?.name;
+
+  const handleStartPairing = () => {
+    clearError();
+    setPin("");
+    setPinError(null);
+    void startPairing();
+  };
+
+  const handleSubmitPin = () => {
+    const validationError = validateTripperPin(pin);
+    if (validationError) {
+      setPinError(validationError);
+      return;
+    }
+    setPinError(null);
+    clearError();
+    void submitPin(pin);
+  };
 
   return (
     <AppLayout title="QUICKER-POD" subtitle="Royal Enfield BLE">
       <div className="space-y-4">
-        {!hasPairedDevice && (
+        {showInitialConnect && (
           <Card className="text-center">
             <p className="text-lg text-gray-300">Connect your motorcycle</p>
             <p className="mt-2 text-sm text-gray-500">
-              Only devices starting with <span className="font-mono text-accent">{ROYAL_ENFIELD_NAME_PREFIX}</span>{" "}
-              are shown in the picker.
+              Turn ignition on, then select a device starting with{" "}
+              <span className="font-mono text-accent">{ROYAL_ENFIELD_NAME_PREFIX}</span> or{" "}
+              <span className="font-mono text-accent">RE_DISP</span>.
+            </p>
+            <p className="mt-2 text-sm text-gray-500">
+              After selection, enter the 6-digit PIN shown on your Tripper display.
             </p>
             <Button
               className="mt-6"
               fullWidth
               disabled={!bluetoothSupported || connecting}
-              onClick={() => {
-                clearError();
-                void connectNewDevice();
-              }}
+              onClick={handleStartPairing}
             >
-              {connecting ? "Connecting…" : "Connect"}
+              {connecting ? "Selecting device…" : "Connect"}
             </Button>
+          </Card>
+        )}
+
+        {awaitingPin && (
+          <Card title="Enter Tripper PIN">
+            <div className="space-y-4 text-center">
+              <p className="text-sm text-gray-400">
+                Enter the 6-digit code shown on your Tripper pod
+                {activeDeviceName ? (
+                  <>
+                    {" "}
+                    for <span className="font-medium text-white">{activeDeviceName}</span>
+                  </>
+                ) : null}
+                .
+              </p>
+              <PinInput
+                value={pin}
+                onChange={(value) => {
+                  setPin(value);
+                  if (pinError) setPinError(null);
+                }}
+                disabled={submittingPin}
+                error={pinError}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  fullWidth
+                  disabled={submittingPin || pin.length !== 6}
+                  onClick={handleSubmitPin}
+                >
+                  {submittingPin ? "Pairing…" : "Pair"}
+                </Button>
+                <Button
+                  fullWidth
+                  variant="ghost"
+                  disabled={submittingPin}
+                  onClick={() => {
+                    setPin("");
+                    setPinError(null);
+                    void cancelPairing();
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </Card>
         )}
 
@@ -70,7 +149,13 @@ export function ConnectPage() {
           </Card>
         )}
 
-        {currentDevice && (
+        {pairingMessage && (
+          <Card className="border-success/30">
+            <p className="text-sm text-success">{pairingMessage}</p>
+          </Card>
+        )}
+
+        {currentDevice && !awaitingPin && (
           <Card title="🏍️ Connected Device">
             <div className="space-y-3">
               <div className="flex items-start justify-between gap-3">
@@ -79,7 +164,7 @@ export function ConnectPage() {
                   <p className="truncate font-semibold text-white">{currentDevice.name}</p>
                 </div>
                 <StatusBadge
-                  label={connected ? "Connected" : "Paired"}
+                  label={connected ? "Connected" : currentDevice.pinPaired ? "PIN Paired" : "Saved"}
                   active={connected}
                   variant={connected ? "success" : "neutral"}
                 />
@@ -113,7 +198,7 @@ export function ConnectPage() {
               </Button>
               <Button
                 variant="danger"
-                disabled={connecting}
+                disabled={connecting || submittingPin}
                 onClick={() => void forgetDevice()}
               >
                 Forget Device
@@ -128,15 +213,12 @@ export function ConnectPage() {
           </Card>
         )}
 
-        {hasPairedDevice && (
+        {hasPairedDevice && !awaitingPin && (
           <Button
             fullWidth
             variant="secondary"
-            disabled={!bluetoothSupported || connecting}
-            onClick={() => {
-              clearError();
-              void connectNewDevice();
-            }}
+            disabled={!bluetoothSupported || connecting || submittingPin}
+            onClick={handleStartPairing}
           >
             Pair another device
           </Button>
@@ -159,7 +241,7 @@ export function ConnectPage() {
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <Button
                     variant="secondary"
-                    disabled={connecting || connected}
+                    disabled={connecting || connected || submittingPin}
                     onClick={() => {
                       clearError();
                       void reconnectDevice(d.id);

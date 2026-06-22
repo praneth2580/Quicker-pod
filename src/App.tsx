@@ -4,6 +4,7 @@ import { useDbInit } from "@/hooks/useDbInit";
 import { usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
 import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
+import { LandingPage } from "@/pages/LandingPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ConnectPage } from "@/pages/ConnectPage";
 import { SettingsPage } from "@/pages/SettingsPage";
@@ -22,7 +23,8 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<DashboardPage />} />
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/connect" element={<ConnectPage />} />
       <Route path="/scanner" element={<Navigate to="/connect" replace />} />
       <Route path="/lab" element={<Navigate to="/protocol-lab" replace />} />

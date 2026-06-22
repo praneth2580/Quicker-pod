@@ -6,9 +6,15 @@ import { usePwaUpdateStore } from "@/store/pwaUpdateStore";
 import App from "./App";
 import "./index.css";
 
+const swUrl = `${import.meta.env.BASE_URL}sw.js`;
+const scope = import.meta.env.BASE_URL;
+
+usePwaUpdateStore.getState().setSwConfig(swUrl, scope);
+
 const updateSW = registerSW({
   immediate: true,
-  onRegisteredSW(_swUrl, registration) {
+  onRegisteredSW(registeredSwUrl, registration) {
+    usePwaUpdateStore.getState().setSwConfig(registeredSwUrl, scope);
     usePwaUpdateStore.getState().setRegistration(registration);
   },
 });

@@ -4,14 +4,41 @@ type UpdateStatus = "idle" | "checking" | "reloading" | "upToDate" | "unavailabl
 
 interface PwaUpdateState {
   registration: ServiceWorkerRegistration | null;
+  swUrl: string | null;
+  scope: string | null;
   updateSW: ((reloadPage?: boolean) => Promise<void>) | null;
   status: UpdateStatus;
   statusMessage: string | null;
 
   setRegistration: (registration: ServiceWorkerRegistration | undefined) => void;
+  setSwConfig: (swUrl: string, scope: string) => void;
   setUpdateSW: (fn: (reloadPage?: boolean) => Promise<void>) => void;
   forceUpdate: () => Promise<void>;
   clearStatus: () => void;
+}
+
+function resolveSwUrl(baseUrl: string): string {
+  return `${baseUrl.replace(/\/?$/, "/")}sw.js`;
+}
+
+function resolveScope(baseUrl: string): string {
+  return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+}
+
+function resolveScriptUrl(swUrl: string): string {
+  return new URL(swUrl, window.location.origin).href;
+}
+
+function getWorkerScriptUrl(registration: ServiceWorkerRegistration): string | undefined {
+  return (
+    registration.active?.scriptURL ??
+    registration.waiting?.scriptURL ??
+    registration.installing?.scriptURL
+  );
+}
+
+function hasLiveWorker(registration: ServiceWorkerRegistration): boolean {
+  return !!(registration.active || registration.waiting || registration.installing);
 }
 
 function waitForInstallingWorker(registration: ServiceWorkerRegistration): Promise<void> {
@@ -30,27 +57,94 @@ function waitForInstallingWorker(registration: ServiceWorkerRegistration): Promi
   });
 }
 
-async function activateWaitingWorker(
-  registration: ServiceWorkerRegistration,
-  updateSW: ((reloadPage?: boolean) => Promise<void>) | null,
-): Promise<void> {
+async function waitForControllerChange(timeoutMs = 5000): Promise<void> {
+  if (!navigator.serviceWorker.controller) return;
+
+  await new Promise<void>((resolve) => {
+    const timeout = window.setTimeout(resolve, timeoutMs);
+    navigator.serviceWorker.addEventListener(
+      "controllerchange",
+      () => {
+        window.clearTimeout(timeout);
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
+
+async function activateWaitingWorker(registration: ServiceWorkerRegistration): Promise<void> {
   if (registration.waiting) {
     registration.waiting.postMessage({ type: "SKIP_WAITING" });
+    await waitForControllerChange();
   }
-  if (updateSW) {
-    await updateSW(true);
-  } else {
-    window.location.reload();
+  window.location.reload();
+}
+
+async function getScopedRegistration(scope: string): Promise<ServiceWorkerRegistration | undefined> {
+  return navigator.serviceWorker.getRegistration(scope);
+}
+
+async function registerServiceWorker(swUrl: string, scope: string): Promise<ServiceWorkerRegistration> {
+  return navigator.serviceWorker.register(swUrl, { scope, type: "classic" });
+}
+
+async function ensureRegistration(
+  swUrl: string,
+  scope: string,
+): Promise<ServiceWorkerRegistration> {
+  let registration = await getScopedRegistration(scope);
+  const expectedScriptUrl = resolveScriptUrl(swUrl);
+
+  if (registration) {
+    const scriptUrl = getWorkerScriptUrl(registration);
+    const isStale =
+      !hasLiveWorker(registration) || (scriptUrl !== undefined && scriptUrl !== expectedScriptUrl);
+
+    if (isStale) {
+      await registration.unregister();
+      registration = undefined;
+    }
   }
+
+  if (!registration) {
+    registration = await registerServiceWorker(swUrl, scope);
+  }
+
+  return registration;
+}
+
+async function checkForUpdate(registration: ServiceWorkerRegistration): Promise<ServiceWorkerRegistration> {
+  try {
+    await registration.update();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    const isNotFound =
+      message.includes("Not found") || (err instanceof DOMException && err.name === "NotFoundError");
+
+    if (!isNotFound) throw err;
+
+    const { swUrl, scope } = usePwaUpdateStore.getState();
+    if (!swUrl || !scope) throw err;
+
+    await registration.unregister();
+    return ensureRegistration(swUrl, scope);
+  }
+
+  return (await getScopedRegistration(registration.scope)) ?? registration;
 }
 
 export const usePwaUpdateStore = create<PwaUpdateState>((set, get) => ({
   registration: null,
+  swUrl: null,
+  scope: null,
   updateSW: null,
   status: "idle",
   statusMessage: null,
 
   setRegistration: (registration) => set({ registration: registration ?? null }),
+
+  setSwConfig: (swUrl, scope) => set({ swUrl, scope }),
 
   setUpdateSW: (fn) => set({ updateSW: fn }),
 
@@ -67,27 +161,24 @@ export const usePwaUpdateStore = create<PwaUpdateState>((set, get) => ({
       return;
     }
 
-    let registration = get().registration ?? (await navigator.serviceWorker.getRegistration());
-    if (!registration) {
-      set({
-        status: "unavailable",
-        statusMessage: "No service worker registered. Reload the page or reinstall the app.",
-      });
-      return;
-    }
+    const baseUrl = import.meta.env.BASE_URL;
+    const swUrl = get().swUrl ?? resolveSwUrl(baseUrl);
+    const scope = get().scope ?? resolveScope(baseUrl);
 
     try {
-      await registration.update();
-      registration = (await navigator.serviceWorker.getRegistration()) ?? registration;
+      let registration = await ensureRegistration(swUrl, scope);
+      set({ registration, swUrl, scope });
+
+      registration = await checkForUpdate(registration);
 
       if (registration.installing) {
         await waitForInstallingWorker(registration);
-        registration = (await navigator.serviceWorker.getRegistration()) ?? registration;
+        registration = (await getScopedRegistration(scope)) ?? registration;
       }
 
       if (registration.waiting) {
         set({ status: "reloading", statusMessage: "Update found. Reloading…" });
-        await activateWaitingWorker(registration, get().updateSW);
+        await activateWaitingWorker(registration);
         return;
       }
 

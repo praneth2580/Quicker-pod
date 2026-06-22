@@ -16,7 +16,7 @@ export default defineConfig(({ command }) => {
       react(),
       VitePWA({
         registerType: "autoUpdate",
-        includeAssets: [".nojekyll", "screenshots/*.png"],
+        includeAssets: [".nojekyll", "screenshots/*.png", "robots.txt", "sitemap.xml"],
         pwaAssets: {
           config: true,
           overrideManifestIcons: true,
@@ -27,7 +27,8 @@ export default defineConfig(({ command }) => {
           id: base,
           name: "Quicker-pod",
           short_name: "Quicker",
-          description: "BLE protocol explorer for Royal Enfield Tripper Pod",
+          description:
+            "Free, open-source Tripper Pod companion. Connect over Bluetooth, explore BLE services, monitor packets, and reverse-engineer the protocol.",
           lang: "en",
           dir: "ltr",
           categories: ["utilities", "developer"],
@@ -36,7 +37,7 @@ export default defineConfig(({ command }) => {
           display: "standalone",
           display_override: ["standalone", "minimal-ui", "browser"],
           orientation: "portrait",
-          start_url: base,
+          start_url: `${base}dashboard`,
           scope: base,
           screenshots: [
             {

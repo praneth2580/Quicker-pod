@@ -8,6 +8,12 @@ import type {
 import { bytesToHex } from "@/utils";
 import { ROYAL_ENFIELD_DEVICE_FILTERS, ROYAL_ENFIELD_OPTIONAL_SERVICES } from "./filters";
 import { BluetoothError, mapBluetoothError } from "./errors";
+import {
+  type PairingResult,
+  type TripperPairingConfig,
+  DEFAULT_PAIRING_CONFIG,
+} from "./pairingConfig";
+import { submitTripperPin } from "./tripperPairing";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
 
@@ -151,19 +157,41 @@ class BluetoothManager {
     return info;
   }
 
-  async connect(): Promise<BluetoothServiceInfo[]> {
+  async connectGatt(): Promise<BluetoothRemoteGATTServer> {
     if (!this.device?.gatt) {
       throw new BluetoothError("NOT_FOUND", "No device selected.");
     }
 
     try {
       this.server = await this.device.gatt.connect();
+      return this.server;
+    } catch (error) {
+      throw mapBluetoothError(error);
+    }
+  }
+
+  async connect(): Promise<BluetoothServiceInfo[]> {
+    if (!this.server?.connected) {
+      await this.connectGatt();
+    }
+
+    try {
       const services = await this.discoverServices();
       this.emit({ type: "connected", payload: services });
       return services;
     } catch (error) {
       throw mapBluetoothError(error);
     }
+  }
+
+  async pairWithPin(
+    pin: string,
+    config: TripperPairingConfig = DEFAULT_PAIRING_CONFIG,
+  ): Promise<PairingResult> {
+    if (!this.server?.connected) {
+      await this.connectGatt();
+    }
+    return submitTripperPin(this.server!, pin, config);
   }
 
   async disconnect(): Promise<void> {
@@ -313,3 +341,6 @@ export {
   ROYAL_ENFIELD_DEVICE_FILTERS,
   ROYAL_ENFIELD_OPTIONAL_SERVICES,
 } from "./filters";
+export type { TripperPairingConfig, PinEncoding, PairingResult, PairingTarget } from "./pairingConfig";
+export { DEFAULT_PAIRING_CONFIG, validateTripperPin, normalizeTripperPin } from "./pairingConfig";
+export { submitTripperPin, discoverPairingTarget } from "./tripperPairing";

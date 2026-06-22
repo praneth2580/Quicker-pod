@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 
 const navItems = [
-  { path: "/", label: "Home", icon: "⌂" },
+  { path: "/dashboard", label: "Home", icon: "⌂" },
   { path: "/connect", label: "Connect", icon: "◎" },
   { path: "/protocol-lab", label: "Lab", icon: "⚗" },
   { path: "/settings", label: "Settings", icon: "⚙" },

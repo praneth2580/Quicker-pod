@@ -1,14 +1,19 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { BluetoothDeviceInfo, BluetoothServiceInfo, KnownDevice } from "@/types";
+import type { BluetoothDeviceInfo, BluetoothServiceInfo, KnownDevice, PairingPhase } from "@/types";
 import { bluetoothManager } from "@/bluetooth/BluetoothManager";
 import { getBluetoothErrorMessage } from "@/bluetooth/errors";
+import type { TripperPairingConfig } from "@/bluetooth/pairingConfig";
+import { DEFAULT_PAIRING_CONFIG } from "@/bluetooth/pairingConfig";
 import { upsertDevice, removeDevice as removeDeviceFromDb } from "@/db/repository";
 import { useDeviceStore } from "@/store/deviceStore";
+import { useSettingsStore } from "@/store/settingsStore";
 
 interface ConnectionState {
   connected: boolean;
   connecting: boolean;
+  pairingPhase: PairingPhase;
+  awaitingPinDevice: BluetoothDeviceInfo | null;
   bluetoothSupported: boolean;
   device: BluetoothDeviceInfo | null;
   currentDevice?: KnownDevice;
@@ -16,9 +21,12 @@ interface ConnectionState {
   services: BluetoothServiceInfo[];
   rssi?: number;
   lastError: string | null;
+  pairingMessage: string | null;
 
   clearError: () => void;
-  connectNewDevice: () => Promise<void>;
+  startPairing: () => Promise<void>;
+  submitPin: (pin: string) => Promise<void>;
+  cancelPairing: () => Promise<void>;
   reconnect: () => Promise<void>;
   reconnectDevice: (deviceId: string) => Promise<void>;
   forgetDevice: (deviceId?: string) => Promise<void>;
@@ -26,13 +34,32 @@ interface ConnectionState {
   refreshServices: () => Promise<void>;
 }
 
-function toKnownDevice(info: BluetoothDeviceInfo, existing?: KnownDevice): KnownDevice {
+function getPairingConfig(): TripperPairingConfig {
+  const settings = useSettingsStore.getState();
+  const config: TripperPairingConfig = {
+    ...DEFAULT_PAIRING_CONFIG,
+    pinEncoding: settings.pinEncoding,
+  };
+
+  if (settings.pairingServiceUuid && settings.pairingWriteUuid) {
+    config.serviceUuid = settings.pairingServiceUuid;
+    config.writeCharacteristicUuid = settings.pairingWriteUuid;
+    if (settings.pairingNotifyUuid) {
+      config.notifyCharacteristicUuid = settings.pairingNotifyUuid;
+    }
+  }
+
+  return config;
+}
+
+function toKnownDevice(info: BluetoothDeviceInfo, existing?: KnownDevice, pinPaired = false): KnownDevice {
   const now = Date.now();
   return {
     id: info.id,
     name: info.name,
     firstPaired: existing?.firstPaired ?? now,
     lastConnected: now,
+    pinPaired: pinPaired || existing?.pinPaired,
   };
 }
 
@@ -54,11 +81,38 @@ function upsertKnownDevice(devices: KnownDevice[], entry: KnownDevice): KnownDev
   );
 }
 
+async function finalizeConnection(
+  info: BluetoothDeviceInfo,
+  pinPaired: boolean,
+  get: () => ConnectionState,
+  set: (partial: Partial<ConnectionState>) => void,
+): Promise<void> {
+  const existing = get().knownDevices.find((d) => d.id === info.id);
+  const knownDevice = toKnownDevice(info, existing, pinPaired);
+  const knownDevices = upsertKnownDevice(get().knownDevices, knownDevice);
+  const services = await bluetoothManager.connect();
+
+  await persistConnectedDevice(info, services);
+  set({
+    device: info,
+    currentDevice: knownDevice,
+    knownDevices,
+    connected: true,
+    connecting: false,
+    pairingPhase: "idle",
+    awaitingPinDevice: null,
+    services,
+    pairingMessage: pinPaired ? "PIN accepted. Tripper paired successfully." : null,
+  });
+}
+
 export const useConnectionStore = create<ConnectionState>()(
   persist(
     (set, get) => ({
       connected: false,
       connecting: false,
+      pairingPhase: "idle",
+      awaitingPinDevice: null,
       bluetoothSupported: bluetoothManager.isSupported(),
       device: null,
       currentDevice: undefined,
@@ -66,11 +120,12 @@ export const useConnectionStore = create<ConnectionState>()(
       services: [],
       rssi: undefined,
       lastError: null,
+      pairingMessage: null,
 
-      clearError: () => set({ lastError: null }),
+      clearError: () => set({ lastError: null, pairingMessage: null }),
 
-      connectNewDevice: async () => {
-        set({ connecting: true, lastError: null });
+      startPairing: async () => {
+        set({ connecting: true, lastError: null, pairingMessage: null });
         try {
           await bluetoothManager.connectNewDevice();
           const info = bluetoothManager.getDeviceInfo();
@@ -78,22 +133,52 @@ export const useConnectionStore = create<ConnectionState>()(
             throw new Error("No device selected.");
           }
 
-          const existing = get().knownDevices.find((d) => d.id === info.id);
-          const knownDevice = toKnownDevice(info, existing);
-          const knownDevices = upsertKnownDevice(get().knownDevices, knownDevice);
-
-          set({ device: info, currentDevice: knownDevice, knownDevices });
-
-          const services = await bluetoothManager.connect();
-          await persistConnectedDevice(info, services);
-          set({ connected: true, connecting: false, services });
+          await bluetoothManager.connectGatt();
+          set({
+            connecting: false,
+            pairingPhase: "awaiting_pin",
+            awaitingPinDevice: info,
+            device: info,
+          });
         } catch (err) {
           set({
             connecting: false,
-            connected: false,
+            pairingPhase: "idle",
+            awaitingPinDevice: null,
             lastError: getBluetoothErrorMessage(err),
           });
         }
+      },
+
+      submitPin: async (pin) => {
+        const pending = get().awaitingPinDevice ?? get().device;
+        if (!pending) {
+          set({ lastError: "Select your Tripper in the Bluetooth picker first." });
+          return;
+        }
+
+        set({ pairingPhase: "submitting_pin", lastError: null, pairingMessage: null });
+        try {
+          const result = await bluetoothManager.pairWithPin(pin, getPairingConfig());
+          await finalizeConnection(pending, true, get, set);
+          set({ pairingMessage: result.message });
+        } catch (err) {
+          set({
+            pairingPhase: "awaiting_pin",
+            lastError: getBluetoothErrorMessage(err),
+          });
+        }
+      },
+
+      cancelPairing: async () => {
+        await bluetoothManager.disconnect();
+        set({
+          pairingPhase: "idle",
+          awaitingPinDevice: null,
+          connected: false,
+          device: get().currentDevice ? toDeviceInfo(get().currentDevice!) : null,
+          services: [],
+        });
       },
 
       reconnect: async () => {
@@ -106,23 +191,23 @@ export const useConnectionStore = create<ConnectionState>()(
       },
 
       reconnectDevice: async (deviceId) => {
-        set({ connecting: true, lastError: null });
+        set({ connecting: true, lastError: null, pairingMessage: null });
         try {
           const known = get().knownDevices.find((d) => d.id === deviceId);
           const info = await bluetoothManager.connectToPermittedDevice(deviceId);
-          const knownDevice = toKnownDevice(info, known);
-          const knownDevices = upsertKnownDevice(get().knownDevices, knownDevice);
 
+          if (known?.pinPaired) {
+            await finalizeConnection(info, true, get, set);
+            return;
+          }
+
+          await bluetoothManager.connectGatt();
           set({
             device: info,
-            currentDevice: knownDevice,
-            knownDevices,
+            awaitingPinDevice: info,
             connecting: false,
+            pairingPhase: "awaiting_pin",
           });
-
-          const services = await bluetoothManager.connect();
-          await persistConnectedDevice(info, services);
-          set({ connected: true, services });
         } catch (err) {
           set({
             connecting: false,
@@ -148,6 +233,8 @@ export const useConnectionStore = create<ConnectionState>()(
 
         set({
           knownDevices,
+          pairingPhase: "idle",
+          awaitingPinDevice: null,
           ...(isCurrent
             ? {
                 currentDevice: undefined,
@@ -162,7 +249,7 @@ export const useConnectionStore = create<ConnectionState>()(
 
       disconnect: async () => {
         await bluetoothManager.disconnect();
-        set({ connected: false, services: [], rssi: undefined });
+        set({ connected: false, services: [], rssi: undefined, pairingPhase: "idle" });
       },
 
       refreshServices: async () => {
