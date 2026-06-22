@@ -1,26 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
   <rect width="1280" height="720" fill="#111827"/>
-  <text x="80" y="100" fill="#22d3ee" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="700">Quicker</text>
-  <text x="260" y="100" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="48" font-weight="700">-pod</text>
-  <text x="80" y="150" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="22">BLE protocol explorer for Tripper Pod</text>
-  <rect x="80" y="200" width="520" height="420" rx="24" fill="#1f293780" stroke="#ffffff1a"/>
-  <text x="110" y="250" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="600">Protocol Lab</text>
+  <text x="80" y="100" fill="#22d3ee" font-family="sans-serif" font-size="48" font-weight="700">Quicker</text>
+  <text x="260" y="100" fill="#ffffff" font-family="sans-serif" font-size="48" font-weight="700">-pod</text>
+  <text x="80" y="150" fill="#9ca3af" font-family="sans-serif" font-size="22">BLE protocol explorer for Tripper Pod</text>
+  <rect x="80" y="200" width="520" height="420" rx="24" fill="#1f2937" stroke="#ffffff" opacity="0.15"/>
+  <text x="110" y="250" fill="#ffffff" font-family="sans-serif" font-size="24" font-weight="600">Protocol Lab</text>
   <rect x="110" y="280" width="90" height="36" rx="12" fill="#22d3ee"/>
-  <text x="126" y="304" fill="#111827" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600">Explorer</text>
+  <text x="126" y="304" fill="#111827" font-family="sans-serif" font-size="14" font-weight="600">Explorer</text>
   <rect x="210" y="280" width="90" height="36" rx="12" fill="#1f2937"/>
-  <text x="226" y="304" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="14">Monitor</text>
+  <text x="226" y="304" fill="#9ca3af" font-family="sans-serif" font-size="14">Monitor</text>
   <rect x="310" y="280" width="90" height="36" rx="12" fill="#1f2937"/>
-  <text x="332" y="304" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="14">Sender</text>
+  <text x="332" y="304" fill="#9ca3af" font-family="sans-serif" font-size="14">Sender</text>
   <rect x="110" y="340" width="460" height="240" rx="18" fill="#111827"/>
-  <text x="130" y="380" fill="#6b7280" font-family="JetBrains Mono, monospace" font-size="16">12:15:01 RX</text>
-  <text x="130" y="420" fill="#22d3ee" font-family="JetBrains Mono, monospace" font-size="28">20 01 00 64</text>
-  <text x="130" y="470" fill="#6b7280" font-family="JetBrains Mono, monospace" font-size="16">12:15:02 TX</text>
-  <text x="130" y="510" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="28">01 FF 20</text>
-  <rect x="660" y="200" width="540" height="200" rx="24" fill="#1f293780" stroke="#ffffff1a"/>
-  <text x="690" y="250" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600">Mutation Lab</text>
-  <text x="690" y="290" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="16">Lock bytes · guided fuzzing · rate limited</text>
-  <text x="690" y="340" fill="#22d3ee" font-family="JetBrains Mono, monospace" font-size="20">20 01 | 00 64</text>
-  <rect x="660" y="430" width="540" height="190" rx="24" fill="#1f293780" stroke="#ffffff1a"/>
-  <text x="690" y="480" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="22" font-weight="600">Installable PWA</text>
-  <text x="690" y="520" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="16">Offline shell · Android Chrome · standalone mode</text>
+  <text x="130" y="380" fill="#6b7280" font-family="monospace" font-size="16">12:15:01 RX</text>
+  <text x="130" y="420" fill="#22d3ee" font-family="monospace" font-size="28">20 01 00 64</text>
+  <text x="130" y="470" fill="#6b7280" font-family="monospace" font-size="16">12:15:02 TX</text>
+  <text x="130" y="510" fill="#22c55e" font-family="monospace" font-size="28">01 FF 20</text>
+  <rect x="660" y="200" width="540" height="200" rx="24" fill="#1f2937" stroke="#ffffff" opacity="0.15"/>
+  <text x="690" y="250" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="600">Mutation Lab</text>
+  <text x="690" y="290" fill="#9ca3af" font-family="sans-serif" font-size="16">Lock bytes, guided fuzzing, rate limited</text>
+  <text x="690" y="340" fill="#22d3ee" font-family="monospace" font-size="20">20 01 00 64</text>
+  <rect x="660" y="430" width="540" height="190" rx="24" fill="#1f2937" stroke="#ffffff" opacity="0.15"/>
+  <text x="690" y="480" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="600">Installable PWA</text>
+  <text x="690" y="520" fill="#9ca3af" font-family="sans-serif" font-size="16">Offline shell and standalone mode</text>
 </svg>
