@@ -8,6 +8,7 @@ import { ConsolePage } from "@/pages/ConsolePage";
 import { TransmitPage } from "@/pages/TransmitPage";
 import { SimulatorPage } from "@/pages/SimulatorPage";
 import { SettingsPage } from "@/pages/SettingsPage";
+import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
 
 export default function App() {
   useBluetooth();
@@ -21,6 +22,7 @@ export default function App() {
       <Route path="/simulator" element={<SimulatorPage />} />
       <Route path="/console" element={<ConsolePage />} />
       <Route path="/transmit" element={<TransmitPage />} />
+      <Route path="/protocol-lab" element={<ProtocolLabPage />} />
       <Route path="/settings" element={<SettingsPage />} />
     </Routes>
   );

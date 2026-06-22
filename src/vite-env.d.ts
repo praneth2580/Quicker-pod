@@ -53,6 +53,14 @@ interface BluetoothRemoteGATTCharacteristic extends EventTarget {
   writeValueWithoutResponse(value: BufferSource): Promise<void>;
   startNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
   stopNotifications(): Promise<BluetoothRemoteGATTCharacteristic>;
+  getDescriptor(descriptor: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTDescriptor>;
+  getDescriptors(descriptor?: BluetoothCharacteristicUUID): Promise<BluetoothRemoteGATTDescriptor[]>;
+}
+
+interface BluetoothRemoteGATTDescriptor {
+  uuid: string;
+  readValue(): Promise<DataView>;
+  writeValue(value: BufferSource): Promise<void>;
 }
 
 interface BluetoothCharacteristicProperties {

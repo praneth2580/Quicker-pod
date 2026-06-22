@@ -85,6 +85,11 @@ export function DashboardPage() {
               Scan Devices
             </Button>
           </Link>
+          <Link to="/protocol-lab">
+            <Button fullWidth variant="primary">
+              Protocol Lab
+            </Button>
+          </Link>
           <Link to="/console">
             <Button fullWidth variant="secondary">
               Packet Console

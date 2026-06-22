@@ -7,6 +7,7 @@ const navItems = [
   { path: "/console", label: "Log", icon: "▤" },
   { path: "/transmit", label: "TX", icon: "↑" },
   { path: "/simulator", label: "Nav", icon: "↻" },
+  { path: "/protocol-lab", label: "Lab", icon: "⚗" },
   { path: "/settings", label: "Set", icon: "⚙" },
 ];
 
