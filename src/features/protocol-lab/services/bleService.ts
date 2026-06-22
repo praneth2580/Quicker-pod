@@ -1,8 +1,6 @@
 import { bluetoothManager } from "@/bluetooth/BluetoothManager";
-import { useConnectionStore } from "@/store/connectionStore";
 import { bytesToHex } from "@/utils";
 import type { DetailedServiceInfo } from "../types";
-import { MOCK_DETAILED_SERVICES } from "./mockData";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
 
@@ -17,9 +15,6 @@ function parseProperties(char: GattCharacteristic) {
 }
 
 export async function discoverDetailedServices(): Promise<DetailedServiceInfo[]> {
-  const { mockMode } = useConnectionStore.getState();
-  if (mockMode) return MOCK_DETAILED_SERVICES;
-
   if (!bluetoothManager.isConnected()) {
     throw new Error("Not connected to a device");
   }
@@ -59,8 +54,6 @@ export async function readCharacteristic(
   serviceUuid: string,
   characteristicUuid: string,
 ): Promise<Uint8Array> {
-  const { mockMode } = useConnectionStore.getState();
-  if (mockMode) return new Uint8Array([0x20, 0x01, 0x00, 0x64]);
   return bluetoothManager.readCharacteristic(serviceUuid, characteristicUuid);
 }
 
@@ -69,8 +62,6 @@ export async function writeCharacteristic(
   characteristicUuid: string,
   data: Uint8Array,
 ): Promise<void> {
-  const { mockMode } = useConnectionStore.getState();
-  if (mockMode) return;
   await bluetoothManager.writeCharacteristic(serviceUuid, characteristicUuid, data);
 }
 
@@ -78,8 +69,6 @@ export async function subscribeCharacteristic(
   serviceUuid: string,
   characteristicUuid: string,
 ): Promise<void> {
-  const { mockMode } = useConnectionStore.getState();
-  if (mockMode) return;
   await bluetoothManager.subscribeToNotifications(serviceUuid, characteristicUuid);
 }
 

@@ -126,7 +126,6 @@ src/
 ├── hooks/                  # useBluetooth, useTheme, usePwaInstall
 ├── layouts/                # AppLayout shell
 ├── pages/                  # Dashboard, Scanner, Settings
-├── services/               # Mock data for dev/testing
 ├── store/                  # connectionStore, settingsStore, pwaInstallStore
 ├── types/                  # Shared TypeScript interfaces
 ├── utils/                  # HEX conversion, formatting
@@ -163,7 +162,7 @@ Legacy routes redirect to Protocol Lab tabs with `?tab=`.
 
 `bluetooth/BluetoothManager.ts` handles device request, connect/disconnect, characteristic read/write, notification subscriptions, and emits events consumed by the protocol lab packet logger.
 
-`features/protocol-lab/services/bleService.ts` adds descriptor discovery and mock-mode support.
+`features/protocol-lab/services/bleService.ts` adds descriptor discovery on top of the shared Bluetooth manager.
 
 ---
 
@@ -179,7 +178,6 @@ Legacy routes redirect to Protocol Lab tabs with `?tab=`.
 ## Environment notes
 
 - **Web Bluetooth** requires a secure context (HTTPS or localhost)
-- **Mock mode** activates when Web Bluetooth is unavailable — use Protocol Lab → Explorer → Mock Connect
 - **GitHub Pages** serves from `/Quicker-pod/` — `BrowserRouter` uses `import.meta.env.BASE_URL`
 
 ---

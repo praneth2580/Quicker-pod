@@ -24,7 +24,7 @@ export function HexInput({ label, value, onChange, error, className = "", ...pro
             ? "border-white/10 focus:border-accent focus:ring-accent"
             : "border-danger/50 focus:border-danger focus:ring-danger"
         } ${className}`}
-        placeholder="20 01 00 64"
+        placeholder="AA BB CC DD"
         {...props}
       />
       {(error || (!valid && value.trim())) && (

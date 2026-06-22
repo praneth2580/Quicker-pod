@@ -5,12 +5,11 @@ import { isValidHex, hexToBytes } from "@/utils";
 import { HexInput } from "./HexInput";
 import { useProtocolLabStore } from "../store";
 import { writeCharacteristic } from "../services/bleService";
-import { formatReadValue } from "../services/bleService";
 import { useProtocolLabPacketLogger } from "../store/packetLoggerStore";
 import { formatUuid } from "../utils/formatUuid";
 
 export function PacketSenderPanel() {
-  const [hex, setHex] = useState("20 01 00 64");
+  const [hex, setHex] = useState("");
   const selectedWritable = useProtocolLabStore((s) => s.selectedWritable);
   const { lastSentHex, lastResponseHex, lastSendError, setLastSend } = useProtocolLabStore();
   const addError = useProtocolLabStore((s) => s.addError);
@@ -35,7 +34,7 @@ export function PacketSenderPanel() {
         bytes,
       );
       addSent(selectedWritable.serviceUuid, selectedWritable.characteristicUuid, bytes);
-      setLastSend(hex, formatReadValue(new Uint8Array([0xaa, bytes[bytes.length - 1] ?? 0])), null);
+      setLastSend(hex, null, null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Send failed";
       addError(msg);

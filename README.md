@@ -32,7 +32,7 @@ Install the app on your phone (PWA) for a standalone experience optimized for on
 3. Select your Tripper Pod from the list
 4. Confirm connection on the **Dashboard**
 
-If Web Bluetooth is unavailable (e.g. Firefox), use **Mock Connect** inside Protocol Lab → Explorer to explore the UI without hardware.
+If Web Bluetooth is unavailable (e.g. Firefox), use Chrome on Android or desktop to connect to a real device.
 
 ### 2. Explore services (Protocol Lab → Explorer)
 
@@ -111,7 +111,7 @@ Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to t
 | Web Bluetooth | ✅ | ✅ | ❌ | ❌ |
 | PWA install | ✅ | ✅ | Limited | ✅ (iOS 16.4+) |
 
-Real BLE requires a Chromium-based browser on **HTTPS** or `localhost`. Use mock mode on unsupported browsers.
+Real BLE requires a Chromium-based browser on **HTTPS** or `localhost`.
 
 ---
 

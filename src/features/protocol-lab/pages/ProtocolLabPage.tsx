@@ -61,7 +61,7 @@ export function ProtocolLabPage() {
         {!connected && (
           <Card className="border-warning/30">
             <p className="text-sm text-warning">
-              Connect a device from the Connect tab or use Mock Connect in Explorer.
+              Connect a device from the Connect tab to use Protocol Lab.
             </p>
           </Card>
         )}

@@ -14,7 +14,7 @@ import {
 import { formatRssi } from "@/utils/format";
 
 export function DeviceExplorerPanel() {
-  const { connected, device, mockConnect, bluetoothSupported } = useConnectionStore();
+  const { connected, device } = useConnectionStore();
   const {
     detailedServices,
     expandedServices,
@@ -76,11 +76,6 @@ export function DeviceExplorerPanel() {
     }
   };
 
-  const handleMockConnect = () => {
-    mockConnect({ id: "mock:lab", name: "Tripper Pod (Mock)", rssi: -55 });
-    void refresh();
-  };
-
   return (
     <div className="space-y-4">
       <Card title="Device">
@@ -102,15 +97,10 @@ export function DeviceExplorerPanel() {
             <StatusBadge label={connected ? "Connected" : "Disconnected"} active={connected} />
           </div>
         </div>
-        <div className="mt-4 flex gap-2">
+        <div className="mt-4">
           <Button variant="secondary" fullWidth onClick={() => void refresh()} disabled={!connected}>
             Refresh Services
           </Button>
-          {!connected && !bluetoothSupported && (
-            <Button fullWidth onClick={handleMockConnect}>
-              Mock Connect
-            </Button>
-          )}
         </div>
       </Card>
 

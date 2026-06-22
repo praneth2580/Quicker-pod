@@ -10,7 +10,6 @@ import {
 import { writeCharacteristic } from "../services/bleService";
 import { generateMutations, MIN_PACKET_DELAY_MS, MAX_MUTATIONS_PER_RUN } from "../utils/mutation";
 import { useProtocolLabPacketLogger } from "../store/packetLoggerStore";
-import { bytesToHex } from "@/utils";
 
 export function useMutationRunner() {
   const stopRef = useRef(false);
@@ -101,15 +100,11 @@ export function useMutationRunner() {
         await writeCharacteristic(serviceUuid, characteristicUuid, bytes);
         addSent(serviceUuid, characteristicUuid, bytes, "mutation");
 
-        const mockResponse = useConnectionStore.getState().mockMode
-          ? bytesToHex(new Uint8Array([0xaa, bytes[bytes.length - 1] ?? 0]))
-          : null;
-
         addResult(
           createMutationResult({
             jobId: job.id,
             packetHex,
-            responseHex: mockResponse,
+            responseHex: null,
             disconnected: false,
             notes: "OK",
           }),
