@@ -9,14 +9,25 @@
       <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
     </linearGradient>
   </defs>
+  <!-- Background -->
   <rect width="512" height="512" rx="108" fill="url(#bg)"/>
   <rect width="512" height="512" rx="108" fill="url(#glow)"/>
+  <!-- Outer ring (pod / gauge bezel) -->
   <circle cx="256" cy="256" r="168" stroke="#22d3ee" stroke-width="8" stroke-opacity="0.35"/>
   <circle cx="256" cy="256" r="132" stroke="#22d3ee" stroke-width="4" stroke-opacity="0.55"/>
+  <!-- BLE arcs -->
   <path d="M256 148c-48 0-88 40-88 88" stroke="#22d3ee" stroke-width="14" stroke-linecap="round"/>
   <path d="M256 180c-30 0-56 26-56 56" stroke="#22d3ee" stroke-width="14" stroke-linecap="round"/>
   <circle cx="256" cy="236" r="12" fill="#22d3ee"/>
-  <path d="M196 300c0-44 27-72 60-72s60 28 60 72-27 72-60 72c-18 0-33-7-44-19l-28 35" stroke="#e5e7eb" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Q monogram -->
+  <path
+    d="M196 300c0-44 27-72 60-72s60 28 60 72-27 72-60 72c-18 0-33-7-44-19l-28 35"
+    stroke="#e5e7eb"
+    stroke-width="22"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <!-- Packet ticks -->
   <rect x="332" y="318" width="10" height="28" rx="3" fill="#22d3ee" fill-opacity="0.8"/>
   <rect x="350" y="302" width="10" height="44" rx="3" fill="#22d3ee"/>
   <rect x="368" y="290" width="10" height="56" rx="3" fill="#22d3ee" fill-opacity="0.9"/>
