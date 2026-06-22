@@ -5,6 +5,7 @@ const TABS: { id: ProtocolLabTab; label: string }[] = [
   { id: "notifications", label: "Monitor" },
   { id: "sender", label: "Sender" },
   { id: "mutation", label: "Mutation" },
+  { id: "simulator", label: "Simulator" },
   { id: "export", label: "Export" },
 ];
 

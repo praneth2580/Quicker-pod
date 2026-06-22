@@ -1,29 +1,35 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { useBluetooth } from "@/hooks/useBluetooth";
 import { usePwaInstallInit } from "@/hooks/usePwaInstall";
+import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
+import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ScannerPage } from "@/pages/ScannerPage";
-import { ExplorerPage } from "@/pages/ExplorerPage";
-import { ConsolePage } from "@/pages/ConsolePage";
-import { TransmitPage } from "@/pages/TransmitPage";
-import { SimulatorPage } from "@/pages/SimulatorPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
 
+function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
+  const tab = LEGACY_ROUTE_TABS[legacyPath] ?? "explorer";
+  return <Navigate to={`/protocol-lab?tab=${tab}`} replace />;
+}
+
 export default function App() {
   useBluetooth();
+  useProtocolLabBle();
   usePwaInstallInit();
 
   return (
     <Routes>
       <Route path="/" element={<DashboardPage />} />
       <Route path="/scanner" element={<ScannerPage />} />
-      <Route path="/explorer" element={<ExplorerPage />} />
-      <Route path="/simulator" element={<SimulatorPage />} />
-      <Route path="/console" element={<ConsolePage />} />
-      <Route path="/transmit" element={<TransmitPage />} />
       <Route path="/protocol-lab" element={<ProtocolLabPage />} />
       <Route path="/settings" element={<SettingsPage />} />
+
+      {/* Legacy routes → Protocol Lab tabs */}
+      <Route path="/explorer" element={<LegacyProtocolLabRedirect legacyPath="explorer" />} />
+      <Route path="/console" element={<LegacyProtocolLabRedirect legacyPath="console" />} />
+      <Route path="/transmit" element={<LegacyProtocolLabRedirect legacyPath="transmit" />} />
+      <Route path="/simulator" element={<LegacyProtocolLabRedirect legacyPath="simulator" />} />
     </Routes>
   );
 }

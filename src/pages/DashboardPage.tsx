@@ -4,13 +4,13 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useConnectionStore } from "@/store/connectionStore";
-import { usePacketStore } from "@/store/packetStore";
+import { useProtocolLabPacketLogger } from "@/features/protocol-lab/store/packetLoggerStore";
 import { formatRssi } from "@/utils/format";
-import { bytesToHex } from "@/utils";
 
 export function DashboardPage() {
   const { connected, bluetoothSupported, device, rssi, lastError } = useConnectionStore();
-  const { sentPackets, receivedPackets } = usePacketStore();
+  const sentPackets = useProtocolLabPacketLogger((s) => s.sentPackets);
+  const receivedPackets = useProtocolLabPacketLogger((s) => s.receivedPackets);
 
   const lastSent = sentPackets[sentPackets.length - 1];
   const lastReceived = receivedPackets[receivedPackets.length - 1];
@@ -61,13 +61,13 @@ export function DashboardPage() {
             <div>
               <p className="mb-1 text-xs uppercase tracking-wider text-gray-500">Last Sent</p>
               <pre className="packet-viewer text-accent">
-                {lastSent ? bytesToHex(lastSent.payload) : "—"}
+                {lastSent ? lastSent.payloadHex : "—"}
               </pre>
             </div>
             <div>
               <p className="mb-1 text-xs uppercase tracking-wider text-gray-500">Last Received</p>
               <pre className="packet-viewer text-success">
-                {lastReceived ? bytesToHex(lastReceived.payload) : "—"}
+                {lastReceived ? lastReceived.payloadHex : "—"}
               </pre>
             </div>
           </div>
@@ -82,17 +82,12 @@ export function DashboardPage() {
         <div className="grid grid-cols-2 gap-3">
           <Link to="/scanner">
             <Button fullWidth variant="primary">
-              Scan Devices
+              Connect Device
             </Button>
           </Link>
           <Link to="/protocol-lab">
             <Button fullWidth variant="primary">
               Protocol Lab
-            </Button>
-          </Link>
-          <Link to="/console">
-            <Button fullWidth variant="secondary">
-              Packet Console
             </Button>
           </Link>
         </div>

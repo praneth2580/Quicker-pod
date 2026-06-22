@@ -13,12 +13,22 @@ It is a community-driven alternative to the official Tripper Pod app. Version 1 
 | Page | Route | Description |
 |------|-------|-------------|
 | **Dashboard** | `/` | Bluetooth status, connection state, device info, last TX/RX packets |
-| **Device Scanner** | `/scanner` | Scan, filter, connect, and disconnect BLE devices |
-| **Device Explorer** | `/explorer` | Browse GATT services and characteristics; read, write, and subscribe |
-| **Packet Console** | `/console` | Live traffic log with clear, export, and copy |
-| **Packet Sender** | `/transmit` | Send manual HEX payloads; save and repeat packets |
-| **Navigation Simulator** | `/simulator` | Simulate turn maneuvers and preview generated packets |
-| **Settings** | `/settings` | Dark mode, debug/experimental toggles, log import/export |
+| **Connect** | `/scanner` | Scan, filter, connect, and disconnect BLE devices |
+| **Protocol Lab** | `/protocol-lab` | BLE protocol workbench with 6 tabs (see below) |
+| **Settings** | `/settings` | Dark mode, debug/experimental toggles |
+
+### Protocol Lab tabs (`/protocol-lab`)
+
+| Tab | Description |
+|-----|-------------|
+| **Explorer** | GATT services, characteristics, descriptors; read, subscribe, select TX target |
+| **Monitor** | Live notification log with pause, clear, copy, export |
+| **Sender** | Manual HEX transmission to a selected writable characteristic |
+| **Mutation** | Guided byte mutation with rate limiting and results table |
+| **Simulator** | Navigation maneuver packet generation |
+| **Export** | Session export/import (JSON, CSV) |
+
+Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to the matching Protocol Lab tab.
 
 When Web Bluetooth is unavailable (e.g. desktop Firefox), the scanner falls back to **mock devices** so the UI and packet flow can still be tested.
 

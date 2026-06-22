@@ -1,24 +1,13 @@
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Card } from "@/components/ui/Card";
 import { Toggle } from "@/components/ui/Toggle";
 import { Button } from "@/components/ui/Button";
 import { useSettingsStore } from "@/store/settingsStore";
-import { usePacketStore } from "@/store/packetStore";
-import { downloadText, readTextFile } from "@/utils/format";
 
 export function SettingsPage() {
   const { darkMode, debugMode, experimentalMode, toggleDarkMode, setDebugMode, setExperimentalMode } =
     useSettingsStore();
-  const { exportLogs, importLogs, clearLogs } = usePacketStore();
-
-  const handleExport = () => {
-    downloadText(`quicker-pod-logs-${Date.now()}.txt`, exportLogs());
-  };
-
-  const handleImport = async () => {
-    const content = await readTextFile();
-    if (content) importLogs(content);
-  };
 
   return (
     <AppLayout title="Settings" subtitle="App Configuration">
@@ -49,18 +38,15 @@ export function SettingsPage() {
           </div>
         </Card>
 
-        <Card title="Packet Logs">
-          <div className="grid gap-2">
-            <Button variant="secondary" onClick={handleExport}>
-              Export Logs
+        <Card title="Session Data">
+          <p className="mb-4 text-sm text-gray-400">
+            Packet logs, mutation results, and session export live in Protocol Lab.
+          </p>
+          <Link to="/protocol-lab?tab=export">
+            <Button fullWidth variant="secondary">
+              Open Protocol Lab Export
             </Button>
-            <Button variant="secondary" onClick={() => void handleImport()}>
-              Import Logs
-            </Button>
-            <Button variant="danger" onClick={clearLogs}>
-              Clear All Logs
-            </Button>
-          </div>
+          </Link>
         </Card>
 
         <Card title="About">

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -8,20 +9,33 @@ import { DeviceExplorerPanel } from "../components/DeviceExplorerPanel";
 import { NotificationViewer } from "../components/NotificationViewer";
 import { PacketSenderPanel } from "../components/PacketSenderPanel";
 import { MutationRunner } from "../components/MutationRunner";
+import { SimulatorPanel } from "../components/SimulatorPanel";
 import { ExportPanel } from "../components/ExportPanel";
 import { ErrorConsole } from "../components/ErrorConsole";
 import { useProtocolLabStore } from "../store";
-import { useProtocolLabBle } from "../hooks/useProtocolLabBle";
 import { subscribeAllNotifiable } from "../services/bleService";
+import { isProtocolLabTab } from "../utils/tabs";
 
 export function ProtocolLabPage() {
-  useProtocolLabBle();
+  const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = useProtocolLabStore((s) => s.activeTab);
   const setActiveTab = useProtocolLabStore((s) => s.setActiveTab);
   const detailedServices = useProtocolLabStore((s) => s.detailedServices);
   const addSubscribed = useProtocolLabStore((s) => s.addSubscribed);
   const addError = useProtocolLabStore((s) => s.addError);
   const connected = useConnectionStore((s) => s.connected);
+
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    if (tabParam && isProtocolLabTab(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams, setActiveTab]);
+
+  const handleTabChange = (tab: typeof activeTab) => {
+    setActiveTab(tab);
+    setSearchParams({ tab }, { replace: true });
+  };
 
   const handleSubscribeAll = async () => {
     try {
@@ -42,12 +56,12 @@ export function ProtocolLabPage() {
   return (
     <AppLayout title="Protocol Lab" subtitle="BLE Protocol Reverse Engineering">
       <div className="space-y-4">
-        <ProtocolLabTabs active={activeTab} onChange={setActiveTab} />
+        <ProtocolLabTabs active={activeTab} onChange={handleTabChange} />
 
         {!connected && (
           <Card className="border-warning/30">
             <p className="text-sm text-warning">
-              Connect a device from Scanner or use Mock Connect in the Explorer tab.
+              Connect a device from the Connect tab or use Mock Connect in Explorer.
             </p>
           </Card>
         )}
@@ -72,6 +86,7 @@ export function ProtocolLabPage() {
 
         {activeTab === "sender" && <PacketSenderPanel />}
         {activeTab === "mutation" && <MutationRunner />}
+        {activeTab === "simulator" && <SimulatorPanel />}
         {activeTab === "export" && <ExportPanel />}
       </div>
     </AppLayout>
