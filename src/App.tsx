@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useBluetooth } from "@/hooks/useBluetooth";
+import { useDbInit } from "@/hooks/useDbInit";
 import { usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
 import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
@@ -17,6 +18,7 @@ export default function App() {
   useBluetooth();
   useProtocolLabBle();
   usePwaInstallInit();
+  useDbInit();
 
   return (
     <Routes>

@@ -13,6 +13,7 @@
     "deploy": "npm run build && gh-pages -d dist -b gh-pages"
   },
   "dependencies": {
+    "dexie": "^4.4.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
@@ -22,8 +23,8 @@
     "@eslint/js": "^9.28.0",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",
-    "@vitejs/plugin-react": "^4.5.2",
     "@vite-pwa/assets-generator": "^1.0.2",
+    "@vitejs/plugin-react": "^4.5.2",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.28.0",
     "eslint-plugin-react-hooks": "^5.2.0",

@@ -65,6 +65,38 @@ class BluetoothManager {
       filters,
     });
 
+    return this.attachDevice(device);
+  }
+
+  async getPermittedDevices(): Promise<BluetoothDeviceInfo[]> {
+    if (!this.isSupported() || !navigator.bluetooth.getDevices) {
+      return [];
+    }
+    const devices = await navigator.bluetooth.getDevices();
+    return devices.map((d) => ({
+      id: d.id,
+      name: d.name || "Unknown Device",
+    }));
+  }
+
+  async connectToPermittedDevice(deviceId: string): Promise<BluetoothDeviceInfo> {
+    if (!this.isSupported()) {
+      throw new Error("Web Bluetooth is not supported in this browser");
+    }
+    if (!navigator.bluetooth.getDevices) {
+      throw new Error("Reconnect requires a browser with getDevices() support");
+    }
+
+    const devices = await navigator.bluetooth.getDevices();
+    const device = devices.find((d) => d.id === deviceId);
+    if (!device) {
+      throw new Error("Device not permitted. Scan and connect once, then try again.");
+    }
+
+    return this.attachDevice(device);
+  }
+
+  private attachDevice(device: BluetoothDevice): BluetoothDeviceInfo {
     this.device = device;
     device.addEventListener("gattserverdisconnected", () => this.handleDisconnect());
 

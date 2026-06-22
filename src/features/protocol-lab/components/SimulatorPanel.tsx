@@ -6,36 +6,31 @@ import { HexInput } from "./HexInput";
 import { useProtocolLabStore } from "../store";
 import { writeCharacteristic } from "../services/bleService";
 import { useProtocolLabPacketLogger } from "../store/packetLoggerStore";
+import { useManeuverStore } from "@/store/maneuverStore";
 import { hexToBytes, isValidHex } from "@/utils";
-
-interface CustomManeuver {
-  id: string;
-  label: string;
-  hex: string;
-}
+import type { StoredManeuver } from "@/db/types";
 
 export function SimulatorPanel() {
   const [label, setLabel] = useState("");
   const [hex, setHex] = useState("");
-  const [maneuvers, setManeuvers] = useState<CustomManeuver[]>([]);
+  const maneuvers = useManeuverStore((s) => s.maneuvers);
+  const addManeuverToStore = useManeuverStore((s) => s.addManeuver);
+  const removeManeuverFromStore = useManeuverStore((s) => s.removeManeuver);
   const selectedWritable = useProtocolLabStore((s) => s.selectedWritable);
   const addError = useProtocolLabStore((s) => s.addError);
   const addSent = useProtocolLabPacketLogger((s) => s.addSent);
 
-  const addManeuver = () => {
+  const addManeuver = async () => {
     if (!label.trim() || !isValidHex(hex)) {
       addError("Enter a label and valid HEX packet to save a maneuver");
       return;
     }
-    setManeuvers((prev) => [
-      ...prev,
-      { id: `man-${Date.now()}`, label: label.trim(), hex: hex.toUpperCase() },
-    ]);
+    await addManeuverToStore(label.trim(), hex.toUpperCase());
     setLabel("");
     setHex("");
   };
 
-  const simulate = async (maneuver: CustomManeuver) => {
+  const simulate = async (maneuver: StoredManeuver) => {
     if (!selectedWritable) {
       addError("Select a writable characteristic in Explorer first");
       return;
@@ -76,7 +71,7 @@ export function SimulatorPanel() {
             placeholder="Left turn"
           />
           <HexInput label="HEX packet" value={hex} onChange={setHex} />
-          <Button fullWidth variant="secondary" onClick={addManeuver}>
+          <Button fullWidth variant="secondary" onClick={() => void addManeuver()}>
             Save maneuver
           </Button>
         </div>
@@ -91,13 +86,20 @@ export function SimulatorPanel() {
           {maneuvers.map((m) => (
             <Card key={m.id}>
               <div className="flex items-center justify-between gap-4">
-                <div>
+                <div className="min-w-0 flex-1">
                   <h3 className="text-lg font-semibold">{m.label}</h3>
                   <pre className="mt-1 font-mono text-sm text-accent">{m.hex}</pre>
                 </div>
-                <Button variant="secondary" onClick={() => void simulate(m)}>
-                  Send
-                </Button>
+                <div className="flex shrink-0 flex-col gap-2">
+                  <Button variant="secondary" onClick={() => void simulate(m)}>
+                    Send
+                  </Button>
+                  {m.id !== undefined && (
+                    <Button variant="ghost" onClick={() => void removeManeuverFromStore(m.id!)}>
+                      Remove
+                    </Button>
+                  )}
+                </div>
               </div>
             </Card>
           ))}

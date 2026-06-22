@@ -1,5 +1,13 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import {
+  addMutationJob,
+  addMutationResult,
+  clearMutationResults,
+  getMutationPrefs,
+  listMutationJobs,
+  listMutationResults,
+  saveMutationPrefs,
+} from "@/db/repository";
 import type {
   CharacteristicRef,
   DetailedServiceInfo,
@@ -74,6 +82,7 @@ export const useProtocolLabStore = create<ProtocolLabState>()((set) => ({
 }));
 
 interface MutationState {
+  hydrated: boolean;
   jobs: MutationJob[];
   results: MutationResult[];
   running: boolean;
@@ -86,6 +95,7 @@ interface MutationState {
   rangeEnd: number;
   delayMs: number;
 
+  hydrateFromDb: () => Promise<void>;
   setBasePacketHex: (hex: string) => void;
   setLockHex: (hex: string) => void;
   setMode: (mode: MutationMode) => void;
@@ -100,45 +110,90 @@ interface MutationState {
 
 let mutationCounter = 0;
 
-export const useMutationStore = create<MutationState>()(
-  persist(
-    (set) => ({
-      jobs: [],
-      results: [],
-      running: false,
-      currentJobId: null,
-      basePacketHex: "",
-      lockHex: "",
-      mode: "single-byte",
-      targetByteIndex: 2,
-      rangeStart: 0,
-      rangeEnd: 3,
-      delayMs: 1000,
+function persistPrefs(state: MutationState): void {
+  void saveMutationPrefs({
+    basePacketHex: state.basePacketHex,
+    lockHex: state.lockHex,
+    mode: state.mode,
+    targetByteIndex: state.targetByteIndex,
+    rangeStart: state.rangeStart,
+    rangeEnd: state.rangeEnd,
+    delayMs: state.delayMs,
+  });
+}
 
-      setBasePacketHex: (hex) => set({ basePacketHex: hex }),
-      setLockHex: (hex) => set({ lockHex: hex }),
-      setMode: (mode) => set({ mode }),
-      setTargetByteIndex: (index) => set({ targetByteIndex: index }),
-      setRange: (start, end) => set({ rangeStart: start, rangeEnd: end }),
-      setDelayMs: (ms) => set({ delayMs: Math.max(500, ms) }),
-      addResult: (result) => set((s) => ({ results: [...s.results, result] })),
-      clearResults: () => set({ results: [] }),
-      setRunning: (running, jobId = null) => set({ running, currentJobId: jobId }),
-      addJob: (job) => set((s) => ({ jobs: [...s.jobs, job] })),
-    }),
-    {
-      name: "quicker-pod-mutation-store",
-      partialize: (s) => ({
-        jobs: s.jobs,
-        results: s.results,
-        basePacketHex: s.basePacketHex,
-        lockHex: s.lockHex,
-        mode: s.mode,
-        delayMs: s.delayMs,
-      }),
-    },
-  ),
-);
+export const useMutationStore = create<MutationState>()((set, get) => ({
+  hydrated: false,
+  jobs: [],
+  results: [],
+  running: false,
+  currentJobId: null,
+  basePacketHex: "",
+  lockHex: "",
+  mode: "single-byte",
+  targetByteIndex: 2,
+  rangeStart: 0,
+  rangeEnd: 3,
+  delayMs: 1000,
+
+  hydrateFromDb: async () => {
+    const [jobs, results, prefs] = await Promise.all([
+      listMutationJobs(),
+      listMutationResults(),
+      getMutationPrefs(),
+    ]);
+    set({
+      hydrated: true,
+      jobs,
+      results,
+      basePacketHex: prefs?.basePacketHex ?? "",
+      lockHex: prefs?.lockHex ?? "",
+      mode: prefs?.mode ?? "single-byte",
+      targetByteIndex: prefs?.targetByteIndex ?? 2,
+      rangeStart: prefs?.rangeStart ?? 0,
+      rangeEnd: prefs?.rangeEnd ?? 3,
+      delayMs: prefs?.delayMs ?? 1000,
+    });
+  },
+
+  setBasePacketHex: (hex) => {
+    set({ basePacketHex: hex });
+    persistPrefs(get());
+  },
+  setLockHex: (hex) => {
+    set({ lockHex: hex });
+    persistPrefs(get());
+  },
+  setMode: (mode) => {
+    set({ mode });
+    persistPrefs(get());
+  },
+  setTargetByteIndex: (index) => {
+    set({ targetByteIndex: index });
+    persistPrefs(get());
+  },
+  setRange: (start, end) => {
+    set({ rangeStart: start, rangeEnd: end });
+    persistPrefs(get());
+  },
+  setDelayMs: (ms) => {
+    set({ delayMs: Math.max(500, ms) });
+    persistPrefs(get());
+  },
+  addResult: (result) => {
+    void addMutationResult(result);
+    set((s) => ({ results: [...s.results, result] }));
+  },
+  clearResults: () => {
+    void clearMutationResults();
+    set({ results: [] });
+  },
+  setRunning: (running, jobId = null) => set({ running, currentJobId: jobId }),
+  addJob: (job) => {
+    void addMutationJob(job);
+    set((s) => ({ jobs: [...s.jobs, job] }));
+  },
+}));
 
 export function createMutationJob(
   partial: Pick<MutationJob, "basePacketHex" | "lockHex" | "mode" | "targetByteIndex" | "rangeStart" | "rangeEnd" | "delayMs">,

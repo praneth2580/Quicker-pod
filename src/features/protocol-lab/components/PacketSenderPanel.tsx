@@ -1,20 +1,27 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
 import { isValidHex, hexToBytes } from "@/utils";
 import { HexInput } from "./HexInput";
 import { useProtocolLabStore } from "../store";
 import { writeCharacteristic } from "../services/bleService";
 import { useProtocolLabPacketLogger } from "../store/packetLoggerStore";
+import { useConnectionStore } from "@/store/connectionStore";
+import { useSavedPacketStore } from "@/store/savedPacketStore";
 import { formatUuid } from "../utils/formatUuid";
 
 export function PacketSenderPanel() {
   const [hex, setHex] = useState("");
+  const [saveName, setSaveName] = useState("");
   const selectedWritable = useProtocolLabStore((s) => s.selectedWritable);
   const { lastSentHex, lastResponseHex, lastSendError, setLastSend } = useProtocolLabStore();
   const addError = useProtocolLabStore((s) => s.addError);
   const addSent = useProtocolLabPacketLogger((s) => s.addSent);
-  const [lastSaved, setLastSaved] = useState<string | null>(null);
+  const device = useConnectionStore((s) => s.device);
+  const savedPackets = useSavedPacketStore((s) => s.packets);
+  const addSavedPacket = useSavedPacketStore((s) => s.addPacket);
+  const removeSavedPacket = useSavedPacketStore((s) => s.removePacket);
 
   const handleSend = async () => {
     if (!selectedWritable) {
@@ -42,9 +49,17 @@ export function PacketSenderPanel() {
     }
   };
 
+  const handleSave = async () => {
+    if (!isValidHex(hex)) {
+      addError("Enter valid HEX before saving");
+      return;
+    }
+    const name = saveName.trim() || `Packet ${new Date().toLocaleTimeString()}`;
+    await addSavedPacket(name, hex.toUpperCase(), device?.id);
+    setSaveName("");
+  };
+
   const handleRepeat = () => {
-    const repeat = lastSaved ?? lastSentHex ?? hex;
-    setHex(repeat);
     void handleSend();
   };
 
@@ -70,18 +85,53 @@ export function PacketSenderPanel() {
 
       <Card>
         <HexInput label="HEX Packet" value={hex} onChange={setHex} error={lastSendError} />
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2">
           <Button onClick={() => void handleSend()} disabled={!selectedWritable}>
             Send
           </Button>
-          <Button variant="secondary" onClick={() => setLastSaved(hex)} disabled={!isValidHex(hex)}>
-            Save
-          </Button>
-          <Button variant="secondary" onClick={handleRepeat} disabled={!selectedWritable}>
+          <Button variant="secondary" onClick={handleRepeat} disabled={!selectedWritable || !hex}>
             Repeat
           </Button>
         </div>
+        <div className="mt-4 space-y-2">
+          <Input
+            label="Save as"
+            value={saveName}
+            onChange={(e) => setSaveName(e.target.value)}
+            placeholder="Optional name"
+          />
+          <Button fullWidth variant="secondary" onClick={() => void handleSave()} disabled={!isValidHex(hex)}>
+            Save to library
+          </Button>
+        </div>
       </Card>
+
+      {savedPackets.length > 0 && (
+        <Card title="Saved packets">
+          <div className="space-y-2">
+            {savedPackets.map((p) => (
+              <div
+                key={p.id}
+                className="flex items-center justify-between gap-3 rounded-lg bg-black/20 p-3"
+              >
+                <button
+                  type="button"
+                  className="min-w-0 flex-1 text-left"
+                  onClick={() => setHex(p.hex)}
+                >
+                  <p className="truncate text-sm font-medium text-white">{p.name}</p>
+                  <p className="mt-1 font-mono text-xs text-accent">{p.hex}</p>
+                </button>
+                {p.id !== undefined && (
+                  <Button variant="ghost" onClick={() => void removeSavedPacket(p.id!)}>
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       <Card title="Last Result">
         <div className="space-y-3 text-sm">

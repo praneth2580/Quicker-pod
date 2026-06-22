@@ -1,15 +1,15 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { bytesToHex } from "@/utils";
 import { formatTime } from "@/utils/format";
+import { useConnectionStore } from "@/store/connectionStore";
+import {
+  addPacketLog,
+  clearPacketLogs,
+  importPacketLogs,
+  loadPacketLogs,
+} from "@/db/repository";
+import type { SessionImportData } from "@/db/types";
 import type { ProtocolLogEntry } from "../types";
-
-let logCounter = 0;
-
-function nextId(): string {
-  logCounter += 1;
-  return `plog-${Date.now()}-${logCounter}`;
-}
 
 function createEntry(
   direction: "TX" | "RX",
@@ -17,9 +17,8 @@ function createEntry(
   characteristicUuid: string,
   payload: Uint8Array,
   notes?: string,
-): ProtocolLogEntry {
+): Omit<ProtocolLogEntry, "id"> {
   return {
-    id: nextId(),
     timestamp: formatTime(new Date()),
     direction,
     serviceUuid,
@@ -29,11 +28,18 @@ function createEntry(
   };
 }
 
+function currentDeviceId(): string | undefined {
+  return useConnectionStore.getState().device?.id;
+}
+
 interface PacketLoggerState {
+  hydrated: boolean;
   sentPackets: ProtocolLogEntry[];
   receivedPackets: ProtocolLogEntry[];
   notifications: ProtocolLogEntry[];
 
+  hydrateFromDb: () => Promise<void>;
+  importFromSession: (data: SessionImportData) => Promise<void>;
   addSent: (serviceUuid: string, characteristicUuid: string, payload: Uint8Array, notes?: string) => void;
   addReceived: (serviceUuid: string, characteristicUuid: string, payload: Uint8Array, notes?: string) => void;
   addNotification: (serviceUuid: string, characteristicUuid: string, payload: Uint8Array, notes?: string) => void;
@@ -42,32 +48,52 @@ interface PacketLoggerState {
   getAllNotifications: () => ProtocolLogEntry[];
 }
 
-export const useProtocolLabPacketLogger = create<PacketLoggerState>()(
-  persist(
-    (set, get) => ({
-      sentPackets: [],
-      receivedPackets: [],
-      notifications: [],
+export const useProtocolLabPacketLogger = create<PacketLoggerState>()((set, get) => ({
+  hydrated: false,
+  sentPackets: [],
+  receivedPackets: [],
+  notifications: [],
 
-      addSent: (serviceUuid, characteristicUuid, payload, notes) => {
-        const entry = createEntry("TX", serviceUuid, characteristicUuid, payload, notes);
-        set((s) => ({ sentPackets: [...s.sentPackets, entry] }));
-      },
+  hydrateFromDb: async () => {
+    const data = await loadPacketLogs();
+    set({ ...data, hydrated: true });
+  },
 
-      addReceived: (serviceUuid, characteristicUuid, payload, notes) => {
-        const entry = createEntry("RX", serviceUuid, characteristicUuid, payload, notes);
-        set((s) => ({ receivedPackets: [...s.receivedPackets, entry] }));
-      },
+  importFromSession: async (data) => {
+    await importPacketLogs(data);
+    await get().hydrateFromDb();
+  },
 
-      addNotification: (serviceUuid, characteristicUuid, payload, notes) => {
-        const entry = createEntry("RX", serviceUuid, characteristicUuid, payload, notes ?? "notification");
-        set((s) => ({ notifications: [...s.notifications, entry] }));
-      },
+  addSent: (serviceUuid, characteristicUuid, payload, notes) => {
+    const base = createEntry("TX", serviceUuid, characteristicUuid, payload, notes);
+    void addPacketLog("sent", base, currentDeviceId()).then((entry) => {
+      set((s) => ({ sentPackets: [...s.sentPackets, entry] }));
+    });
+  },
 
-      clearNotifications: () => set({ notifications: [] }),
-      clearAll: () => set({ sentPackets: [], receivedPackets: [], notifications: [] }),
-      getAllNotifications: () => get().notifications,
-    }),
-    { name: "quicker-pod-protocol-logs" },
-  ),
-);
+  addReceived: (serviceUuid, characteristicUuid, payload, notes) => {
+    const base = createEntry("RX", serviceUuid, characteristicUuid, payload, notes);
+    void addPacketLog("received", base, currentDeviceId()).then((entry) => {
+      set((s) => ({ receivedPackets: [...s.receivedPackets, entry] }));
+    });
+  },
+
+  addNotification: (serviceUuid, characteristicUuid, payload, notes) => {
+    const base = createEntry("RX", serviceUuid, characteristicUuid, payload, notes ?? "notification");
+    void addPacketLog("notification", base, currentDeviceId()).then((entry) => {
+      set((s) => ({ notifications: [...s.notifications, entry] }));
+    });
+  },
+
+  clearNotifications: () => {
+    void clearPacketLogs("notification");
+    set({ notifications: [] });
+  },
+
+  clearAll: () => {
+    void clearPacketLogs();
+    set({ sentPackets: [], receivedPackets: [], notifications: [] });
+  },
+
+  getAllNotifications: () => get().notifications,
+}));

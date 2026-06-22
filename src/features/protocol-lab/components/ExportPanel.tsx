@@ -56,18 +56,20 @@ export function ExportPanel() {
     if (!content) return;
     try {
       const data = JSON.parse(content) as SessionExportData;
-      if (data.notifications) {
-        useProtocolLabPacketLogger.setState({
+      if (data.notifications || data.sentPackets || data.receivedPackets) {
+        await useProtocolLabPacketLogger.getState().importFromSession({
           notifications: data.notifications,
-          sentPackets: data.sentPackets ?? [],
-          receivedPackets: data.receivedPackets ?? [],
+          sentPackets: data.sentPackets,
+          receivedPackets: data.receivedPackets,
         });
       }
       if (data.services) {
         useProtocolLabStore.getState().setDetailedServices(data.services);
       }
       if (data.mutationResults) {
-        useMutationStore.setState({ results: data.mutationResults });
+        for (const result of data.mutationResults) {
+          useMutationStore.getState().addResult(result);
+        }
       }
     } catch {
       useProtocolLabStore.getState().addError("Failed to import session JSON");
