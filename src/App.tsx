@@ -24,6 +24,10 @@ export default function App() {
     <Routes>
       <Route path="/" element={<DashboardPage />} />
       <Route path="/scanner" element={<ScannerPage />} />
+      <Route path="/connect" element={<Navigate to="/scanner" replace />} />
+      <Route path="/lab" element={<Navigate to="/protocol-lab" replace />} />
+      <Route path="/monitor" element={<Navigate to="/protocol-lab?tab=notifications" replace />} />
+      <Route path="/send" element={<Navigate to="/protocol-lab?tab=sender" replace />} />
       <Route path="/protocol-lab" element={<ProtocolLabPage />} />
       <Route path="/settings" element={<SettingsPage />} />
 

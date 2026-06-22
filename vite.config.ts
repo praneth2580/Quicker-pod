@@ -5,6 +5,8 @@ import path from "node:path";
 
 const REPO_BASE = "/Quicker-pod/";
 
+const shortcutIcon = [{ src: "pwa-192x192.png", sizes: "192x192", type: "image/png" }];
+
 export default defineConfig(({ command }) => {
   const base = command === "build" ? REPO_BASE : "/";
 
@@ -50,6 +52,32 @@ export default defineConfig(({ command }) => {
               type: "image/png",
               form_factor: "wide",
               label: "BLE diagnostics dashboard",
+            },
+          ],
+          shortcuts: [
+            {
+              name: "Reconnect",
+              short_name: "Connect",
+              url: `${base}connect`,
+              icons: shortcutIcon,
+            },
+            {
+              name: "Protocol Lab",
+              short_name: "Lab",
+              url: `${base}lab`,
+              icons: shortcutIcon,
+            },
+            {
+              name: "Monitor",
+              short_name: "Monitor",
+              url: `${base}monitor`,
+              icons: shortcutIcon,
+            },
+            {
+              name: "Send Packet",
+              short_name: "Send",
+              url: `${base}send`,
+              icons: shortcutIcon,
             },
           ],
         },
