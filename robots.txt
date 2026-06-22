@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://praneth2580.github.io/Quicker-pod/sitemap.xml
