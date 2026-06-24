@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useBluetooth } from "@/hooks/useBluetooth";
 import { useDbInit } from "@/hooks/useDbInit";
-import { usePwaInstallInit } from "@/hooks/usePwaInstall";
+import { usePwaInstall, usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
 import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
 import { LandingPage } from "@/pages/LandingPage";
@@ -15,6 +15,14 @@ function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
   return <Navigate to={`/protocol-lab?tab=${tab}`} replace />;
 }
 
+function RootRoute() {
+  const { installed } = usePwaInstall();
+  if (installed) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return <LandingPage />;
+}
+
 export default function App() {
   useBluetooth();
   useProtocolLabBle();
@@ -23,7 +31,7 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<RootRoute />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/connect" element={<ConnectPage />} />
       <Route path="/scanner" element={<Navigate to="/connect" replace />} />
