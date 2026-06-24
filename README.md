@@ -1,10 +1,33 @@
-# Quicker-pod
+<p align="center">
+  <img src="public/pwa-512x512.png" width="96" alt="Quicker-pod logo" />
+</p>
+
+<h1 align="center">Quicker-pod</h1>
+
+<p align="center">
+  <strong>Free &amp; open-source Tripper Pod companion</strong><br />
+  Connect over BLE, explore the protocol, and monitor live traffic — no account, no fees, no app store.
+</p>
+
+<p align="center">
+  <a href="https://praneth2580.github.io/Quicker-pod/"><strong>Live demo</strong></a>
+  ·
+  <a href="https://praneth2580.github.io/Quicker-pod/dashboard">Open dashboard</a>
+  ·
+  <a href="https://github.com/praneth2580/Quicker-pod">GitHub</a>
+</p>
+
+<p align="center">
+  <a href="https://praneth2580.github.io/Quicker-pod/">
+    <img src="public/screenshots/mobile-narrow.png" width="280" alt="Quicker-pod Protocol Lab on mobile" />
+  </a>
+</p>
+
+> **Install the PWA for the full app experience.** Add Quicker-pod to your home screen (Android Chrome or iOS Safari). Once installed, the app opens the **dashboard** directly — no marketing landing page — so you can connect and test faster on the bike.
 
 **Quicker-pod** is an open-source, mobile-first Progressive Web App for exploring and communicating with the Royal Enfield **Tripper Pod** over Bluetooth Low Energy (BLE).
 
 It is a community-driven alternative to the official Tripper Pod app. Version 1 focuses on **protocol exploration and BLE diagnostics** — not turn-by-turn navigation. The goal is to reverse-engineer the Tripper Pod communication protocol and build a fully open replacement over time.
-
-**Live demo:** [https://praneth2580.github.io/Quicker-pod/](https://praneth2580.github.io/Quicker-pod/)
 
 For setup, development, build, and deployment instructions, see **[DEVELOPMENT.md](./DEVELOPMENT.md)**.
 
@@ -19,7 +42,7 @@ For setup, development, build, and deployment instructions, see **[DEVELOPMENT.m
 | **Protocol Lab** | Full BLE workbench — explore GATT, monitor live device traffic, send packets, run mutations, export sessions |
 | **Settings** | Toggle dark mode, debug mode, and experimental features |
 
-Install the app on your phone (PWA) for a standalone experience optimized for on-bike protocol testing with Android Chrome.
+Install the app on your phone (PWA) for a standalone experience optimized for on-bike protocol testing with Android Chrome. **Installed users skip the landing page and land on the dashboard** (`/dashboard`) automatically.
 
 ---
 
@@ -75,12 +98,13 @@ Export or import a full session as **JSON** or **CSV**, including:
 
 ## App navigation
 
-| Screen | Route |
-|--------|-------|
-| Dashboard | `/` |
-| Connect | `/connect` |
-| Protocol Lab | `/protocol-lab` |
-| Settings | `/settings` |
+| Screen | Route | Notes |
+|--------|-------|-------|
+| Landing | `/` | Marketing page for first-time visitors in the browser |
+| Dashboard | `/dashboard` | Main app home — opens here when installed as a PWA |
+| Connect | `/connect` | BLE scan and pairing |
+| Protocol Lab | `/protocol-lab` | GATT explorer, monitor, sender, mutation, export |
+| Settings | `/settings` | Theme, debug, and experimental toggles |
 
 ### Protocol Lab tabs
 
