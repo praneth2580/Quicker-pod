@@ -1,5 +1,5 @@
 /** How the 6-digit Tripper PIN is encoded before writing to the pairing characteristic. */
-export type PinEncoding = "ascii" | "bcd" | "framed";
+export type PinEncoding = "tripper20" | "ascii" | "bcd" | "framed";
 
 export interface TripperPairingConfig {
   /** When set, skip auto-discovery and use these UUIDs. */
@@ -10,8 +10,14 @@ export interface TripperPairingConfig {
   responseTimeoutMs: number;
 }
 
+export const TRIPPER_SERVICE_UUID = "01ff0100-ba5e-f4ee-5ca1-eb1e5e4b1ce0";
+export const TRIPPER_CHAR_UUID = "01ff0101-ba5e-f4ee-5ca1-eb1e5e4b1ce0";
+
 export const DEFAULT_PAIRING_CONFIG: TripperPairingConfig = {
-  pinEncoding: "ascii",
+  serviceUuid: TRIPPER_SERVICE_UUID,
+  writeCharacteristicUuid: TRIPPER_CHAR_UUID,
+  notifyCharacteristicUuid: TRIPPER_CHAR_UUID,
+  pinEncoding: "tripper20",
   responseTimeoutMs: 5000,
 };
 
@@ -57,6 +63,8 @@ export function isLikelyVendorService(uuid: string): boolean {
   return !compact.endsWith(SIG_UUID_BASE);
 }
 
+import { buildPinPacket } from "./tripper/packets";
+
 export function encodePinPayload(pin: string, encoding: PinEncoding): Uint8Array {
   const digits = normalizeTripperPin(pin);
   if (digits.length !== 6) {
@@ -64,6 +72,8 @@ export function encodePinPayload(pin: string, encoding: PinEncoding): Uint8Array
   }
 
   switch (encoding) {
+    case "tripper20":
+      return buildPinPacket(digits);
     case "ascii":
       return Uint8Array.from(digits, (d) => d.charCodeAt(0));
     case "bcd": {
@@ -94,6 +104,10 @@ export function encodePinPayload(pin: string, encoding: PinEncoding): Uint8Array
 
 export function isPairingResponseSuccess(response: Uint8Array | undefined): boolean {
   if (!response?.length) return true;
+  // Tripper AUTH: opcode 0x20, byte1 0x01 = accepted
+  if (response.length >= 2 && response[0] === 0x20) {
+    return response[1] === 0x01;
+  }
   const text = Array.from(response)
     .map((b) => (b >= 32 && b < 127 ? String.fromCharCode(b) : ""))
     .join("");

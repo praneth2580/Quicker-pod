@@ -11,4 +11,6 @@ export const ROYAL_ENFIELD_DEVICE_FILTERS: BluetoothLEScanFilter[] = [
 ];
 
 /** Optional GATT services to request access during pairing. */
-export const ROYAL_ENFIELD_OPTIONAL_SERVICES: BluetoothServiceUUID[] = [];
+export const ROYAL_ENFIELD_OPTIONAL_SERVICES: BluetoothServiceUUID[] = [
+  "01ff0100-ba5e-f4ee-5ca1-eb1e5e4b1ce0",
+];

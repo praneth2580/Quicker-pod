@@ -24,16 +24,3 @@ export interface SavedPacket {
   hex: string;
   createdAt: string;
 }
-
-export type NavigationManeuver =
-  | "left"
-  | "right"
-  | "u-turn"
-  | "straight"
-  | "arrival";
-
-export interface SimulatedManeuver {
-  maneuver: NavigationManeuver;
-  label: string;
-  hex: string;
-}

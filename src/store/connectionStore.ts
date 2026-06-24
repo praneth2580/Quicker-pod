@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { BluetoothDeviceInfo, BluetoothServiceInfo, KnownDevice, PairingPhase } from "@/types";
 import { bluetoothManager } from "@/bluetooth/BluetoothManager";
+import { TRIPPER_CHAR_UUID, TRIPPER_SERVICE_UUID } from "@/bluetooth/pairingConfig";
 import { getBluetoothErrorMessage } from "@/bluetooth/errors";
 import type { TripperPairingConfig } from "@/bluetooth/pairingConfig";
 import { DEFAULT_PAIRING_CONFIG } from "@/bluetooth/pairingConfig";
@@ -92,6 +93,12 @@ async function finalizeConnection(
   const knownDevices = upsertKnownDevice(get().knownDevices, knownDevice);
   const services = await bluetoothManager.connect();
 
+  try {
+    await bluetoothManager.subscribeToNotifications(TRIPPER_SERVICE_UUID, TRIPPER_CHAR_UUID);
+  } catch {
+    // Tripper service may be unavailable until pairing completes
+  }
+
   await persistConnectedDevice(info, services);
   set({
     device: info,
@@ -134,6 +141,7 @@ export const useConnectionStore = create<ConnectionState>()(
           }
 
           await bluetoothManager.connectGatt();
+          await bluetoothManager.runNewDeviceHandshake();
           set({
             connecting: false,
             pairingPhase: "awaiting_pin",
@@ -160,6 +168,7 @@ export const useConnectionStore = create<ConnectionState>()(
         set({ pairingPhase: "submitting_pin", lastError: null, pairingMessage: null });
         try {
           const result = await bluetoothManager.pairWithPin(pin, getPairingConfig());
+          await bluetoothManager.runPostPinSequence();
           await finalizeConnection(pending, true, get, set);
           set({ pairingMessage: result.message });
         } catch (err) {
@@ -197,6 +206,8 @@ export const useConnectionStore = create<ConnectionState>()(
           const info = await bluetoothManager.connectToPermittedDevice(deviceId);
 
           if (known?.pinPaired) {
+            await bluetoothManager.connectGatt();
+            await bluetoothManager.runKnownDeviceHandshake();
             await finalizeConnection(info, true, get, set);
             return;
           }

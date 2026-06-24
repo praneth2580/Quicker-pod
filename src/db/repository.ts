@@ -2,7 +2,6 @@ import { db } from "./database";
 import type {
   PacketLogType,
   StoredDevice,
-  StoredManeuver,
   StoredMutationPrefs,
   StoredPacketLog,
   StoredSavedPacket,
@@ -161,20 +160,6 @@ export async function removeSavedPacket(id: number): Promise<void> {
   await db.savedPackets.delete(id);
 }
 
-export async function listManeuvers(): Promise<StoredManeuver[]> {
-  return db.maneuvers.orderBy("createdAt").toArray();
-}
-
-export async function addManeuver(label: string, hex: string): Promise<StoredManeuver> {
-  const record: StoredManeuver = { label, hex, createdAt: new Date().toISOString() };
-  const id = await db.maneuvers.add(record);
-  return { ...record, id };
-}
-
-export async function removeManeuver(id: number): Promise<void> {
-  await db.maneuvers.delete(id);
-}
-
 export async function addMutationJob(job: MutationJob): Promise<void> {
   await db.mutationJobs.put(job);
 }
@@ -260,12 +245,11 @@ export async function migrateFromLocalStorage(): Promise<void> {
 }
 
 export async function getDbStats() {
-  const [devices, packetLogs, savedPackets, maneuvers, mutationResults] = await Promise.all([
+  const [devices, packetLogs, savedPackets, mutationResults] = await Promise.all([
     db.devices.count(),
     db.packetLogs.count(),
     db.savedPackets.count(),
-    db.maneuvers.count(),
     db.mutationResults.count(),
   ]);
-  return { devices, packetLogs, savedPackets, maneuvers, mutationResults };
+  return { devices, packetLogs, savedPackets, mutationResults };
 }

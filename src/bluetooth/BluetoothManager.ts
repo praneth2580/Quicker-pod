@@ -14,6 +14,11 @@ import {
   DEFAULT_PAIRING_CONFIG,
 } from "./pairingConfig";
 import { submitTripperPin } from "./tripperPairing";
+import {
+  runKnownDeviceHandshake,
+  runNewDeviceHandshake,
+  runPostPinSequence,
+} from "./tripper/session";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
 
@@ -155,6 +160,28 @@ class BluetoothManager {
 
     this.emit({ type: "device-found", payload: info });
     return info;
+  }
+
+  getGattServer(): BluetoothRemoteGATTServer | null {
+    return this.server?.connected ? this.server : null;
+  }
+
+  async runNewDeviceHandshake(): Promise<void> {
+    const server = this.getGattServer();
+    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    await runNewDeviceHandshake(server);
+  }
+
+  async runKnownDeviceHandshake(): Promise<void> {
+    const server = this.getGattServer();
+    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    await runKnownDeviceHandshake(server);
+  }
+
+  async runPostPinSequence(): Promise<void> {
+    const server = this.getGattServer();
+    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    await runPostPinSequence(server);
   }
 
   async connectGatt(): Promise<BluetoothRemoteGATTServer> {
@@ -344,3 +371,4 @@ export {
 export type { TripperPairingConfig, PinEncoding, PairingResult, PairingTarget } from "./pairingConfig";
 export { DEFAULT_PAIRING_CONFIG, validateTripperPin, normalizeTripperPin } from "./pairingConfig";
 export { submitTripperPin, discoverPairingTarget } from "./tripperPairing";
+export * as tripper from "./tripper";

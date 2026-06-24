@@ -3,7 +3,6 @@ import { migrateFromLocalStorage } from "@/db/repository";
 import { useProtocolLabPacketLogger } from "@/features/protocol-lab/store/packetLoggerStore";
 import { useMutationStore } from "@/features/protocol-lab/store";
 import { useDeviceStore } from "@/store/deviceStore";
-import { useManeuverStore } from "@/store/maneuverStore";
 import { useSavedPacketStore } from "@/store/savedPacketStore";
 
 export function useDbInit(): boolean {
@@ -18,7 +17,6 @@ export function useDbInit(): boolean {
         useProtocolLabPacketLogger.getState().hydrateFromDb(),
         useMutationStore.getState().hydrateFromDb(),
         useDeviceStore.getState().loadDevices(),
-        useManeuverStore.getState().loadManeuvers(),
         useSavedPacketStore.getState().loadPackets(),
       ]);
       if (!cancelled) setReady(true);

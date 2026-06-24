@@ -5,7 +5,6 @@ export const PROTOCOL_LAB_TABS: ProtocolLabTab[] = [
   "notifications",
   "sender",
   "mutation",
-  "simulator",
   "export",
 ];
 
@@ -18,5 +17,5 @@ export const LEGACY_ROUTE_TABS: Record<string, ProtocolLabTab> = {
   explorer: "explorer",
   console: "notifications",
   transmit: "sender",
-  simulator: "simulator",
+  simulator: "explorer",
 };

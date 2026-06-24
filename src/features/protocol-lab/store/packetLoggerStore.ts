@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { formatTripperResponse } from "@/bluetooth/tripper";
+import { TRIPPER_CHAR_UUID } from "@/bluetooth/tripper/constants";
 import { bytesToHex } from "@/utils";
 import { formatTime } from "@/utils/format";
 import { useConnectionStore } from "@/store/connectionStore";
@@ -11,6 +13,14 @@ import {
 import type { SessionImportData } from "@/db/types";
 import type { ProtocolLogEntry } from "../types";
 
+function tripperNotes(payload: Uint8Array, characteristicUuid: string): string | undefined {
+  if (payload.length !== 20) return undefined;
+  const compact = characteristicUuid.toLowerCase().replace(/-/g, "");
+  const tripperChar = TRIPPER_CHAR_UUID.replace(/-/g, "");
+  if (!compact.endsWith(tripperChar.slice(-8))) return undefined;
+  return formatTripperResponse(payload);
+}
+
 function createEntry(
   direction: "TX" | "RX",
   serviceUuid: string,
@@ -18,13 +28,15 @@ function createEntry(
   payload: Uint8Array,
   notes?: string,
 ): Omit<ProtocolLogEntry, "id"> {
+  const decoded = tripperNotes(payload, characteristicUuid);
+  const mergedNotes = [notes, decoded].filter(Boolean).join(" · ") || undefined;
   return {
     timestamp: formatTime(new Date()),
     direction,
     serviceUuid,
     characteristicUuid,
     payloadHex: bytesToHex(payload),
-    notes,
+    notes: mergedNotes,
   };
 }
 

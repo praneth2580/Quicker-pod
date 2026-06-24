@@ -9,7 +9,6 @@ import { DeviceExplorerPanel } from "../components/DeviceExplorerPanel";
 import { NotificationViewer } from "../components/NotificationViewer";
 import { PacketSenderPanel } from "../components/PacketSenderPanel";
 import { MutationRunner } from "../components/MutationRunner";
-import { SimulatorPanel } from "../components/SimulatorPanel";
 import { ExportPanel } from "../components/ExportPanel";
 import { ErrorConsole } from "../components/ErrorConsole";
 import { useProtocolLabStore } from "../store";
@@ -86,7 +85,6 @@ export function ProtocolLabPage() {
 
         {activeTab === "sender" && <PacketSenderPanel />}
         {activeTab === "mutation" && <MutationRunner />}
-        {activeTab === "simulator" && <SimulatorPanel />}
         {activeTab === "export" && <ExportPanel />}
       </div>
     </AppLayout>

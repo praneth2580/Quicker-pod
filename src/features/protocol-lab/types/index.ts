@@ -5,7 +5,6 @@ export type ProtocolLabTab =
   | "notifications"
   | "sender"
   | "mutation"
-  | "simulator"
   | "export";
 
 export interface GattDescriptorInfo {

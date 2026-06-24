@@ -16,7 +16,7 @@ For setup, development, build, and deployment instructions, see **[DEVELOPMENT.m
 |------|----------------|
 | **Dashboard** | See Bluetooth status, connection state, device info, and your last sent/received packets |
 | **Connect** | Scan for BLE devices, filter results, connect, and disconnect |
-| **Protocol Lab** | Full BLE workbench — explore GATT, monitor traffic, send packets, run mutations, simulate nav commands, export sessions |
+| **Protocol Lab** | Full BLE workbench — explore GATT, monitor live device traffic, send packets, run mutations, export sessions |
 | **Settings** | Toggle dark mode, debug mode, and experimental features |
 
 Install the app on your phone (PWA) for a standalone experience optimized for on-bike protocol testing with Android Chrome.
@@ -25,14 +25,14 @@ Install the app on your phone (PWA) for a standalone experience optimized for on
 
 ## How to use Quicker-pod
 
-### 1. Connect a device
+### 1. Connect your Tripper
 
-1. Open **Connect** (`/scanner`)
-2. Tap **Scan BLE** (Chrome on Android or desktop)
-3. Select your Tripper Pod from the list
+1. Open **Connect** (`/connect`)
+2. Tap **Connect** and select your device (`RE_DISP` or `RE_*`) in the Chrome BLE picker
+3. Enter the **6-digit PIN** shown on your Tripper display
 4. Confirm connection on the **Dashboard**
 
-If Web Bluetooth is unavailable (e.g. Firefox), use Chrome on Android or desktop to connect to a real device.
+Requires Chrome on Android or desktop with Web Bluetooth support.
 
 ### 2. Explore services (Protocol Lab → Explorer)
 
@@ -62,13 +62,7 @@ If Web Bluetooth is unavailable (e.g. Firefox), use Chrome on Android or desktop
 4. Tap **Start Mutation** — rate-limited for safety (min 500 ms between packets)
 5. Review results in the table; stop anytime or on disconnect/error
 
-### 6. Simulate navigation commands (Protocol Lab → Simulator)
-
-1. Tap **Simulate** on a maneuver (left turn, right turn, U-turn, straight, arrival)
-2. Generated placeholder packets appear in the **Monitor** tab
-3. Map these to the real Tripper protocol as reverse engineering progresses
-
-### 7. Export your session (Protocol Lab → Export)
+### 6. Export your session (Protocol Lab → Export)
 
 Export or import a full session as **JSON** or **CSV**, including:
 
@@ -84,7 +78,7 @@ Export or import a full session as **JSON** or **CSV**, including:
 | Screen | Route |
 |--------|-------|
 | Dashboard | `/` |
-| Connect | `/scanner` |
+| Connect | `/connect` |
 | Protocol Lab | `/protocol-lab` |
 | Settings | `/settings` |
 
@@ -96,10 +90,9 @@ Export or import a full session as **JSON** or **CSV**, including:
 | Monitor | `?tab=notifications` | Live notification log |
 | Sender | `?tab=sender` | Manual HEX transmission |
 | Mutation | `?tab=mutation` | Guided byte mutation |
-| Simulator | `?tab=simulator` | Navigation packet simulation |
 | Export | `?tab=export` | Session export/import |
 
-Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to the matching Protocol Lab tab.
+Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to Protocol Lab tabs.
 
 ---
 
