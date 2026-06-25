@@ -2,7 +2,6 @@ import {
   DELAY_CLOSE_TO_TIME_MS,
   DELAY_INTER_WRITE_MS,
   DELAY_PING_TO_READY_MS,
-  DELAY_POST_PIN_SET_TIME_MS,
   DELAY_POST_PIN_TO_PING_MS,
   DELAY_POST_PIN_WP_GAP_MS,
   DELAY_PRE_HANDSHAKE_MS,
@@ -18,14 +17,20 @@ import {
   logWriteCharacteristic,
 } from "./handshakeLog";
 import {
-  buildHandshakePacket,
   buildLoadingScreen,
+  buildPinPacket,
   buildSetTimeNowPacket,
+  PKT_CLOSE,
   PKT_PING_FW,
   PKT_PING_WP,
   PKT_PIN_SHOW,
 } from "./packets";
-import { isPinAccepted, parseTripperResponse } from "./parser";
+import {
+  isPinAccepted,
+  isPinRejected,
+  parseTripperResponse,
+  type TripperResponse,
+} from "./parser";
 
 type GattServer = BluetoothRemoteGATTServer;
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
@@ -39,8 +44,23 @@ export interface StartHandshakeOptions {
   source?: string;
 }
 
+export interface SendTripperPinResult {
+  response: TripperResponse | null;
+  /** True only when an AUTH notify with byte1=0x01 was observed. */
+  authVerified: boolean;
+}
+
+let writeChain: Promise<void> = Promise.resolve();
+let lastWriteAt = 0;
+
 function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Reset serialized write queue (call on GATT disconnect). */
+export function resetTripperWriteQueue(): void {
+  writeChain = Promise.resolve();
+  lastWriteAt = 0;
 }
 
 async function getTripperCharacteristic(
@@ -52,8 +72,7 @@ async function getTripperCharacteristic(
   return service.getCharacteristic(charUuid);
 }
 
-/** Prefer write-without-response — Tripper char is typically props=0x04 only. */
-export async function writeTripperPacket(
+async function writeTripperPacketImmediate(
   server: GattServer,
   packet: Uint8Array,
   label: string,
@@ -77,6 +96,29 @@ export async function writeTripperPacket(
   }
 
   throw new Error("Tripper characteristic is not writable");
+}
+
+/**
+ * Queue a 20-byte Tripper frame with 80 ms inter-write spacing (Super Tripper pumpQueue).
+ */
+export async function writeTripperPacket(
+  server: GattServer,
+  packet: Uint8Array,
+  label: string,
+  serviceUuid = TRIPPER_SERVICE_UUID,
+  charUuid = TRIPPER_CHAR_UUID,
+): Promise<void> {
+  const task = writeChain.then(async () => {
+    const elapsed = Date.now() - lastWriteAt;
+    if (lastWriteAt > 0 && elapsed < DELAY_INTER_WRITE_MS) {
+      await delay(DELAY_INTER_WRITE_MS - elapsed);
+    }
+    await writeTripperPacketImmediate(server, packet, label, serviceUuid, charUuid);
+    lastWriteAt = Date.now();
+  });
+
+  writeChain = task.catch(() => undefined);
+  await task;
 }
 
 async function enableTripperNotificationsIfSupported(
@@ -120,9 +162,12 @@ export async function prepareTripperChannel(
   return char;
 }
 
+/**
+ * Official onConnectionStateChange: loading screen immediately, then discover + 200 ms settle.
+ */
 export async function runTripperConnectSetup(server: GattServer): Promise<void> {
-  await prepareTripperChannel(server);
   await writeTripperPacket(server, buildLoadingScreen(), "LOADING SCREEN");
+  await prepareTripperChannel(server);
 }
 
 /**
@@ -148,12 +193,11 @@ export async function startHandshake(
   await runTripperConnectSetup(server);
 
   if (knownDevice) {
-    await writeTripperPacket(server, buildHandshakePacket(false), "CLOSE/RESUME");
+    await writeTripperPacket(server, PKT_CLOSE, "CLOSE/RESUME");
     await delay(DELAY_CLOSE_TO_TIME_MS);
     await writeTripperPacket(server, buildSetTimeNowPacket(), "SET TIME");
     await delay(DELAY_TIME_TO_PING_MS);
     await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
-    await delay(DELAY_INTER_WRITE_MS);
     await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
     await delay(DELAY_PING_TO_READY_MS);
     return;
@@ -174,11 +218,34 @@ export async function runKnownDeviceHandshake(server: GattServer): Promise<void>
   await startHandshake(server, { knownDevice: true, source: "runKnownDeviceHandshake" });
 }
 
-/** Post-PIN sequence from Super Tripper submitPin(). */
+/**
+ * Send 6-digit PIN (0x20 + ASCII digits + CRC) and optionally wait for AUTH notify.
+ * Official app receives AUTH via phone GATT server — Web Bluetooth often cannot confirm.
+ */
+export async function sendTripperPin(
+  server: GattServer,
+  pin: string,
+  timeoutMs = 5000,
+): Promise<SendTripperPinResult> {
+  const packet = buildPinPacket(pin);
+    await writeTripperPacket(server, packet, "PIN (6 digits)");
+
+  const response = await waitForAuthResponse(server, timeoutMs);
+  if (response && isPinRejected(response)) {
+    throw new Error("Incorrect PIN. Enter the 6-digit code shown on your Tripper display.");
+  }
+
+  return {
+    response,
+    authVerified: response ? isPinAccepted(response) : false,
+  };
+}
+
+/** Post-PIN sequence from Super Tripper submitPin() / logcat timeline. */
 export async function runPostPinSequence(server: GattServer): Promise<void> {
-  await delay(DELAY_POST_PIN_SET_TIME_MS);
   await writeTripperPacket(server, buildSetTimeNowPacket(), "SET TIME");
-  await delay(DELAY_POST_PIN_SET_TIME_MS);
+  await delay(DELAY_TIME_TO_PING_MS);
+  await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
   await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
   await delay(DELAY_POST_PIN_TO_PING_MS);
   await writeTripperPacket(server, PKT_PING_WP, "PING WP (0x30)");
@@ -191,7 +258,7 @@ export async function waitForAuthResponse(
   timeoutMs: number,
   serviceUuid = TRIPPER_SERVICE_UUID,
   charUuid = TRIPPER_CHAR_UUID,
-): Promise<ReturnType<typeof parseTripperResponse> | null> {
+): Promise<TripperResponse | null> {
   const char = await getTripperCharacteristic(server, serviceUuid, charUuid);
 
   if (!char.properties.notify && !char.properties.indicate) {
@@ -204,7 +271,7 @@ export async function waitForAuthResponse(
   return new Promise((resolve) => {
     let settled = false;
 
-    const finish = (value: ReturnType<typeof parseTripperResponse> | null) => {
+    const finish = (value: TripperResponse | null) => {
       if (settled) return;
       settled = true;
       char.removeEventListener("characteristicvaluechanged", onChange);
@@ -226,4 +293,4 @@ export async function waitForAuthResponse(
   });
 }
 
-export { isPinAccepted };
+export { isPinAccepted, isPinRejected };

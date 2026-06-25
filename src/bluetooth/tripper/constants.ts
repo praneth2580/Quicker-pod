@@ -11,6 +11,7 @@ export const PAYLOAD_CRC_LEN = 18;
 export const CMD_NAVIGATE = 0x10;
 export const CMD_NACK = 0x02;
 export const CMD_PING_FW = 0x03;
+export const CMD_RESERVED_0B = 0x0b;
 export const CMD_DEVICE_ID = 0x20;
 export const CMD_HANDSHAKE = 0x21;
 export const CMD_PING_WP = 0x30;
@@ -54,7 +55,10 @@ export const DIR_W = 0x20;
 export const DIR_NW = 0x50;
 
 export const KEEPALIVE_START_GUIDANCE = 0x01;
-export const KEEPALIVE_STOP_GUIDANCE = 0x05;
+/** Call-icon keepalive during phone calls (`buildCallIconKeepalive`). */
+export const KEEPALIVE_CALL_ICON = 0x05;
+/** @deprecated Use KEEPALIVE_CALL_ICON */
+export const KEEPALIVE_STOP_GUIDANCE = KEEPALIVE_CALL_ICON;
 
 /** Delays from Super Tripper TripperBleManager (milliseconds). */
 export const DELAY_PRE_HANDSHAKE_MS = 200;
@@ -62,7 +66,6 @@ export const DELAY_SHOW_PIN_UI_MS = 300;
 export const DELAY_CLOSE_TO_TIME_MS = 200;
 export const DELAY_TIME_TO_PING_MS = 150;
 export const DELAY_PING_TO_READY_MS = 300;
-export const DELAY_POST_PIN_SET_TIME_MS = 150;
-export const DELAY_POST_PIN_TO_PING_MS = 350;
+export const DELAY_POST_PIN_TO_PING_MS = 200;
 export const DELAY_POST_PIN_WP_GAP_MS = 100;
 export const DELAY_INTER_WRITE_MS = 80;

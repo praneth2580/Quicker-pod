@@ -83,7 +83,31 @@ export function parseTripperResponse(data: Uint8Array): TripperResponse {
 }
 
 export function isPinAccepted(response: TripperResponse): boolean {
-  return response.label === "AUTH" && response.description === "PIN accepted";
+  return (
+    response.label === "AUTH" &&
+    response.raw.length > 1 &&
+    (response.raw[1] & 0xff) === 0x01
+  );
+}
+
+export function isPinRejected(response: TripperResponse): boolean {
+  return (
+    response.label === "AUTH" &&
+    response.raw.length > 1 &&
+    (response.raw[1] & 0xff) !== 0x01
+  );
+}
+
+export function firmwareVersion(response: TripperResponse): string | null {
+  if (response.label !== "OS_VERSION") return null;
+  const match = response.description.match(/\((\d+\.\d+)\)/);
+  return match?.[1] ?? response.description;
+}
+
+export function serialNumber(response: TripperResponse): string | null {
+  if (response.label !== "SERIAL") return null;
+  const match = response.description.match(/"([^"]*)"/);
+  return match?.[1] ?? null;
 }
 
 export function formatTripperResponse(data: Uint8Array): string {

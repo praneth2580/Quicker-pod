@@ -4,7 +4,7 @@ import type { BluetoothDeviceInfo, BluetoothServiceInfo, KnownDevice, PairingPha
 import { bluetoothManager } from "@/bluetooth/BluetoothManager";
 import { describeKnownDevice, isDeviceKnown } from "@/bluetooth/deviceKnown";
 import { logHandshakeDecision } from "@/bluetooth/tripper/handshakeLog";
-import { TRIPPER_CHAR_UUID, TRIPPER_SERVICE_UUID } from "@/bluetooth/pairingConfig";
+import { TRIPPER_CHAR_UUID, TRIPPER_SERVICE_UUID } from "@/bluetooth/tripper/constants";
 import { getBluetoothErrorMessage } from "@/bluetooth/errors";
 import type { TripperPairingConfig } from "@/bluetooth/pairingConfig";
 import { DEFAULT_PAIRING_CONFIG } from "@/bluetooth/pairingConfig";
@@ -179,10 +179,14 @@ export const useConnectionStore = create<ConnectionState>()(
 
         set({ pairingPhase: "submitting_pin", lastError: null, pairingMessage: null });
         try {
-          const result = await bluetoothManager.pairWithPin(pin, getPairingConfig());
+          const result = await bluetoothManager.sendTripperPin(pin, getPairingConfig());
           await bluetoothManager.runPostPinSequence();
           await finalizeConnection(pending, true, get, set);
-          set({ pairingMessage: result.message });
+          set({
+            pairingMessage: result.authVerified
+              ? "PIN accepted. Tripper paired successfully."
+              : "PIN sent. Pairing could not be confirmed in the browser — Tripper AUTH uses the phone GATT server role.",
+          });
         } catch (err) {
           set({
             pairingPhase: "awaiting_pin",

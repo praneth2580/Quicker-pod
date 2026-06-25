@@ -140,8 +140,6 @@ export async function submitTripperPin(
       await writeChar.writeValue(payload);
     }
 
-    await delay(500);
-
     if (!server.connected) {
       throw new BluetoothError(
         "PAIRING_FAILED",
@@ -166,8 +164,4 @@ export async function submitTripperPin(
   } catch (error) {
     throw mapBluetoothError(error);
   }
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

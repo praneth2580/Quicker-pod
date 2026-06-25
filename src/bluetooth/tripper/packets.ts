@@ -3,7 +3,16 @@ import {
   CMD_HANDSHAKE,
   CMD_KEEPALIVE,
   CMD_NAVIGATE,
+  CMD_SET_TIME,
   COMPASS_SCREEN,
+  DIR_E,
+  DIR_N,
+  DIR_NE,
+  DIR_NW,
+  DIR_S,
+  DIR_SE,
+  DIR_SW,
+  DIR_W,
   HS_CLOSE,
   HS_SHOW_PIN,
   NAV_SUBCMD,
@@ -32,8 +41,8 @@ function hexToPacket(hex: string): Uint8Array {
 
 export function bearingToDirection(bearingDeg: number): number {
   const sector = Math.floor(((bearingDeg + 22.5) % 360) / 45);
-  const table = [0x10, 0x60, 0x30, 0x70, 0x40, 0x80, 0x20, 0x50];
-  return table[sector % 8] ?? 0x10;
+  const table = [DIR_N, DIR_NE, DIR_E, DIR_SE, DIR_S, DIR_SW, DIR_W, DIR_NW];
+  return table[sector % 8] ?? DIR_N;
 }
 
 export function calcIntensity(distanceM: number, nightMode = false): number {
@@ -79,7 +88,7 @@ export function buildPinPacket(code: string): Uint8Array {
 
 export function buildSetTimePacket(hour24: number, minute: number, is24h = true): Uint8Array {
   const payload = blankPayload();
-  payload[0] = 0x50;
+  payload[0] = CMD_SET_TIME;
   payload[1] = hour24 & 0xff;
   payload[2] = minute & 0xff;
   payload[3] = is24h ? 0 : 1;

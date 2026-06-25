@@ -1,0 +1,57 @@
+# TripperProtocol constants
+# Source: com.supertripper.app.TripperProtocol (Super Tripper APK smali)
+
+## Device
+
+DEVICE_NAME = "RE_DISP"
+
+## Command opcodes (byte 0)
+
+CMD_PING_FW     = 0x03   # OS version ping
+CMD_FUTURE_0B   = 0x0B   # Reserved / unknown
+CMD_NAVIGATE    = 0x10   # Navigation screens
+CMD_DEVICE_ID   = 0x20   # PIN / auth
+CMD_HANDSHAKE   = 0x21   # Session handshake
+CMD_PING_WP     = 0x30   # Waypoint / serial ping
+CMD_KEEPALIVE   = 0x40   # Keepalive
+CMD_SET_TIME    = 0x50   # Set device clock
+
+## Handshake sub-commands (byte 1 of 0x21)
+
+HS_CLOSE        = 0x00   # Close / resume session
+HS_SHOW_PIN     = 0x01   # Show PIN entry screen
+
+## Maneuver icons (byte 5 in nav packets)
+
+MAN_STRAIGHT    = 0x00
+MAN_LEFT        = 0x10
+MAN_RIGHT_SOFT  = 0x20
+MAN_RIGHT_HARD  = 0x30
+MAN_FORWARD     = 0x40
+MAN_UTURN       = 0x50
+MAN_HIGHWAY     = 0x60
+
+## Road types
+
+ROAD_HIGHWAY    = 0x31
+ROAD_STREET     = 0x41
+ROAD_AVENUE     = 0x42
+
+## Screen IDs (byte 2 in nav packets)
+
+SCREEN_LAST     = 0x01   # Last screen marker
+SCREEN_TBT      = 0x14   # Turn-by-turn
+SCREEN_ARRIVE   = 0x15   # Arrival
+SCREEN_STOP     = 0x1C   # Stop navigation
+SCREEN_HIGHWAY  = 0x32   # Highway
+SCREEN_IDLE     = 0x3C   # Idle / compass
+SCREEN_RECALC   = 0x3D   # Recalculating
+
+## Pre-built packet arrays (20 bytes: 18 payload + 2 CRC)
+
+PKT_PIN_SHOW  = 21 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 50 A7
+PKT_CLOSE     = 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 40 45
+PKT_PING_FW   = 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 45 D9
+PKT_PING_WP   = 30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 42 8B
+PKT_STOP_NAV  = 10 11 1C 00 00 01 00 FF 00 00 00 00 00 00 00 00 00 00 F7 82
+PKT_NAV_IDLE  = 10 11 3C 00 00 04 40 15 00 00 41 00 04 03 00 00 00 00 10 50

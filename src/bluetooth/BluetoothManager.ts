@@ -13,15 +13,22 @@ import {
   type PairingResult,
   type TripperPairingConfig,
   DEFAULT_PAIRING_CONFIG,
+  TRIPPER_CHAR_UUID,
+  TRIPPER_SERVICE_UUID,
 } from "./pairingConfig";
+import { parseTripperResponse } from "./tripper/parser";
 import { submitTripperPin } from "./tripperPairing";
 import {
   runKnownDeviceHandshake,
   runNewDeviceHandshake,
   runPostPinSequence,
+  resetTripperWriteQueue,
+  sendTripperPin,
   startHandshake,
+  type SendTripperPinResult,
   type StartHandshakeOptions,
 } from "./tripper/session";
+import { PKT_NAV_IDLE } from "./tripper/packets";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
 
@@ -40,6 +47,7 @@ class BluetoothManager {
   private server: BluetoothRemoteGATTServer | null = null;
   private listeners = new Set<BluetoothEventListener>();
   private notificationHandlers = new Map<string, (event: Event) => void>();
+  private lastNavPacket: Uint8Array = PKT_NAV_IDLE;
 
   isSupported(): boolean {
     return typeof navigator !== "undefined" && "bluetooth" in navigator;
@@ -193,6 +201,35 @@ class BluetoothManager {
     await runPostPinSequence(server);
   }
 
+  async sendTripperPin(
+    pin: string,
+    config: TripperPairingConfig = DEFAULT_PAIRING_CONFIG,
+  ): Promise<SendTripperPinResult> {
+    if (!this.server?.connected) {
+      await this.connectGatt();
+    }
+
+    if (config.pinEncoding !== "tripper20") {
+      const legacy = await submitTripperPin(this.server!, pin, config);
+      return {
+        response: legacy.response
+          ? parseTripperResponse(legacy.response)
+          : null,
+        authVerified: legacy.success && Boolean(legacy.response),
+      };
+    }
+
+    return sendTripperPin(this.server!, pin, config.responseTimeoutMs);
+  }
+
+  getLastNavPacket(): Uint8Array {
+    return this.lastNavPacket;
+  }
+
+  setLastNavPacket(packet: Uint8Array): void {
+    this.lastNavPacket = packet;
+  }
+
   async connectGatt(): Promise<BluetoothRemoteGATTServer> {
     if (!this.device?.gatt) {
       throw new BluetoothError("NOT_FOUND", "No device selected.");
@@ -200,6 +237,7 @@ class BluetoothManager {
 
     try {
       this.server = await this.device.gatt.connect();
+      this.lastNavPacket = PKT_NAV_IDLE;
       return this.server;
     } catch (error) {
       throw mapBluetoothError(error);
@@ -224,10 +262,20 @@ class BluetoothManager {
     pin: string,
     config: TripperPairingConfig = DEFAULT_PAIRING_CONFIG,
   ): Promise<PairingResult> {
-    if (!this.server?.connected) {
-      await this.connectGatt();
-    }
-    return submitTripperPin(this.server!, pin, config);
+    const result = await this.sendTripperPin(pin, config);
+    return {
+      success: result.authVerified || result.response === null,
+      target: {
+        serviceUuid: config.serviceUuid ?? TRIPPER_SERVICE_UUID,
+        writeCharacteristicUuid: config.writeCharacteristicUuid ?? TRIPPER_CHAR_UUID,
+        notifyCharacteristicUuid: config.notifyCharacteristicUuid,
+      },
+      encoding: config.pinEncoding,
+      response: result.response?.raw,
+      message: result.authVerified
+        ? "PIN accepted. Device paired successfully."
+        : "PIN sent. AUTH could not be confirmed in the browser (Tripper uses phone GATT server).",
+    };
   }
 
   async disconnect(): Promise<void> {
@@ -244,6 +292,7 @@ class BluetoothManager {
   }
 
   private cleanup(): void {
+    resetTripperWriteQueue();
     this.notificationHandlers.forEach((handler, key) => {
       const [serviceUuid, charUuid] = key.split("|");
       void this.getCharacteristic(serviceUuid, charUuid)
