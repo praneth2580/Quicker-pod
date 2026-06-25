@@ -8,6 +8,7 @@ import type {
 import { bytesToHex } from "@/utils";
 import { ROYAL_ENFIELD_DEVICE_FILTERS, ROYAL_ENFIELD_OPTIONAL_SERVICES } from "./filters";
 import { BluetoothError, mapBluetoothError } from "./errors";
+import { logHandshake } from "./tripper/handshakeLog";
 import {
   type PairingResult,
   type TripperPairingConfig,
@@ -18,6 +19,8 @@ import {
   runKnownDeviceHandshake,
   runNewDeviceHandshake,
   runPostPinSequence,
+  startHandshake,
+  type StartHandshakeOptions,
 } from "./tripper/session";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
@@ -166,6 +169,12 @@ class BluetoothManager {
     return this.server?.connected ? this.server : null;
   }
 
+  async startTripperHandshake(options: StartHandshakeOptions): Promise<void> {
+    const server = this.getGattServer();
+    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    await startHandshake(server, options);
+  }
+
   async runNewDeviceHandshake(): Promise<void> {
     const server = this.getGattServer();
     if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
@@ -298,14 +307,33 @@ class BluetoothManager {
     serviceUuid: string,
     characteristicUuid: string,
     data: Uint8Array,
-    withResponse = true,
+    withResponse?: boolean,
   ): Promise<void> {
     const char = await this.getCharacteristic(serviceUuid, characteristicUuid);
-    if (withResponse) {
+    const useResponse =
+      withResponse ?? (char.properties.write && !char.properties.writeWithoutResponse);
+
+    let writeMode: "withResponse" | "withoutResponse";
+    if (useResponse && char.properties.write) {
+      writeMode = "withResponse";
+      await char.writeValue(data);
+    } else if (char.properties.writeWithoutResponse) {
+      writeMode = "withoutResponse";
+      await char.writeValueWithoutResponse(data);
+    } else if (char.properties.write) {
+      writeMode = "withResponse";
       await char.writeValue(data);
     } else {
-      await char.writeValueWithoutResponse(data);
+      throw new BluetoothError("NOT_FOUND", "Characteristic is not writable");
     }
+
+    logHandshake("writeCharacteristic (BluetoothManager)", {
+      serviceUuid,
+      characteristicUuid,
+      writeMode,
+      opcode: `0x${(data[0] ?? 0).toString(16).padStart(2, "0")}`,
+      hex: bytesToHex(data),
+    });
 
     this.emit({
       type: "packet-sent",
@@ -318,6 +346,10 @@ class BluetoothManager {
     characteristicUuid: string,
   ): Promise<void> {
     const char = await this.getCharacteristic(serviceUuid, characteristicUuid);
+    if (!char.properties.notify && !char.properties.indicate) {
+      return;
+    }
+
     const key = `${serviceUuid}|${characteristicUuid}`;
 
     const handler = (event: Event) => {

@@ -55,3 +55,14 @@ export const DIR_NW = 0x50;
 
 export const KEEPALIVE_START_GUIDANCE = 0x01;
 export const KEEPALIVE_STOP_GUIDANCE = 0x05;
+
+/** Delays from Super Tripper TripperBleManager (milliseconds). */
+export const DELAY_PRE_HANDSHAKE_MS = 200;
+export const DELAY_SHOW_PIN_UI_MS = 300;
+export const DELAY_CLOSE_TO_TIME_MS = 200;
+export const DELAY_TIME_TO_PING_MS = 150;
+export const DELAY_PING_TO_READY_MS = 300;
+export const DELAY_POST_PIN_SET_TIME_MS = 150;
+export const DELAY_POST_PIN_TO_PING_MS = 350;
+export const DELAY_POST_PIN_WP_GAP_MS = 100;
+export const DELAY_INTER_WRITE_MS = 80;

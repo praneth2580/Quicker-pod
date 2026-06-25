@@ -27,6 +27,13 @@ SERVICE_UUID = "01FF0100-BA5E-F4EE-5CA1-EB1E5E4B1CE0"
 CHAR_UUID = "01FF0101-BA5E-F4EE-5CA1-EB1E5E4B1CE0"
 CCCD_UUID = "00002902-0000-1000-8000-00805f9b34fb"
 
+DELAY_PRE_HANDSHAKE_S = 0.2
+DELAY_SHOW_PIN_UI_S = 0.3
+DELAY_CLOSE_TO_TIME_S = 0.2
+DELAY_TIME_TO_PING_S = 0.15
+DELAY_PING_TO_READY_S = 0.3
+DELAY_INTER_WRITE_S = 0.08
+
 NotificationHandler = Callable[[TripperResponse], Awaitable[None] | None]
 
 
@@ -61,7 +68,10 @@ class TripperBleClient:
         self.device_address = addr
         self._client = BleakClient(addr)
         await self._client.connect()
-        await self._client.start_notify(CHAR_UUID, self._on_notify)
+        try:
+            await self._client.start_notify(CHAR_UUID, self._on_notify)
+        except Exception:
+            pass
         self._writer_task = asyncio.create_task(self._write_loop())
 
     async def disconnect(self) -> None:
@@ -83,8 +93,9 @@ class TripperBleClient:
         assert self._client is not None
         while self.connected:
             packet, label = await self._write_queue.get()
-            await self._client.write_gatt_char(CHAR_UUID, packet, response=True)
+            await self._client.write_gatt_char(CHAR_UUID, packet, response=False)
             self._write_queue.task_done()
+            await asyncio.sleep(DELAY_INTER_WRITE_S)
 
     async def enqueue(self, packet: bytes, label: str = "") -> None:
         await self._write_queue.put((packet, label))
@@ -92,18 +103,19 @@ class TripperBleClient:
     async def start_handshake(self, *, known_device: bool = False) -> None:
         """Mirror Super Tripper startHandshake() sequence."""
         self.known_device = known_device
+        await asyncio.sleep(DELAY_PRE_HANDSHAKE_S)
         await self.enqueue(build_loading_screen(), "LOADING")
         if known_device:
             await self.enqueue(PKT_CLOSE, "CLOSE/RESUME")
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(DELAY_CLOSE_TO_TIME_S)
             await self.enqueue(build_set_time_now_packet(), "SET TIME")
-            await asyncio.sleep(0.15)
+            await asyncio.sleep(DELAY_TIME_TO_PING_S)
             await self.enqueue(PKT_PING_FW, "PING FW")
             await self.enqueue(PKT_PING_FW, "PING FW")
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(DELAY_PING_TO_READY_S)
         else:
             await self.enqueue(PKT_PIN_SHOW, "SHOW PIN")
-            await asyncio.sleep(0.3)
+            await asyncio.sleep(DELAY_SHOW_PIN_UI_S)
 
     async def run_post_pin_sequence(self) -> None:
         """Mirror Super Tripper submitPin() timer chain."""

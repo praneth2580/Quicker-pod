@@ -42,13 +42,23 @@ Byte 1 is usually a sub-command (e.g. `0x11` for navigation screens).
 
 ## Connection sequence (`startHandshake`)
 
+See **[startup-handshake.md](./startup-handshake.md)** for the full verified state machine,
+logcat timeline, and root-cause analysis for PIN display failures.
+
 ```text
-Connect GATT
-  → discover services
-  → enable notifications + write CCCD
+connectDevice()
+  → startGattServer()          ← phone hosts 01FF0100 service (required)
+  → wait 200 ms
+  → connectGatt(TRANSPORT_LE)
+  → onConnected: sendLoadingScreen()
+  → discoverServices()
+  → setCharacteristicNotification + optional CCCD
   → wait 200 ms
   → startHandshake()
 ```
+
+**Tripper responses (AUTH, OS_VERSION, SERIAL) arrive via writes to the phone GATT server,
+not client notifications.** Web Bluetooth cannot implement this server role.
 
 ### New device (PIN pairing)
 

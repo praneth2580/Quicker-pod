@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { BluetoothDeviceInfo, BluetoothServiceInfo, KnownDevice, PairingPhase } from "@/types";
 import { bluetoothManager } from "@/bluetooth/BluetoothManager";
+import { describeKnownDevice, isDeviceKnown } from "@/bluetooth/deviceKnown";
+import { logHandshakeDecision } from "@/bluetooth/tripper/handshakeLog";
 import { TRIPPER_CHAR_UUID, TRIPPER_SERVICE_UUID } from "@/bluetooth/pairingConfig";
 import { getBluetoothErrorMessage } from "@/bluetooth/errors";
 import type { TripperPairingConfig } from "@/bluetooth/pairingConfig";
@@ -140,8 +142,18 @@ export const useConnectionStore = create<ConnectionState>()(
             throw new Error("No device selected.");
           }
 
+          const known = describeKnownDevice(info.id, get().knownDevices);
+          logHandshakeDecision("startPairing — device known check", {
+            ...known,
+            note: "Connect always forces SHOW PIN (0x21 01) even if pinPaired",
+          });
+
           await bluetoothManager.connectGatt();
-          await bluetoothManager.runNewDeviceHandshake();
+          await bluetoothManager.startTripperHandshake({
+            deviceId: info.id,
+            knownDevice: false,
+            source: "startPairing",
+          });
           set({
             connecting: false,
             pairingPhase: "awaiting_pin",
@@ -202,17 +214,24 @@ export const useConnectionStore = create<ConnectionState>()(
       reconnectDevice: async (deviceId) => {
         set({ connecting: true, lastError: null, pairingMessage: null });
         try {
-          const known = get().knownDevices.find((d) => d.id === deviceId);
+          const knownMeta = describeKnownDevice(deviceId, get().knownDevices);
+          const knownDevice = isDeviceKnown(deviceId, get().knownDevices);
+          logHandshakeDecision("reconnectDevice — isDeviceKnown check", knownMeta);
+
           const info = await bluetoothManager.connectToPermittedDevice(deviceId);
 
-          if (known?.pinPaired) {
-            await bluetoothManager.connectGatt();
-            await bluetoothManager.runKnownDeviceHandshake();
+          await bluetoothManager.connectGatt();
+          await bluetoothManager.startTripperHandshake({
+            deviceId: info.id,
+            knownDevice,
+            source: "reconnectDevice",
+          });
+
+          if (knownDevice) {
             await finalizeConnection(info, true, get, set);
             return;
           }
 
-          await bluetoothManager.connectGatt();
           set({
             device: info,
             awaitingPinDevice: info,

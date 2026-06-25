@@ -46,11 +46,15 @@ sed -n '239,750p' super_apktool/smali_classes3/com/supertripper/app/TripperProto
 
 ## Key findings
 
-1. **Single characteristic** — `01FF0101` handles both writes and notifications.
-2. **20-byte fixed frames** — CRC over 18 bytes, big-endian CRC placement.
-3. **Two nav code paths** — `TripperProtocol.buildNavPacket` (simpler) vs `InternalMapManager.sendManeuverToTripper` (production).
-4. **Reconnect vs pair** — `isDeviceKnown(mac)` chooses CLOSE+TIME+PING vs SHOW_PIN.
-5. **AUTH** — response opcode `0x20`, byte 1 is boolean success.
+1. **Dual GATT roles** — Phone is GATT client (commands) **and** GATT server (responses). Tripper writes AUTH/OS_VERSION/SERIAL to the phone peripheral.
+2. **Single characteristic** — `01FF0101` on Tripper is write-only (`props=0x04`); CCCD often missing.
+3. **20-byte fixed frames** — CRC over 18 bytes, big-endian CRC placement.
+4. **WRITE_NO_RESPONSE** — All command writes use `setWriteType(1)`.
+5. **Two nav code paths** — `TripperProtocol.buildNavPacket` (simpler) vs `InternalMapManager.sendManeuverToTripper` (production).
+6. **Reconnect vs pair** — `isDeviceKnown(mac)` chooses CLOSE+TIME+PING vs SHOW_PIN.
+7. **AUTH** — response opcode `0x20`, byte 1 is boolean success; delivered via GATT server write.
+8. **SESSION is not a handshake prerequisite** — `0x21` SHOW_PIN is sent without waiting for SESSION.
+9. **Full startup spec** — see [startup-handshake.md](./startup-handshake.md).
 
 ## Recommended next captures
 
