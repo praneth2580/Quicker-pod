@@ -9,6 +9,7 @@ import { DashboardPage } from "@/pages/DashboardPage";
 import { ConnectPage } from "@/pages/ConnectPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
+import { BleDebugPage } from "@/pages/BleDebugPage";
 
 function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
   const tab = LEGACY_ROUTE_TABS[legacyPath] ?? "explorer";
@@ -39,6 +40,7 @@ export default function App() {
       <Route path="/monitor" element={<Navigate to="/protocol-lab?tab=notifications" replace />} />
       <Route path="/send" element={<Navigate to="/protocol-lab?tab=sender" replace />} />
       <Route path="/protocol-lab" element={<ProtocolLabPage />} />
+      <Route path="/ble-debug" element={<BleDebugPage />} />
       <Route path="/settings" element={<SettingsPage />} />
 
       {/* Legacy routes → Protocol Lab tabs */}

@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 const navItems = [
   { path: "/dashboard", label: "Home", icon: "⌂" },
   { path: "/connect", label: "Connect", icon: "◎" },
+  { path: "/ble-debug", label: "Debug", icon: "◉" },
   { path: "/protocol-lab", label: "Lab", icon: "⚗" },
   { path: "/settings", label: "Settings", icon: "⚙" },
 ];
@@ -21,7 +22,9 @@ export function BottomNav() {
             const active =
               item.path === "/protocol-lab"
                 ? location.pathname === "/protocol-lab"
-                : location.pathname === item.path;
+                : item.path === "/ble-debug"
+                  ? location.pathname === "/ble-debug"
+                  : location.pathname === item.path;
             return (
               <Link
                 key={item.path}

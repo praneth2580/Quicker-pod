@@ -6,6 +6,13 @@ import type {
   BluetoothServiceInfo,
 } from "@/types";
 import { bytesToHex } from "@/utils";
+import { bleDebugLogger, withBleErrorLogging } from "./bleDebugLogger";
+import {
+  connectGattWithSettle,
+  dumpGattServices,
+  ensureGattConnected,
+  setBleActiveDevice,
+} from "./bleGattHelpers";
 import { ROYAL_ENFIELD_DEVICE_FILTERS, ROYAL_ENFIELD_OPTIONAL_SERVICES } from "./filters";
 import { BluetoothError, mapBluetoothError } from "./errors";
 import { logHandshake } from "./tripper/handshakeLog";
@@ -29,6 +36,7 @@ import {
   type StartHandshakeOptions,
 } from "./tripper/session";
 import { PKT_NAV_IDLE } from "./tripper/packets";
+import { useBleDebugStore } from "@/store/bleDebugStore";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
 
@@ -48,6 +56,8 @@ class BluetoothManager {
   private listeners = new Set<BluetoothEventListener>();
   private notificationHandlers = new Map<string, (event: Event) => void>();
   private lastNavPacket: Uint8Array = PKT_NAV_IDLE;
+  private connectionPollTimer: ReturnType<typeof setInterval> | null = null;
+  private disconnectHandler: ((event: Event) => void) | null = null;
 
   isSupported(): boolean {
     return typeof navigator !== "undefined" && "bluetooth" in navigator;
@@ -75,7 +85,7 @@ class BluetoothManager {
   }
 
   isConnected(): boolean {
-    return Boolean(this.server?.connected);
+    return Boolean(this.server?.connected && this.device?.gatt?.connected);
   }
 
   async connectNewDevice(): Promise<BluetoothDevice> {
@@ -87,6 +97,7 @@ class BluetoothManager {
     }
 
     try {
+      bleDebugLogger.log("Requesting device");
       const device = await navigator.bluetooth.requestDevice({
         filters: ROYAL_ENFIELD_DEVICE_FILTERS,
         optionalServices: ROYAL_ENFIELD_OPTIONAL_SERVICES,
@@ -94,6 +105,7 @@ class BluetoothManager {
       this.attachDevice(device);
       return device;
     } catch (error) {
+      bleDebugLogger.error("requestDevice failed", error);
       throw mapBluetoothError(error);
     }
   }
@@ -107,6 +119,7 @@ class BluetoothManager {
     }
 
     try {
+      bleDebugLogger.log("Requesting device");
       const device = await navigator.bluetooth.requestDevice({
         acceptAllDevices: !filters?.length,
         optionalServices: filters?.length ? undefined : ["battery_service", "device_information"],
@@ -115,6 +128,7 @@ class BluetoothManager {
 
       return this.attachDevice(device);
     } catch (error) {
+      bleDebugLogger.error("requestDevice failed", error);
       throw mapBluetoothError(error);
     }
   }
@@ -156,13 +170,44 @@ class BluetoothManager {
 
       return this.attachDevice(device);
     } catch (error) {
+      bleDebugLogger.error("connectToPermittedDevice failed", error);
       throw mapBluetoothError(error);
     }
   }
 
+  private startConnectionPolling(): void {
+    this.stopConnectionPolling();
+    this.connectionPollTimer = setInterval(() => {
+      const connected = this.device?.gatt?.connected ?? false;
+      bleDebugLogger.logGattConnected(connected);
+      useBleDebugStore.getState().setGattConnected(connected);
+      useBleDebugStore.getState().syncFromLogger();
+    }, 1000);
+  }
+
+  private stopConnectionPolling(): void {
+    if (this.connectionPollTimer) {
+      clearInterval(this.connectionPollTimer);
+      this.connectionPollTimer = null;
+    }
+  }
+
   private attachDevice(device: BluetoothDevice): BluetoothDeviceInfo {
+    if (this.disconnectHandler && this.device) {
+      this.device.removeEventListener("gattserverdisconnected", this.disconnectHandler);
+    }
+
     this.device = device;
-    device.addEventListener("gattserverdisconnected", () => this.handleDisconnect());
+    setBleActiveDevice(device);
+    useBleDebugStore.getState().setDeviceName(device.name || "Unknown Device");
+
+    this.disconnectHandler = (event: Event) => {
+      bleDebugLogger.logDisconnect("gattserverdisconnected", event);
+      bleDebugLogger.log("Disconnect event");
+      this.handleDisconnect();
+    };
+    device.addEventListener("gattserverdisconnected", this.disconnectHandler);
+    this.startConnectionPolling();
 
     const info: BluetoothDeviceInfo = {
       id: device.id,
@@ -177,27 +222,31 @@ class BluetoothManager {
     return this.server?.connected ? this.server : null;
   }
 
+  async ensureConnected(): Promise<BluetoothRemoteGATTServer> {
+    if (!this.device) {
+      throw new BluetoothError("NOT_FOUND", "No device selected.");
+    }
+    this.server = await ensureGattConnected(this.device);
+    return this.server;
+  }
+
   async startTripperHandshake(options: StartHandshakeOptions): Promise<void> {
-    const server = this.getGattServer();
-    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    const server = await this.ensureConnected();
     await startHandshake(server, options);
   }
 
   async runNewDeviceHandshake(): Promise<void> {
-    const server = this.getGattServer();
-    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    const server = await this.ensureConnected();
     await runNewDeviceHandshake(server);
   }
 
   async runKnownDeviceHandshake(): Promise<void> {
-    const server = this.getGattServer();
-    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    const server = await this.ensureConnected();
     await runKnownDeviceHandshake(server);
   }
 
   async runPostPinSequence(): Promise<void> {
-    const server = this.getGattServer();
-    if (!server) throw new BluetoothError("NOT_FOUND", "GATT not connected");
+    const server = await this.ensureConnected();
     await runPostPinSequence(server);
   }
 
@@ -236,10 +285,12 @@ class BluetoothManager {
     }
 
     try {
-      this.server = await this.device.gatt.connect();
+      this.server = await connectGattWithSettle(this.device);
       this.lastNavPacket = PKT_NAV_IDLE;
+      await dumpGattServices(this.server);
       return this.server;
     } catch (error) {
+      bleDebugLogger.error("connectGatt failed", error);
       throw mapBluetoothError(error);
     }
   }
@@ -247,6 +298,8 @@ class BluetoothManager {
   async connect(): Promise<BluetoothServiceInfo[]> {
     if (!this.server?.connected) {
       await this.connectGatt();
+    } else {
+      await this.ensureConnected();
     }
 
     try {
@@ -254,6 +307,7 @@ class BluetoothManager {
       this.emit({ type: "connected", payload: services });
       return services;
     } catch (error) {
+      bleDebugLogger.error("connect/discoverServices failed", error);
       throw mapBluetoothError(error);
     }
   }
@@ -279,6 +333,7 @@ class BluetoothManager {
   }
 
   async disconnect(): Promise<void> {
+    bleDebugLogger.log("Disconnecting (user initiated)");
     if (this.server?.connected) {
       this.server.disconnect();
     }
@@ -293,24 +348,28 @@ class BluetoothManager {
 
   private cleanup(): void {
     resetTripperWriteQueue();
-    this.notificationHandlers.forEach((handler, key) => {
-      const [serviceUuid, charUuid] = key.split("|");
-      void this.getCharacteristic(serviceUuid, charUuid)
-        .then((char) => char.removeEventListener("characteristicvaluechanged", handler))
-        .catch(() => undefined);
-    });
     this.notificationHandlers.clear();
     this.server = null;
+    setBleActiveDevice(this.device);
+    useBleDebugStore.getState().setGattConnected(false);
+    if (this.device) {
+      this.startConnectionPolling();
+    }
   }
 
   async discoverServices(): Promise<BluetoothServiceInfo[]> {
-    if (!this.server) throw new Error("Not connected");
+    const server = await this.ensureConnected();
 
-    const services = await this.server.getPrimaryServices();
+    const services = await withBleErrorLogging("discoverServices getPrimaryServices", () =>
+      server.getPrimaryServices(),
+    );
     const result: BluetoothServiceInfo[] = [];
 
     for (const service of services) {
-      const characteristics = await service.getCharacteristics();
+      const characteristics = await withBleErrorLogging(
+        `discoverServices getCharacteristics ${service.uuid}`,
+        () => service.getCharacteristics(),
+      );
       result.push({
         uuid: service.uuid,
         characteristics: characteristics.map((char) => ({
@@ -327,9 +386,19 @@ class BluetoothManager {
     serviceUuid: string,
     characteristicUuid: string,
   ): Promise<GattCharacteristic> {
-    if (!this.server) throw new Error("Not connected");
-    const service = await this.server.getPrimaryService(serviceUuid);
-    return service.getCharacteristic(characteristicUuid);
+    const server = await this.ensureConnected();
+    bleDebugLogger.log("Discovering characteristic", { serviceUuid, characteristicUuid });
+    const service = await withBleErrorLogging("getPrimaryService failed", () =>
+      server.getPrimaryService(serviceUuid),
+    );
+    const char = await withBleErrorLogging("getCharacteristic failed", () =>
+      service.getCharacteristic(characteristicUuid),
+    );
+    bleDebugLogger.log("Characteristic discovered", {
+      uuid: char.uuid,
+      properties: parseProperties(char),
+    });
+    return char;
   }
 
   async readCharacteristic(
@@ -337,9 +406,10 @@ class BluetoothManager {
     characteristicUuid: string,
   ): Promise<Uint8Array> {
     const char = await this.getCharacteristic(serviceUuid, characteristicUuid);
-    const value = await char.readValue();
+    const value = await withBleErrorLogging("readValue failed", () => char.readValue());
     const bytes = new Uint8Array(value.buffer);
 
+    bleDebugLogger.logRx(bytes, "readCharacteristic");
     this.emit({
       type: "packet-received",
       payload: {
@@ -362,16 +432,20 @@ class BluetoothManager {
     const useResponse =
       withResponse ?? (char.properties.write && !char.properties.writeWithoutResponse);
 
+    bleDebugLogger.logTx(data, "writeCharacteristic");
+
     let writeMode: "withResponse" | "withoutResponse";
     if (useResponse && char.properties.write) {
       writeMode = "withResponse";
-      await char.writeValue(data);
+      await withBleErrorLogging("writeValue failed", () => char.writeValue(data));
     } else if (char.properties.writeWithoutResponse) {
       writeMode = "withoutResponse";
-      await char.writeValueWithoutResponse(data);
+      await withBleErrorLogging("writeValueWithoutResponse failed", () =>
+        char.writeValueWithoutResponse(data),
+      );
     } else if (char.properties.write) {
       writeMode = "withResponse";
-      await char.writeValue(data);
+      await withBleErrorLogging("writeValue failed", () => char.writeValue(data));
     } else {
       throw new BluetoothError("NOT_FOUND", "Characteristic is not writable");
     }
@@ -407,6 +481,7 @@ class BluetoothManager {
       if (!value) return;
       const bytes = new Uint8Array(value.buffer);
 
+      bleDebugLogger.logRx(bytes, "notification");
       this.emit({
         type: "notification",
         payload: { serviceUuid, characteristicUuid, payload: bytes },
@@ -419,7 +494,7 @@ class BluetoothManager {
 
     char.addEventListener("characteristicvaluechanged", handler);
     this.notificationHandlers.set(key, handler);
-    await char.startNotifications();
+    await withBleErrorLogging("startNotifications failed", () => char.startNotifications());
   }
 
   async unsubscribeFromNotifications(
@@ -433,7 +508,7 @@ class BluetoothManager {
       char.removeEventListener("characteristicvaluechanged", handler);
       this.notificationHandlers.delete(key);
     }
-    await char.stopNotifications();
+    await withBleErrorLogging("stopNotifications failed", () => char.stopNotifications());
   }
 
   formatPayload(bytes: Uint8Array): string {
@@ -453,3 +528,4 @@ export type { TripperPairingConfig, PinEncoding, PairingResult, PairingTarget } 
 export { DEFAULT_PAIRING_CONFIG, validateTripperPin, normalizeTripperPin } from "./pairingConfig";
 export { submitTripperPin, discoverPairingTarget } from "./tripperPairing";
 export * as tripper from "./tripper";
+export { bleDebugLogger } from "./bleDebugLogger";

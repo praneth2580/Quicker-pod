@@ -2,6 +2,7 @@ import {
   DELAY_CLOSE_TO_TIME_MS,
   DELAY_INTER_WRITE_MS,
   DELAY_PING_TO_READY_MS,
+  DELAY_POST_NOTIFICATIONS_MS,
   DELAY_POST_PIN_TO_PING_MS,
   DELAY_POST_PIN_WP_GAP_MS,
   DELAY_PRE_HANDSHAKE_MS,
@@ -10,6 +11,13 @@ import {
   TRIPPER_CHAR_UUID,
   TRIPPER_SERVICE_UUID,
 } from "./constants";
+import { bleDebugLogger, sleep, withBleErrorLogging } from "../bleDebugLogger";
+import {
+  assertServerConnected,
+  dumpGattServices,
+  startNotificationsWithSettle,
+} from "../bleGattHelpers";
+import { useBleDebugStore } from "@/store/bleDebugStore";
 import {
   logEnqueuePacket,
   logHandshake,
@@ -52,15 +60,21 @@ export interface SendTripperPinResult {
 
 let writeChain: Promise<void> = Promise.resolve();
 let lastWriteAt = 0;
+let tripperCharRef: GattCharacteristic | null = null;
 
 function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return sleep(ms);
 }
 
 /** Reset serialized write queue (call on GATT disconnect). */
 export function resetTripperWriteQueue(): void {
   writeChain = Promise.resolve();
   lastWriteAt = 0;
+  tripperCharRef = null;
+}
+
+async function assertConnected(server: GattServer): Promise<GattServer> {
+  return assertServerConnected(server);
 }
 
 async function getTripperCharacteristic(
@@ -68,8 +82,28 @@ async function getTripperCharacteristic(
   serviceUuid = TRIPPER_SERVICE_UUID,
   charUuid = TRIPPER_CHAR_UUID,
 ): Promise<GattCharacteristic> {
-  const service = await server.getPrimaryService(serviceUuid);
-  return service.getCharacteristic(charUuid);
+  if (tripperCharRef) return tripperCharRef;
+
+  const activeServer = await assertConnected(server);
+  bleDebugLogger.log("Discovering characteristic", { serviceUuid, charUuid });
+  const service = await withBleErrorLogging("getPrimaryService (Tripper)", () =>
+    activeServer.getPrimaryService(serviceUuid),
+  );
+  const char = await withBleErrorLogging("getCharacteristic (Tripper)", () =>
+    service.getCharacteristic(charUuid),
+  );
+  bleDebugLogger.log("Characteristic discovered", {
+    uuid: char.uuid,
+    properties: {
+      read: char.properties.read,
+      write: char.properties.write,
+      writeWithoutResponse: char.properties.writeWithoutResponse,
+      notify: char.properties.notify,
+      indicate: char.properties.indicate,
+    },
+  });
+  tripperCharRef = char;
+  return char;
 }
 
 async function writeTripperPacketImmediate(
@@ -80,18 +114,22 @@ async function writeTripperPacketImmediate(
   charUuid = TRIPPER_CHAR_UUID,
 ): Promise<void> {
   logEnqueuePacket(label, packet);
+  bleDebugLogger.logTx(packet, label);
 
-  const char = await getTripperCharacteristic(server, serviceUuid, charUuid);
+  const activeServer = await assertConnected(server);
+  const char = await getTripperCharacteristic(activeServer, serviceUuid, charUuid);
 
   if (char.properties.writeWithoutResponse) {
     logWriteCharacteristic(label, packet, "withoutResponse");
-    await char.writeValueWithoutResponse(packet);
+    await withBleErrorLogging(`writeWithoutResponse ${label}`, () =>
+      char.writeValueWithoutResponse(packet),
+    );
     return;
   }
 
   if (char.properties.write) {
     logWriteCharacteristic(label, packet, "withResponse");
-    await char.writeValue(packet);
+    await withBleErrorLogging(`writeValue ${label}`, () => char.writeValue(packet));
     return;
   }
 
@@ -129,10 +167,13 @@ async function enableTripperNotificationsIfSupported(
       properties: char.properties,
       note: "Tripper hardware often props=0x04 only; CCCD absent on pod char",
     });
+    bleDebugLogger.warn("Notifications skipped — characteristic has no notify/indicate", {
+      properties: char.properties,
+    });
     return false;
   }
 
-  await char.startNotifications();
+  await startNotificationsWithSettle(char);
   logHandshake("notifications enabled (Web Bluetooth writes CCCD 0x0100)", {
     properties: char.properties,
   });
@@ -140,21 +181,26 @@ async function enableTripperNotificationsIfSupported(
 }
 
 /**
- * Mirror onServicesDiscovered → setCharacteristicNotification → postDelayed(200ms).
+ * Service discovery → notifications → settle BEFORE any Tripper packets.
+ * Mirrors onServicesDiscovered → setCharacteristicNotification → postDelayed(200ms).
  */
 export async function prepareTripperChannel(
   server: GattServer,
   serviceUuid = TRIPPER_SERVICE_UUID,
   charUuid = TRIPPER_CHAR_UUID,
 ): Promise<GattCharacteristic> {
-  const services = await server.getPrimaryServices();
-  logHandshake("services discovered", { count: services.length });
+  const activeServer = await assertConnected(server);
+  await dumpGattServices(activeServer);
+  logHandshake("services discovered", {
+    count: useBleDebugStore.getState().services.length,
+  });
 
-  const char = await getTripperCharacteristic(server, serviceUuid, charUuid);
+  const char = await getTripperCharacteristic(activeServer, serviceUuid, charUuid);
   const notificationsEnabled = await enableTripperNotificationsIfSupported(char);
 
   logHandshake(`pre-handshake settle ${DELAY_PRE_HANDSHAKE_MS}ms`, {
     notificationsEnabled,
+    postNotificationsMs: DELAY_POST_NOTIFICATIONS_MS,
     beforeStartHandshake: true,
   });
   await delay(DELAY_PRE_HANDSHAKE_MS);
@@ -163,11 +209,11 @@ export async function prepareTripperChannel(
 }
 
 /**
- * Official onConnectionStateChange: loading screen immediately, then discover + 200 ms settle.
+ * Connect setup: discover services + enable notifications BEFORE sending any packets.
  */
 export async function runTripperConnectSetup(server: GattServer): Promise<void> {
-  await writeTripperPacket(server, buildLoadingScreen(), "LOADING SCREEN");
   await prepareTripperChannel(server);
+  await writeTripperPacket(server, buildLoadingScreen(), "LOADING SCREEN");
 }
 
 /**
@@ -195,14 +241,18 @@ export async function startHandshake(
   if (knownDevice) {
     await writeTripperPacket(server, PKT_CLOSE, "CLOSE/RESUME");
     await delay(DELAY_CLOSE_TO_TIME_MS);
+    bleDebugLogger.setHandshakeStage("set_time");
     await writeTripperPacket(server, buildSetTimeNowPacket(), "SET TIME");
     await delay(DELAY_TIME_TO_PING_MS);
+    bleDebugLogger.setHandshakeStage("ping_fw");
     await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
     await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
     await delay(DELAY_PING_TO_READY_MS);
+    bleDebugLogger.setHandshakeStage("ready");
     return;
   }
 
+  bleDebugLogger.setHandshakeStage("show_pin");
   await writeTripperPacket(server, PKT_PIN_SHOW, "SHOW PIN");
   await delay(DELAY_SHOW_PIN_UI_MS);
   logHandshake("onReadyForPin — awaiting user PIN entry", { waitMs: DELAY_SHOW_PIN_UI_MS });
@@ -228,7 +278,7 @@ export async function sendTripperPin(
   timeoutMs = 5000,
 ): Promise<SendTripperPinResult> {
   const packet = buildPinPacket(pin);
-    await writeTripperPacket(server, packet, "PIN (6 digits)");
+  await writeTripperPacket(server, packet, "PIN (6 digits)");
 
   const response = await waitForAuthResponse(server, timeoutMs);
   if (response && isPinRejected(response)) {
@@ -243,14 +293,18 @@ export async function sendTripperPin(
 
 /** Post-PIN sequence from Super Tripper submitPin() / logcat timeline. */
 export async function runPostPinSequence(server: GattServer): Promise<void> {
+  bleDebugLogger.setHandshakeStage("set_time");
   await writeTripperPacket(server, buildSetTimeNowPacket(), "SET TIME");
   await delay(DELAY_TIME_TO_PING_MS);
+  bleDebugLogger.setHandshakeStage("ping_fw");
   await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
   await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
   await delay(DELAY_POST_PIN_TO_PING_MS);
+  bleDebugLogger.setHandshakeStage("ping_wp");
   await writeTripperPacket(server, PKT_PING_WP, "PING WP (0x30)");
   await delay(DELAY_POST_PIN_WP_GAP_MS);
   await writeTripperPacket(server, PKT_PING_WP, "PING WP (0x30)");
+  bleDebugLogger.setHandshakeStage("ready");
 }
 
 export async function waitForAuthResponse(
@@ -283,6 +337,7 @@ export async function waitForAuthResponse(
       const target = event.target as GattCharacteristic;
       if (!target.value) return;
       const bytes = new Uint8Array(target.value.buffer);
+      bleDebugLogger.logRx(bytes, "AUTH wait");
       const parsed = parseTripperResponse(bytes);
       if (parsed.label === "AUTH") finish(parsed);
     };

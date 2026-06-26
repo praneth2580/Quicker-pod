@@ -61,6 +61,8 @@ export const KEEPALIVE_CALL_ICON = 0x05;
 export const KEEPALIVE_STOP_GUIDANCE = KEEPALIVE_CALL_ICON;
 
 /** Delays from Super Tripper TripperBleManager (milliseconds). */
+export const DELAY_POST_CONNECT_MS = 1000;
+export const DELAY_POST_NOTIFICATIONS_MS = 500;
 export const DELAY_PRE_HANDSHAKE_MS = 200;
 export const DELAY_SHOW_PIN_UI_MS = 300;
 export const DELAY_CLOSE_TO_TIME_MS = 200;

@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PinInput } from "@/components/connect/PinInput";
+import { BleLogConsole } from "@/components/ble/BleLogConsole";
 import { useBluetoothConnect } from "@/hooks/useBluetoothConnect";
 import { ROYAL_ENFIELD_NAME_PREFIX } from "@/bluetooth/filters";
 import { validateTripperPin } from "@/bluetooth/pairingConfig";
@@ -257,6 +258,8 @@ export function ConnectPage() {
             ))}
           </div>
         )}
+
+        <BleLogConsole compact title="Live BLE log" />
       </div>
     </AppLayout>
   );
