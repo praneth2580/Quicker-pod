@@ -120,6 +120,7 @@ To change the app icon, edit `public/icon.svg` and rerun `npm run generate-pwa-a
 ```
 src/
 ├── bluetooth/              # BluetoothManager — Web Bluetooth wrapper
+│   └── tripper/            # Tripper Pod protocol (see tripper-protocol/re-engineered-protocol/)
 ├── components/             # Shared UI and layout
 ├── features/
 │   └── protocol-lab/       # Protocol Lab feature (tabs, stores, BLE helpers)
@@ -131,6 +132,16 @@ src/
 ├── utils/                  # HEX conversion, formatting
 └── App.tsx                 # Route definitions
 ```
+
+### Protocol documentation
+
+Canonical BLE protocol reference: **[`tripper-protocol/re-engineered-protocol/`](./tripper-protocol/re-engineered-protocol/)**
+
+- Markdown specs (GATT, framing, handshake, navigation, …)
+- [`constants.json`](./tripper-protocol/re-engineered-protocol/constants.json) — machine-readable opcodes
+- [`tripper_protocol.py`](./tripper-protocol/re-engineered-protocol/tripper_protocol.py) — Python reference client
+
+TypeScript packet builders live in `src/bluetooth/tripper/`. Python SDK in `tripper-sdk/`.
 
 ---
 

@@ -143,7 +143,7 @@ Real BLE requires a Chromium-based browser on **HTTPS** or `localhost`.
 
 ## Roadmap
 
-- [ ] Reverse-engineered Tripper Pod protocol
+- [x] Reverse-engineered Tripper Pod protocol — see [`tripper-protocol/re-engineered-protocol/`](./tripper-protocol/re-engineered-protocol/)
 - [ ] OpenStreetMap integration
 - [ ] GPX import
 - [ ] Turn-by-turn navigation

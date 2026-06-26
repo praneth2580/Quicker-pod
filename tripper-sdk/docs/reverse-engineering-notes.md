@@ -1,5 +1,7 @@
 # Reverse Engineering Notes
 
+> **Canonical merged protocol:** [`../tripper-protocol/re-engineered-protocol/`](../tripper-protocol/re-engineered-protocol/)
+
 Working directory for APK analysis:
 
 ```bash

@@ -1,0 +1,45 @@
+{
+  "description": "Pre-built 20-byte frames from TripperProtocol static initializers (Super TripperPod v2.1). RE reprime builds equivalent frames dynamically via k2h/o12 with identical opcodes.",
+  "packets": {
+    "PKT_PIN_SHOW": {
+      "hex": "21 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 50 A7",
+      "label": "Handshake — show PIN entry screen",
+      "command": "HANDSHAKE",
+      "byte1": 1
+    },
+    "PKT_CLOSE": {
+      "hex": "21 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 40 45",
+      "label": "Handshake — close/resume session (known device)",
+      "command": "HANDSHAKE",
+      "byte1": 0
+    },
+    "PKT_PING_FW": {
+      "hex": "03 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 45 D9",
+      "label": "Ping firmware version",
+      "command": "PING_FW"
+    },
+    "PKT_PING_WP": {
+      "hex": "30 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 42 8B",
+      "label": "Ping waypoint",
+      "command": "PING_WP"
+    },
+    "PKT_STOP_NAV": {
+      "hex": "10 11 1C 00 00 01 00 FF 00 00 00 00 00 00 00 00 00 00 F7 82",
+      "label": "Stop navigation (STOP screen)",
+      "command": "NAVIGATE",
+      "screen": 28
+    },
+    "PKT_NAV_IDLE": {
+      "hex": "10 11 3C 00 00 04 40 15 00 00 41 00 04 03 00 00 00 10 50",
+      "label": "Navigation idle screen",
+      "command": "NAVIGATE",
+      "screen": 60
+    },
+    "PKT_CALL_ICON_KEEPALIVE": {
+      "hex": "40 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ED 5E",
+      "label": "Keepalive during phone call",
+      "command": "KEEPALIVE",
+      "note": "Byte 1 = 0x05; CRC computed at runtime by app"
+    }
+  }
+}

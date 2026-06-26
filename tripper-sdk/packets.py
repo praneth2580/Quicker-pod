@@ -100,7 +100,8 @@ def to_hex(data: bytes, sep: str = " ") -> str:
 def bearing_to_direction(bearing_deg: float) -> int:
     """Map compass bearing (0=N, 90=E) to Tripper direction byte."""
     sector = int(((bearing_deg + 22.5) % 360.0) / 45.0)
-    table = [DIR_N, DIR_NE, DIR_E, DIR_SE, DIR_S, DIR_SW, DIR_W, DIR_NW]
+    # TripperProtocol.bearingToDirection packed-switch; sectors are not clockwise from N.
+    table = (DIR_N, DIR_NW, DIR_W, DIR_SE, DIR_S, DIR_SW, DIR_E, DIR_NE)
     return table[sector % 8]
 
 

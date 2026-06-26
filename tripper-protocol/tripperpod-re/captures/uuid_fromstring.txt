@@ -1,0 +1,5 @@
+super_apktool/smali_classes3/I3/y.smali:    invoke-static {v0}, Ljava/util/UUID;->fromString(Ljava/lang/String;)Ljava/util/UUID;
+super_apktool/smali_classes3/com/supertripper/app/TripperProtocol.smali:    invoke-static {v1}, Ljava/util/UUID;->fromString(Ljava/lang/String;)Ljava/util/UUID;
+super_apktool/smali_classes3/com/supertripper/app/TripperProtocol.smali:    invoke-static {v1}, Ljava/util/UUID;->fromString(Ljava/lang/String;)Ljava/util/UUID;
+super_apktool/smali_classes3/com/supertripper/app/TripperProtocol.smali:    invoke-static {v1}, Ljava/util/UUID;->fromString(Ljava/lang/String;)Ljava/util/UUID;
+super_apktool/smali_classes4/com/google/android/libraries/navigation/internal/dn/n.smali:    invoke-static {v0}, Ljava/util/UUID;->fromString(Ljava/lang/String;)Ljava/util/UUID;

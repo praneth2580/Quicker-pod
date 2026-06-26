@@ -1,0 +1,527 @@
+package com.supertripper.app;
+
+import androidx.compose.ui.text.input.PartialGapBuffer;
+import com.google.android.libraries.navigation.internal.ky.ad;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.UUID;
+import kotlin.Metadata;
+import kotlin.enums.EnumEntries;
+import kotlin.enums.EnumEntriesKt;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.internal.Intrinsics;
+import kotlin.ranges.IntRange;
+import kotlin.text.Charsets;
+
+/* JADX INFO: loaded from: classes3.dex */
+@Metadata(d1 = {"\u0000R\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0004\n\u0002\u0010\u0005\n\u0002\b\b\n\u0002\u0010\u000e\n\u0002\b\n\n\u0002\u0010\u0012\n\u0002\b\u001e\n\u0002\u0010\u0007\n\u0002\b\u0003\n\u0002\u0010\u000b\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\u0010\b\n\u0002\b\u0015\n\u0002\u0018\u0002\n\u0002\b\u0007\bÇ\u0002\u0018\u00002\u00020\u0001:\u0002`aB\u0007\b\u0002¢\u0006\u0002\u0010\u0002J\u0010\u00108\u001a\u00020\u001d2\u0006\u00109\u001a\u00020\u001dH\u0002J\u000e\u0010:\u001a\u00020\t2\u0006\u0010;\u001a\u00020<J\u0018\u0010=\u001a\u00020\u001d2\u0006\u0010>\u001a\u00020\t2\b\b\u0002\u0010?\u001a\u00020@J4\u0010A\u001a\u00020\u001d2\u0006\u0010B\u001a\u00020C2\u0006\u0010D\u001a\u00020E2\b\b\u0002\u0010F\u001a\u00020\t2\b\b\u0002\u0010G\u001a\u00020\t2\b\b\u0002\u0010H\u001a\u00020\tJL\u0010I\u001a\u00020\u001d2\b\b\u0002\u0010F\u001a\u00020\t2\b\b\u0002\u0010D\u001a\u00020E2\b\b\u0002\u0010J\u001a\u00020\t2\b\b\u0002\u0010K\u001a\u00020\t2\b\b\u0002\u0010L\u001a\u00020\t2\b\b\u0002\u0010G\u001a\u00020\t2\b\b\u0002\u0010H\u001a\u00020\tJ\u000e\u0010M\u001a\u00020\u001d2\u0006\u0010N\u001a\u00020\u0012J\u0006\u0010O\u001a\u00020\u001dJ \u0010P\u001a\u00020\u001d2\u0006\u0010Q\u001a\u00020E2\u0006\u0010R\u001a\u00020E2\b\b\u0002\u0010S\u001a\u00020@J\u000e\u0010T\u001a\u00020E2\u0006\u0010U\u001a\u00020\u001dJ\u0010\u0010V\u001a\u00020\u001d2\u0006\u0010W\u001a\u00020\u0012H\u0002J\u000e\u0010X\u001a\u00020\u00122\u0006\u0010Y\u001a\u00020\tJ\u000e\u0010Z\u001a\u00020[2\u0006\u0010\\\u001a\u00020\u001dJ\u000e\u0010]\u001a\u00020\u00122\u0006\u0010Y\u001a\u00020\tJ\u000e\u0010^\u001a\u00020\u00122\u0006\u0010Y\u001a\u00020\tJ\u000e\u0010_\u001a\u00020\u00122\u0006\u0010\\\u001a\u00020\u001dR\u0019\u0010\u0003\u001a\n \u0005*\u0004\u0018\u00010\u00040\u0004¢\u0006\b\n\u0000\u001a\u0004\b\u0006\u0010\u0007R\u000e\u0010\b\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\n\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u000b\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\f\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\r\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u000e\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u000f\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0010\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0011\u001a\u00020\u0012X\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0013\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0014\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0015\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0016\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0017\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0018\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u0019\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u001a\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010\u001b\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u0011\u0010\u001c\u001a\u00020\u001d¢\u0006\b\n\u0000\u001a\u0004\b\u001e\u0010\u001fR\u0011\u0010 \u001a\u00020\u001d¢\u0006\b\n\u0000\u001a\u0004\b!\u0010\u001fR\u0011\u0010\"\u001a\u00020\u001d¢\u0006\b\n\u0000\u001a\u0004\b#\u0010\u001fR\u0011\u0010$\u001a\u00020\u001d¢\u0006\b\n\u0000\u001a\u0004\b%\u0010\u001fR\u0011\u0010&\u001a\u00020\u001d¢\u0006\b\n\u0000\u001a\u0004\b'\u0010\u001fR\u0011\u0010(\u001a\u00020\u001d¢\u0006\b\n\u0000\u001a\u0004\b)\u0010\u001fR\u000e\u0010*\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010+\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010,\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010-\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010.\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u0010/\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u00100\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u00101\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u00102\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u000e\u00103\u001a\u00020\tX\u0086T¢\u0006\u0002\n\u0000R\u0019\u00104\u001a\n \u0005*\u0004\u0018\u00010\u00040\u0004¢\u0006\b\n\u0000\u001a\u0004\b5\u0010\u0007R\u0019\u00106\u001a\n \u0005*\u0004\u0018\u00010\u00040\u0004¢\u0006\b\n\u0000\u001a\u0004\b7\u0010\u0007¨\u0006b"}, d2 = {"Lcom/supertripper/app/TripperProtocol;", "", "()V", "CCCD_UUID", "Ljava/util/UUID;", "kotlin.jvm.PlatformType", "getCCCD_UUID", "()Ljava/util/UUID;", "CMD_DEVICE_ID", "", "CMD_FUTURE_0B", "CMD_HANDSHAKE", "CMD_KEEPALIVE", "CMD_NAVIGATE", "CMD_PING_FW", "CMD_PING_WP", "CMD_SET_TIME", "DEVICE_NAME", "", "HS_CLOSE", "HS_SHOW_PIN", "MAN_FORWARD", "MAN_HIGHWAY", "MAN_LEFT", "MAN_RIGHT_HARD", "MAN_RIGHT_SOFT", "MAN_STRAIGHT", "MAN_UTURN", "PKT_CLOSE", "", "getPKT_CLOSE", "()[B", "PKT_NAV_IDLE", "getPKT_NAV_IDLE", "PKT_PING_FW", "getPKT_PING_FW", "PKT_PING_WP", "getPKT_PING_WP", "PKT_PIN_SHOW", "getPKT_PIN_SHOW", "PKT_STOP_NAV", "getPKT_STOP_NAV", "ROAD_AVENUE", "ROAD_HIGHWAY", "ROAD_STREET", "SCREEN_ARRIVE", "SCREEN_HIGHWAY", "SCREEN_IDLE", "SCREEN_LAST", "SCREEN_RECALC", "SCREEN_STOP", "SCREEN_TBT", "SERVICE_UUID", "getSERVICE_UUID", "WRITE_CHAR_UUID", "getWRITE_CHAR_UUID", "appendCrc", "buf", "bearingToDirection", "bearing", "", "buildCompassPacket", "direction", "nightMode", "", "buildNavFromManeuver", "gm", "Lcom/supertripper/app/TripperProtocol$GoogleManeuver;", "distMeters", "", "screen", "roadType", "etaMinutes", "buildNavPacket", MapsNavigationService.EXTRA_MANEUVER, "heading", "speedFlags", "buildPinPacket", "code", "buildSetTimeNowPacket", "buildSetTimePacket", "hour24", "minute", "is24h", "crc16", "data", "hex", "s", "maneuverLabel", "b", "parseResponse", "Lcom/supertripper/app/TripperProtocol$TripperResponse;", "bytes", "roadLabel", "screenLabel", "toHex", "GoogleManeuver", "TripperResponse", "app_release"}, k = 1, mv = {1, ad.f32211c, 0}, xi = 48)
+public final class TripperProtocol {
+    public static final int $stable;
+    private static final UUID CCCD_UUID;
+    public static final byte CMD_DEVICE_ID = 32;
+    public static final byte CMD_FUTURE_0B = 11;
+    public static final byte CMD_HANDSHAKE = 33;
+    public static final byte CMD_KEEPALIVE = 64;
+    public static final byte CMD_NAVIGATE = 16;
+    public static final byte CMD_PING_FW = 3;
+    public static final byte CMD_PING_WP = 48;
+    public static final byte CMD_SET_TIME = 80;
+    public static final String DEVICE_NAME = "RE_DISP";
+    public static final byte HS_CLOSE = 0;
+    public static final byte HS_SHOW_PIN = 1;
+    public static final TripperProtocol INSTANCE;
+    public static final byte MAN_FORWARD = 64;
+    public static final byte MAN_HIGHWAY = 96;
+    public static final byte MAN_LEFT = 16;
+    public static final byte MAN_RIGHT_HARD = 48;
+    public static final byte MAN_RIGHT_SOFT = 32;
+    public static final byte MAN_STRAIGHT = 0;
+    public static final byte MAN_UTURN = 80;
+    private static final byte[] PKT_CLOSE;
+    private static final byte[] PKT_NAV_IDLE;
+    private static final byte[] PKT_PING_FW;
+    private static final byte[] PKT_PING_WP;
+    private static final byte[] PKT_PIN_SHOW;
+    private static final byte[] PKT_STOP_NAV;
+    public static final byte ROAD_AVENUE = 66;
+    public static final byte ROAD_HIGHWAY = 49;
+    public static final byte ROAD_STREET = 65;
+    public static final byte SCREEN_ARRIVE = 21;
+    public static final byte SCREEN_HIGHWAY = 50;
+    public static final byte SCREEN_IDLE = 60;
+    public static final byte SCREEN_LAST = 1;
+    public static final byte SCREEN_RECALC = 61;
+    public static final byte SCREEN_STOP = 28;
+    public static final byte SCREEN_TBT = 20;
+    private static final UUID SERVICE_UUID;
+    private static final UUID WRITE_CHAR_UUID;
+
+    /* JADX WARN: Failed to restore enum class, 'enum' modifier and super class removed */
+    /* JADX WARN: Unknown enum class pattern. Please report as an issue! */
+    @Metadata(d1 = {"\u0000\u001a\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0000\n\u0002\u0010\u0005\n\u0002\b\u0002\n\u0002\u0010\u000e\n\u0002\b'\b\u0086\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\u001f\b\u0002\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0003\u0012\u0006\u0010\u0005\u001a\u00020\u0006¢\u0006\u0002\u0010\u0007R\u0011\u0010\u0002\u001a\u00020\u0003¢\u0006\b\n\u0000\u001a\u0004\b\b\u0010\tR\u0011\u0010\u0004\u001a\u00020\u0003¢\u0006\b\n\u0000\u001a\u0004\b\n\u0010\tR\u0011\u0010\u0005\u001a\u00020\u0006¢\u0006\b\n\u0000\u001a\u0004\b\u000b\u0010\fj\u0002\b\rj\u0002\b\u000ej\u0002\b\u000fj\u0002\b\u0010j\u0002\b\u0011j\u0002\b\u0012j\u0002\b\u0013j\u0002\b\u0014j\u0002\b\u0015j\u0002\b\u0016j\u0002\b\u0017j\u0002\b\u0018j\u0002\b\u0019j\u0002\b\u001aj\u0002\b\u001bj\u0002\b\u001cj\u0002\b\u001dj\u0002\b\u001ej\u0002\b\u001fj\u0002\b j\u0002\b!j\u0002\b\"j\u0002\b#j\u0002\b$j\u0002\b%j\u0002\b&j\u0002\b'j\u0002\b(j\u0002\b)j\u0002\b*j\u0002\b+j\u0002\b,¨\u0006-"}, d2 = {"Lcom/supertripper/app/TripperProtocol$GoogleManeuver;", "", "byte5", "", "byte6", "displayName", "", "(Ljava/lang/String;IBBLjava/lang/String;)V", "getByte5", "()B", "getByte6", "getDisplayName", "()Ljava/lang/String;", "DEPART", "STRAIGHT", "DESTINATION_LEFT", "DESTINATION_RIGHT", "TURN_LEFT", "TURN_RIGHT", "TURN_KEEP_LEFT", "TURN_KEEP_RIGHT", "TURN_SLIGHT_LEFT", "TURN_SLIGHT_RIGHT", "TURN_SHARP_LEFT", "TURN_SHARP_RIGHT", "TURN_U_TURN_CLOCKWISE", "TURN_U_TURN_COUNTERCLOCKWISE", "FORK_LEFT", "FORK_RIGHT", "KEEP_LEFT", "KEEP_RIGHT", "MERGE_LEFT", "MERGE_RIGHT", "ON_RAMP_LEFT", "ON_RAMP_RIGHT", "OFF_RAMP_LEFT", "OFF_RAMP_RIGHT", "ROUNDABOUT_LEFT_CLOCKWISE", "ROUNDABOUT_RIGHT_CLOCKWISE", "ROUNDABOUT_STRAIGHT_CLOCKWISE", "ROUNDABOUT_EXIT_CLOCKWISE", "ROUNDABOUT_U_TURN_CLOCKWISE", "ROUNDABOUT_LEFT_COUNTERCLOCKWISE", "ROUNDABOUT_RIGHT_COUNTERCLOCKWISE", "ROUNDABOUT_EXIT_COUNTERCLOCKWISE", "app_release"}, k = 1, mv = {1, ad.f32211c, 0}, xi = 48)
+    public static final class GoogleManeuver {
+        private static final /* synthetic */ EnumEntries $ENTRIES;
+        private static final /* synthetic */ GoogleManeuver[] $VALUES;
+        private final byte byte5;
+        private final byte byte6;
+        private final String displayName;
+        public static final GoogleManeuver DEPART = new GoogleManeuver("DEPART", 0, (byte) 0, (byte) 64, "Saída inicial");
+        public static final GoogleManeuver STRAIGHT = new GoogleManeuver("STRAIGHT", 1, (byte) 0, (byte) 64, "Seguir reto");
+        public static final GoogleManeuver DESTINATION_LEFT = new GoogleManeuver("DESTINATION_LEFT", 2, (byte) 16, (byte) 1, "Destino à esquerda");
+        public static final GoogleManeuver DESTINATION_RIGHT = new GoogleManeuver("DESTINATION_RIGHT", 3, (byte) 32, (byte) 1, "Destino à direita");
+        public static final GoogleManeuver TURN_LEFT = new GoogleManeuver("TURN_LEFT", 4, (byte) 16, (byte) 64, "Vire à esquerda");
+        public static final GoogleManeuver TURN_RIGHT = new GoogleManeuver("TURN_RIGHT", 5, (byte) 32, (byte) 64, "Vire à direita");
+        public static final GoogleManeuver TURN_KEEP_LEFT = new GoogleManeuver("TURN_KEEP_LEFT", 6, (byte) 16, (byte) 64, "Mantenha-se à esquerda");
+        public static final GoogleManeuver TURN_KEEP_RIGHT = new GoogleManeuver("TURN_KEEP_RIGHT", 7, (byte) 32, (byte) 64, "Mantenha-se à direita");
+        public static final GoogleManeuver TURN_SLIGHT_LEFT = new GoogleManeuver("TURN_SLIGHT_LEFT", 8, (byte) 16, (byte) 64, "Curva leve à esquerda");
+        public static final GoogleManeuver TURN_SLIGHT_RIGHT = new GoogleManeuver("TURN_SLIGHT_RIGHT", 9, (byte) 32, (byte) 64, "Curva leve à direita");
+        public static final GoogleManeuver TURN_SHARP_LEFT = new GoogleManeuver("TURN_SHARP_LEFT", 10, (byte) 48, (byte) 64, "Curva fechada à esquerda");
+        public static final GoogleManeuver TURN_SHARP_RIGHT = new GoogleManeuver("TURN_SHARP_RIGHT", 11, (byte) 48, (byte) 64, "Curva fechada à direita");
+        public static final GoogleManeuver TURN_U_TURN_CLOCKWISE = new GoogleManeuver("TURN_U_TURN_CLOCKWISE", 12, (byte) 80, (byte) 64, "Retorno (sentido horário)");
+        public static final GoogleManeuver TURN_U_TURN_COUNTERCLOCKWISE = new GoogleManeuver("TURN_U_TURN_COUNTERCLOCKWISE", 13, (byte) 80, (byte) 64, "Retorno (anti-horário)");
+        public static final GoogleManeuver FORK_LEFT = new GoogleManeuver("FORK_LEFT", 14, (byte) 16, (byte) 64, "Bifurcação à esquerda");
+        public static final GoogleManeuver FORK_RIGHT = new GoogleManeuver("FORK_RIGHT", 15, (byte) 32, (byte) 64, "Bifurcação à direita");
+        public static final GoogleManeuver KEEP_LEFT = new GoogleManeuver("KEEP_LEFT", 16, (byte) 16, (byte) 64, "Mantenha à esquerda");
+        public static final GoogleManeuver KEEP_RIGHT = new GoogleManeuver("KEEP_RIGHT", 17, (byte) 32, (byte) 64, "Mantenha à direita");
+        public static final GoogleManeuver MERGE_LEFT = new GoogleManeuver("MERGE_LEFT", 18, (byte) 16, (byte) 64, "Convergir à esquerda");
+        public static final GoogleManeuver MERGE_RIGHT = new GoogleManeuver("MERGE_RIGHT", 19, (byte) 32, (byte) 64, "Convergir à direita");
+        public static final GoogleManeuver ON_RAMP_LEFT = new GoogleManeuver("ON_RAMP_LEFT", 20, TripperProtocol.MAN_HIGHWAY, (byte) 64, "Entrar na rampa à esquerda");
+        public static final GoogleManeuver ON_RAMP_RIGHT = new GoogleManeuver("ON_RAMP_RIGHT", 21, TripperProtocol.MAN_HIGHWAY, (byte) 64, "Entrar na rampa à direita");
+        public static final GoogleManeuver OFF_RAMP_LEFT = new GoogleManeuver("OFF_RAMP_LEFT", 22, TripperProtocol.MAN_HIGHWAY, (byte) 64, "Sair pela rampa à esquerda");
+        public static final GoogleManeuver OFF_RAMP_RIGHT = new GoogleManeuver("OFF_RAMP_RIGHT", 23, TripperProtocol.MAN_HIGHWAY, (byte) 64, "Sair pela rampa à direita");
+        public static final GoogleManeuver ROUNDABOUT_LEFT_CLOCKWISE = new GoogleManeuver("ROUNDABOUT_LEFT_CLOCKWISE", 24, (byte) 64, (byte) 16, "Rotatória à esquerda");
+        public static final GoogleManeuver ROUNDABOUT_RIGHT_CLOCKWISE = new GoogleManeuver("ROUNDABOUT_RIGHT_CLOCKWISE", 25, (byte) 64, (byte) 32, "Rotatória à direita");
+        public static final GoogleManeuver ROUNDABOUT_STRAIGHT_CLOCKWISE = new GoogleManeuver("ROUNDABOUT_STRAIGHT_CLOCKWISE", 26, (byte) 64, (byte) 64, "Rotatória reto");
+        public static final GoogleManeuver ROUNDABOUT_EXIT_CLOCKWISE = new GoogleManeuver("ROUNDABOUT_EXIT_CLOCKWISE", 27, (byte) 64, TripperProtocol.MAN_HIGHWAY, "Saída da rotatória");
+        public static final GoogleManeuver ROUNDABOUT_U_TURN_CLOCKWISE = new GoogleManeuver("ROUNDABOUT_U_TURN_CLOCKWISE", 28, (byte) 64, (byte) 80, "Retorno na rotatória");
+        public static final GoogleManeuver ROUNDABOUT_LEFT_COUNTERCLOCKWISE = new GoogleManeuver("ROUNDABOUT_LEFT_COUNTERCLOCKWISE", 29, (byte) 64, (byte) 16, "Rotatória à esquerda (anti-h)");
+        public static final GoogleManeuver ROUNDABOUT_RIGHT_COUNTERCLOCKWISE = new GoogleManeuver("ROUNDABOUT_RIGHT_COUNTERCLOCKWISE", 30, (byte) 64, (byte) 32, "Rotatória à direita (anti-h)");
+        public static final GoogleManeuver ROUNDABOUT_EXIT_COUNTERCLOCKWISE = new GoogleManeuver("ROUNDABOUT_EXIT_COUNTERCLOCKWISE", 31, (byte) 64, TripperProtocol.MAN_HIGHWAY, "Saída da rotatória (anti-h)");
+
+        private static final /* synthetic */ GoogleManeuver[] $values() {
+            return new GoogleManeuver[]{DEPART, STRAIGHT, DESTINATION_LEFT, DESTINATION_RIGHT, TURN_LEFT, TURN_RIGHT, TURN_KEEP_LEFT, TURN_KEEP_RIGHT, TURN_SLIGHT_LEFT, TURN_SLIGHT_RIGHT, TURN_SHARP_LEFT, TURN_SHARP_RIGHT, TURN_U_TURN_CLOCKWISE, TURN_U_TURN_COUNTERCLOCKWISE, FORK_LEFT, FORK_RIGHT, KEEP_LEFT, KEEP_RIGHT, MERGE_LEFT, MERGE_RIGHT, ON_RAMP_LEFT, ON_RAMP_RIGHT, OFF_RAMP_LEFT, OFF_RAMP_RIGHT, ROUNDABOUT_LEFT_CLOCKWISE, ROUNDABOUT_RIGHT_CLOCKWISE, ROUNDABOUT_STRAIGHT_CLOCKWISE, ROUNDABOUT_EXIT_CLOCKWISE, ROUNDABOUT_U_TURN_CLOCKWISE, ROUNDABOUT_LEFT_COUNTERCLOCKWISE, ROUNDABOUT_RIGHT_COUNTERCLOCKWISE, ROUNDABOUT_EXIT_COUNTERCLOCKWISE};
+        }
+
+        static {
+            GoogleManeuver[] googleManeuverArr$values = $values();
+            $VALUES = googleManeuverArr$values;
+            $ENTRIES = EnumEntriesKt.a(googleManeuverArr$values);
+        }
+
+        private GoogleManeuver(String str, int i6, byte b7, byte b8, String str2) {
+            this.byte5 = b7;
+            this.byte6 = b8;
+            this.displayName = str2;
+        }
+
+        public static EnumEntries<GoogleManeuver> getEntries() {
+            return $ENTRIES;
+        }
+
+        public static GoogleManeuver valueOf(String str) {
+            return (GoogleManeuver) Enum.valueOf(GoogleManeuver.class, str);
+        }
+
+        public static GoogleManeuver[] values() {
+            return (GoogleManeuver[]) $VALUES.clone();
+        }
+
+        public final byte getByte5() {
+            return this.byte5;
+        }
+
+        public final byte getByte6() {
+            return this.byte6;
+        }
+
+        public final String getDisplayName() {
+            return this.displayName;
+        }
+    }
+
+    @Metadata(d1 = {"\u0000(\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0010\b\n\u0000\n\u0002\u0010\u000e\n\u0002\b\u0002\n\u0002\u0010\u0012\n\u0002\b\u000e\n\u0002\u0010\u000b\n\u0002\b\u0004\b\u0087\b\u0018\u00002\u00020\u0001B%\u0012\u0006\u0010\u0002\u001a\u00020\u0003\u0012\u0006\u0010\u0004\u001a\u00020\u0005\u0012\u0006\u0010\u0006\u001a\u00020\u0005\u0012\u0006\u0010\u0007\u001a\u00020\b¢\u0006\u0002\u0010\tJ\t\u0010\u0011\u001a\u00020\u0003HÆ\u0003J\t\u0010\u0012\u001a\u00020\u0005HÆ\u0003J\t\u0010\u0013\u001a\u00020\u0005HÆ\u0003J\t\u0010\u0014\u001a\u00020\bHÆ\u0003J1\u0010\u0015\u001a\u00020\u00002\b\b\u0002\u0010\u0002\u001a\u00020\u00032\b\b\u0002\u0010\u0004\u001a\u00020\u00052\b\b\u0002\u0010\u0006\u001a\u00020\u00052\b\b\u0002\u0010\u0007\u001a\u00020\bHÆ\u0001J\u0013\u0010\u0016\u001a\u00020\u00172\b\u0010\u0018\u001a\u0004\u0018\u00010\u0001HÖ\u0003J\t\u0010\u0019\u001a\u00020\u0003HÖ\u0001J\t\u0010\u001a\u001a\u00020\u0005HÖ\u0001R\u0011\u0010\u0002\u001a\u00020\u0003¢\u0006\b\n\u0000\u001a\u0004\b\n\u0010\u000bR\u0011\u0010\u0006\u001a\u00020\u0005¢\u0006\b\n\u0000\u001a\u0004\b\f\u0010\rR\u0011\u0010\u0004\u001a\u00020\u0005¢\u0006\b\n\u0000\u001a\u0004\b\u000e\u0010\rR\u0011\u0010\u0007\u001a\u00020\b¢\u0006\b\n\u0000\u001a\u0004\b\u000f\u0010\u0010¨\u0006\u001b"}, d2 = {"Lcom/supertripper/app/TripperProtocol$TripperResponse;", "", "cmd", "", "label", "", "description", "rawBytes", "", "(ILjava/lang/String;Ljava/lang/String;[B)V", "getCmd", "()I", "getDescription", "()Ljava/lang/String;", "getLabel", "getRawBytes", "()[B", "component1", "component2", "component3", "component4", "copy", "equals", "", "other", "hashCode", "toString", "app_release"}, k = 1, mv = {1, ad.f32211c, 0}, xi = 48)
+    public static final /* data */ class TripperResponse {
+        public static final int $stable = 8;
+        private final int cmd;
+        private final String description;
+        private final String label;
+        private final byte[] rawBytes;
+
+        public TripperResponse(int i6, String label, String description, byte[] rawBytes) {
+            Intrinsics.f(label, "label");
+            Intrinsics.f(description, "description");
+            Intrinsics.f(rawBytes, "rawBytes");
+            this.cmd = i6;
+            this.label = label;
+            this.description = description;
+            this.rawBytes = rawBytes;
+        }
+
+        public static /* synthetic */ TripperResponse copy$default(TripperResponse tripperResponse, int i6, String str, String str2, byte[] bArr, int i7, Object obj) {
+            if ((i7 & 1) != 0) {
+                i6 = tripperResponse.cmd;
+            }
+            if ((i7 & 2) != 0) {
+                str = tripperResponse.label;
+            }
+            if ((i7 & 4) != 0) {
+                str2 = tripperResponse.description;
+            }
+            if ((i7 & 8) != 0) {
+                bArr = tripperResponse.rawBytes;
+            }
+            return tripperResponse.copy(i6, str, str2, bArr);
+        }
+
+        /* JADX INFO: renamed from: component1, reason: from getter */
+        public final int getCmd() {
+            return this.cmd;
+        }
+
+        /* JADX INFO: renamed from: component2, reason: from getter */
+        public final String getLabel() {
+            return this.label;
+        }
+
+        /* JADX INFO: renamed from: component3, reason: from getter */
+        public final String getDescription() {
+            return this.description;
+        }
+
+        /* JADX INFO: renamed from: component4, reason: from getter */
+        public final byte[] getRawBytes() {
+            return this.rawBytes;
+        }
+
+        public final TripperResponse copy(int cmd, String label, String description, byte[] rawBytes) {
+            Intrinsics.f(label, "label");
+            Intrinsics.f(description, "description");
+            Intrinsics.f(rawBytes, "rawBytes");
+            return new TripperResponse(cmd, label, description, rawBytes);
+        }
+
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof TripperResponse)) {
+                return false;
+            }
+            TripperResponse tripperResponse = (TripperResponse) other;
+            return this.cmd == tripperResponse.cmd && Intrinsics.b(this.label, tripperResponse.label) && Intrinsics.b(this.description, tripperResponse.description) && Intrinsics.b(this.rawBytes, tripperResponse.rawBytes);
+        }
+
+        public final int getCmd() {
+            return this.cmd;
+        }
+
+        public final String getDescription() {
+            return this.description;
+        }
+
+        public final String getLabel() {
+            return this.label;
+        }
+
+        public final byte[] getRawBytes() {
+            return this.rawBytes;
+        }
+
+        public int hashCode() {
+            return Arrays.hashCode(this.rawBytes) + androidx.compose.foundation.a.c(androidx.compose.foundation.a.c(Integer.hashCode(this.cmd) * 31, 31, this.label), 31, this.description);
+        }
+
+        public String toString() {
+            return "TripperResponse(cmd=" + this.cmd + ", label=" + this.label + ", description=" + this.description + ", rawBytes=" + Arrays.toString(this.rawBytes) + ')';
+        }
+    }
+
+    static {
+        TripperProtocol tripperProtocol = new TripperProtocol();
+        INSTANCE = tripperProtocol;
+        SERVICE_UUID = UUID.fromString("01FF0100-BA5E-F4EE-5CA1-EB1E5E4B1CE0");
+        WRITE_CHAR_UUID = UUID.fromString("01FF0101-BA5E-F4EE-5CA1-EB1E5E4B1CE0");
+        CCCD_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
+        PKT_PIN_SHOW = tripperProtocol.hex("21010000000000000000000000000000000050A7");
+        PKT_CLOSE = tripperProtocol.hex("2100000000000000000000000000000000004045");
+        PKT_PING_FW = tripperProtocol.hex("03000000000000000000000000000000000045D9");
+        PKT_PING_WP = tripperProtocol.hex("300000000000000000000000000000000000428B");
+        PKT_STOP_NAV = tripperProtocol.hex("10111C00000100FF00000000000000000000F782");
+        PKT_NAV_IDLE = tripperProtocol.hex("10113C0000044015000041000403000000001050");
+        $stable = 8;
+    }
+
+    private TripperProtocol() {
+    }
+
+    private final byte[] appendCrc(byte[] buf) {
+        int iCrc16 = crc16(kotlin.collections.c.h0(buf, new IntRange(0, 17, 1)));
+        buf[18] = (byte) ((iCrc16 >> 8) & PartialGapBuffer.BUF_SIZE);
+        buf[19] = (byte) (iCrc16 & PartialGapBuffer.BUF_SIZE);
+        return buf;
+    }
+
+    public static /* synthetic */ byte[] buildCompassPacket$default(TripperProtocol tripperProtocol, byte b7, boolean z5, int i6, Object obj) {
+        if ((i6 & 2) != 0) {
+            z5 = false;
+        }
+        return tripperProtocol.buildCompassPacket(b7, z5);
+    }
+
+    public static /* synthetic */ byte[] buildNavFromManeuver$default(TripperProtocol tripperProtocol, GoogleManeuver googleManeuver, int i6, byte b7, byte b8, byte b9, int i7, Object obj) {
+        if ((i7 & 4) != 0) {
+            b7 = SCREEN_TBT;
+        }
+        byte b10 = b7;
+        if ((i7 & 8) != 0) {
+            b8 = ROAD_STREET;
+        }
+        byte b11 = b8;
+        if ((i7 & 16) != 0) {
+            b9 = 0;
+        }
+        return tripperProtocol.buildNavFromManeuver(googleManeuver, i6, b10, b11, b9);
+    }
+
+    public static /* synthetic */ byte[] buildNavPacket$default(TripperProtocol tripperProtocol, byte b7, int i6, byte b8, byte b9, byte b10, byte b11, byte b12, int i7, Object obj) {
+        if ((i7 & 1) != 0) {
+            b7 = SCREEN_TBT;
+        }
+        int i8 = (i7 & 2) != 0 ? 0 : i6;
+        byte b13 = (i7 & 4) != 0 ? (byte) 64 : b8;
+        byte b14 = (i7 & 8) != 0 ? (byte) 64 : b9;
+        if ((i7 & 16) != 0) {
+            b10 = SCREEN_ARRIVE;
+        }
+        byte b15 = b10;
+        if ((i7 & 32) != 0) {
+            b11 = ROAD_STREET;
+        }
+        return tripperProtocol.buildNavPacket(b7, i8, b13, b14, b15, b11, (i7 & 64) == 0 ? b12 : (byte) 0);
+    }
+
+    public static /* synthetic */ byte[] buildSetTimePacket$default(TripperProtocol tripperProtocol, int i6, int i7, boolean z5, int i8, Object obj) {
+        if ((i8 & 4) != 0) {
+            z5 = true;
+        }
+        return tripperProtocol.buildSetTimePacket(i6, i7, z5);
+    }
+
+    private final byte[] hex(String s2) {
+        String strC = c5.j.C(s2, " ", "");
+        int length = strC.length() / 2;
+        byte[] bArr = new byte[length];
+        for (int i6 = 0; i6 < length; i6++) {
+            int i7 = i6 * 2;
+            String strSubstring = strC.substring(i7, i7 + 2);
+            Intrinsics.e(strSubstring, "substring(...)");
+            kotlin.text.a.a(16);
+            bArr[i6] = (byte) Integer.parseInt(strSubstring, 16);
+        }
+        return bArr;
+    }
+
+    public final byte bearingToDirection(float bearing) {
+        switch ((int) (((bearing + 22.5f) % 360.0f) / 45.0f)) {
+            case 0:
+            default:
+                return (byte) 16;
+            case 1:
+                return (byte) 80;
+            case 2:
+                return (byte) 32;
+            case 3:
+                return (byte) 112;
+            case 4:
+                return (byte) 64;
+            case 5:
+                return (byte) -128;
+            case 6:
+                return (byte) 48;
+            case 7:
+                return MAN_HIGHWAY;
+        }
+    }
+
+    public final byte[] buildCompassPacket(byte direction, boolean nightMode) {
+        byte[] bArr = new byte[20];
+        bArr[0] = 16;
+        bArr[1] = 17;
+        bArr[2] = ROAD_STREET;
+        bArr[6] = nightMode ? (byte) 1 : (byte) 0;
+        bArr[7] = -1;
+        bArr[11] = -1;
+        bArr[12] = -1;
+        bArr[13] = -1;
+        bArr[14] = direction;
+        return appendCrc(bArr);
+    }
+
+    public final byte[] buildNavFromManeuver(GoogleManeuver gm, int distMeters, byte screen, byte roadType, byte etaMinutes) {
+        Intrinsics.f(gm, "gm");
+        return buildNavPacket$default(this, screen, distMeters, gm.getByte5(), gm.getByte6(), (byte) 0, roadType, etaMinutes, 16, null);
+    }
+
+    public final byte[] buildNavPacket(byte screen, int distMeters, byte maneuver, byte heading, byte speedFlags, byte roadType, byte etaMinutes) {
+        byte b7 = (byte) ((distMeters >> 8) & PartialGapBuffer.BUF_SIZE);
+        byte b8 = (byte) (distMeters & PartialGapBuffer.BUF_SIZE);
+        return appendCrc(new byte[]{16, 17, screen, b7, b8, maneuver, heading, speedFlags, b7, b8, roadType, 0, etaMinutes, 3, 0, 0, 0, 0, 0, 0});
+    }
+
+    public final byte[] buildPinPacket(String code) {
+        Intrinsics.f(code, "code");
+        byte[] bArr = new byte[20];
+        bArr[0] = 32;
+        byte[] bytes = code.getBytes(Charsets.f52959c);
+        Intrinsics.e(bytes, "getBytes(...)");
+        K5.b.e(bytes, 1, bArr, 0, Math.min(bytes.length, 6));
+        return appendCrc(bArr);
+    }
+
+    public final byte[] buildSetTimeNowPacket() {
+        Calendar calendar = Calendar.getInstance();
+        return buildSetTimePacket(calendar.get(11), calendar.get(12), true);
+    }
+
+    public final byte[] buildSetTimePacket(int hour24, int minute, boolean is24h) {
+        byte[] bArr = new byte[20];
+        bArr[0] = 80;
+        bArr[1] = (byte) hour24;
+        bArr[2] = (byte) minute;
+        bArr[3] = !is24h ? 1 : 0;
+        return appendCrc(bArr);
+    }
+
+    public final int crc16(byte[] data) {
+        Intrinsics.f(data, "data");
+        int i6 = 65535;
+        for (byte b7 : data) {
+            i6 ^= (b7 & 255) << 8;
+            for (int i7 = 0; i7 < 8; i7++) {
+                int i8 = 32768 & i6;
+                int i9 = i6 << 1;
+                if (i8 != 0) {
+                    i9 ^= 4129;
+                }
+                i6 = i9 & 65535;
+            }
+        }
+        return i6;
+    }
+
+    public final UUID getCCCD_UUID() {
+        return CCCD_UUID;
+    }
+
+    public final byte[] getPKT_CLOSE() {
+        return PKT_CLOSE;
+    }
+
+    public final byte[] getPKT_NAV_IDLE() {
+        return PKT_NAV_IDLE;
+    }
+
+    public final byte[] getPKT_PING_FW() {
+        return PKT_PING_FW;
+    }
+
+    public final byte[] getPKT_PING_WP() {
+        return PKT_PING_WP;
+    }
+
+    public final byte[] getPKT_PIN_SHOW() {
+        return PKT_PIN_SHOW;
+    }
+
+    public final byte[] getPKT_STOP_NAV() {
+        return PKT_STOP_NAV;
+    }
+
+    public final UUID getSERVICE_UUID() {
+        return SERVICE_UUID;
+    }
+
+    public final UUID getWRITE_CHAR_UUID() {
+        return WRITE_CHAR_UUID;
+    }
+
+    public final String maneuverLabel(byte b7) {
+        return b7 == 0 ? "Reto" : b7 == 16 ? "← Esquerda" : b7 == 32 ? "→ Direita" : b7 == 48 ? "→→ Direita Forte" : b7 == 64 ? "↑ Manter" : b7 == 80 ? "↩ Retorno" : b7 == 96 ? "⤴ Rodovia" : String.format("0x%02X", Arrays.copyOf(new Object[]{Byte.valueOf(b7)}, 1));
+    }
+
+    public final TripperResponse parseResponse(byte[] bytes) {
+        TripperResponse tripperResponse;
+        Intrinsics.f(bytes, "bytes");
+        boolean z5 = false;
+        if (bytes.length == 0) {
+            return new TripperResponse(0, "EMPTY", "vazio", bytes);
+        }
+        int i6 = bytes[0] & 255;
+        if (i6 == 2) {
+            return new TripperResponse(i6, "NACK", "NAK — comando rejeitado", bytes);
+        }
+        if (i6 != 3) {
+            if (i6 == 16) {
+                return new TripperResponse(i6, "NAV_ACK", "NAV ACK", bytes);
+            }
+            if (i6 == 48) {
+                if (bytes.length < 8) {
+                    return new TripperResponse(i6, "SERIAL", "Serial curto", bytes);
+                }
+                StringBuilder sb = new StringBuilder();
+                for (int i7 = 1; i7 < 8; i7++) {
+                    int i8 = bytes[i7] & 255;
+                    if (i8 == 0) {
+                        break;
+                    }
+                    if (32 <= i8 && i8 < 127) {
+                        sb.append((char) i8);
+                    }
+                }
+                return new TripperResponse(i6, "SERIAL", "Serial: \"" + ((Object) sb) + '\"', bytes);
+            }
+            if (i6 == 80) {
+                return new TripperResponse(i6, "TIME_ACK", "Time ACK", bytes);
+            }
+            if (i6 != 32) {
+                return i6 != 33 ? new TripperResponse(i6, String.format("0x%02X", Arrays.copyOf(new Object[]{Integer.valueOf(i6)}, 1)), "comando não tratado", bytes) : new TripperResponse(i6, "SESSION", "Sessão", bytes);
+            }
+            if (bytes.length > 1 && bytes[1] == 1) {
+                z5 = true;
+            }
+            tripperResponse = new TripperResponse(i6, "AUTH", z5 ? "✓ PIN ACEITO" : "✗ PIN REJEITADO", bytes);
+        } else {
+            if (bytes.length < 3) {
+                return new TripperResponse(i6, "OS_VERSION", "OS version curto", bytes);
+            }
+            byte b7 = bytes[1];
+            int i9 = b7 & 255;
+            byte b8 = bytes[2];
+            int i10 = b8 & 255;
+            tripperResponse = new TripperResponse(i6, "OS_VERSION", String.format("Firmware: v0x%02X.0x%02X (%d.%d)", Arrays.copyOf(new Object[]{Integer.valueOf(i9), Integer.valueOf(i10), Integer.valueOf(((i9 >> 4) * 10) + (b7 & 15)), Integer.valueOf(((i10 >> 4) * 10) + (b8 & 15))}, 4)), bytes);
+        }
+        return tripperResponse;
+    }
+
+    public final String roadLabel(byte b7) {
+        return b7 == 65 ? "Rua" : b7 == 66 ? "Avenida" : b7 == 49 ? "Rodovia" : String.format("0x%02X", Arrays.copyOf(new Object[]{Byte.valueOf(b7)}, 1));
+    }
+
+    public final String screenLabel(byte b7) {
+        return b7 == 60 ? "IDLE" : b7 == 20 ? "TBT" : b7 == 21 ? "CHEGANDO" : b7 == 50 ? "RODOVIA" : b7 == 28 ? "PARAR" : b7 == 61 ? "RECALC" : b7 == 1 ? "LAST" : String.format("0x%02X", Arrays.copyOf(new Object[]{Byte.valueOf(b7)}, 1));
+    }
+
+    public final String toHex(byte[] bytes) {
+        Intrinsics.f(bytes, "bytes");
+        return kotlin.collections.c.b0(bytes, " ", new Function1<Byte, CharSequence>() { // from class: com.supertripper.app.TripperProtocol.toHex.1
+            public final CharSequence invoke(byte b7) {
+                return String.format("%02X", Arrays.copyOf(new Object[]{Byte.valueOf(b7)}, 1));
+            }
+
+            @Override // kotlin.jvm.functions.Function1
+            public /* bridge */ /* synthetic */ Object invoke(Object obj) {
+                return invoke(((Number) obj).byteValue());
+            }
+        });
+    }
+}

@@ -1,5 +1,9 @@
 # Royal Enfield Tripper BLE Protocol
 
+> **Canonical spec:** [`../tripper-protocol/re-engineered-protocol/`](../tripper-protocol/re-engineered-protocol/) — cross-validated from Royal Enfield reprime + Super TripperPod v2.1.
+
+This document covers SDK-specific notes (GATT server role, Web Bluetooth limits). For opcode tables and packet layouts, prefer the canonical spec.
+
 Reverse-engineered from **Super Tripper** APK (`com.supertripper.app`) smali sources.
 
 ## BLE GATT
@@ -239,8 +243,8 @@ When ETA mode is off but total route distance is known, bytes 11–13 repeat the
 
 ### Direction bytes (`bearingToDirection`)
 
-| Bearing sector | Byte |
-|----------------|------|
+| Cardinal | Byte |
+|----------|------|
 | N | `0x10` |
 | NE | `0x60` |
 | E | `0x30` |
@@ -250,7 +254,18 @@ When ETA mode is off but total route distance is known, bytes 11–13 repeat the
 | W | `0x20` |
 | NW | `0x50` |
 
-Bearing uses 22.5° offset and 45° sectors.
+Bearing uses +22.5° offset and 45° sectors. **Sector index → byte** mapping (smali packed-switch):
+
+| Sector | Byte |
+|--------|------|
+| 0 | `0x10` (N) |
+| 1 | `0x50` (NW) |
+| 2 | `0x20` (W) |
+| 3 | `0x70` (SE) |
+| 4 | `0x40` (S) |
+| 5 | `0x80` (SW) |
+| 6 | `0x30` (E) |
+| 7 | `0x60` (NE) |
 
 ## Keepalive
 

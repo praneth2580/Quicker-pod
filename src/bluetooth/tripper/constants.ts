@@ -1,4 +1,4 @@
-/** Royal Enfield Tripper BLE protocol constants (from Super Tripper APK). */
+/** Royal Enfield Tripper BLE protocol constants. Canonical spec: tripper-protocol/re-engineered-protocol/ */
 
 export const TRIPPER_DEVICE_NAME = "RE_DISP";
 export const TRIPPER_SERVICE_UUID = "01ff0100-ba5e-f4ee-5ca1-eb1e5e4b1ce0";

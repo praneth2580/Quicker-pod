@@ -41,7 +41,8 @@ function hexToPacket(hex: string): Uint8Array {
 
 export function bearingToDirection(bearingDeg: number): number {
   const sector = Math.floor(((bearingDeg + 22.5) % 360) / 45);
-  const table = [DIR_N, DIR_NE, DIR_E, DIR_SE, DIR_S, DIR_SW, DIR_W, DIR_NW];
+  // TripperProtocol.bearingToDirection packed-switch (smali); sectors are not clockwise from N.
+  const table = [DIR_N, DIR_NW, DIR_W, DIR_SE, DIR_S, DIR_SW, DIR_E, DIR_NE];
   return table[sector % 8] ?? DIR_N;
 }
 

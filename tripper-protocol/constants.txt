@@ -1,5 +1,6 @@
-# TripperProtocol constants
-# Source: com.supertripper.app.TripperProtocol (Super Tripper APK smali)
+# Tripper Pod protocol — quick reference
+# Canonical spec: re-engineered-protocol/ (constants.json, *.md, tripper_protocol.py)
+# Cross-validated from Royal Enfield reprime + Super TripperPod v2.1
 
 ## Device
 
@@ -21,7 +22,7 @@ CMD_SET_TIME    = 0x50   # Set device clock
 HS_CLOSE        = 0x00   # Close / resume session
 HS_SHOW_PIN     = 0x01   # Show PIN entry screen
 
-## Maneuver icons (byte 5 in nav packets)
+## Maneuver icons (byte 5 in simple nav packets)
 
 MAN_STRAIGHT    = 0x00
 MAN_LEFT        = 0x10
@@ -46,6 +47,7 @@ SCREEN_STOP     = 0x1C   # Stop navigation
 SCREEN_HIGHWAY  = 0x32   # Highway
 SCREEN_IDLE     = 0x3C   # Idle / compass
 SCREEN_RECALC   = 0x3D   # Recalculating
+SCREEN_LOCKED   = 0x42   # Locked screen (RE reprime)
 
 ## Pre-built packet arrays (20 bytes: 18 payload + 2 CRC)
 

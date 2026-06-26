@@ -1,0 +1,67 @@
+{
+  "device": {
+    "name": "RE_DISP",
+    "frame_length": 20,
+    "payload_length": 18,
+    "write_delay_ms": 80,
+    "keepalive_interval_ms": 1000
+  },
+  "uuids": {
+    "service": "01FF0100-BA5E-F4EE-5CA1-EB1E5E4B1CE0",
+    "characteristic": "01FF0101-BA5E-F4EE-5CA1-EB1E5E4B1CE0",
+    "cccd": "00002902-0000-1000-8000-00805f9b34fb"
+  },
+  "commands": {
+    "PING_FW": 3,
+    "FUTURE_0B": 11,
+    "NAVIGATE": 16,
+    "DEVICE_ID": 32,
+    "HANDSHAKE": 33,
+    "PING_WP": 48,
+    "KEEPALIVE": 64,
+    "SET_TIME": 80
+  },
+  "handshake_sub": {
+    "CLOSE": 0,
+    "SHOW_PIN": 1
+  },
+  "nav_subcommand": 17,
+  "screens": {
+    "LAST": 1,
+    "TBT": 20,
+    "ARRIVE": 21,
+    "STOP": 28,
+    "HIGHWAY": 50,
+    "IDLE": 60,
+    "RECALC": 61
+  },
+  "maneuver_icons": {
+    "STRAIGHT": 0,
+    "LEFT": 16,
+    "RIGHT_SOFT": 32,
+    "RIGHT_HARD": 48,
+    "FORWARD": 64,
+    "UTURN": 80,
+    "HIGHWAY_RAMP": 96
+  },
+  "road_types": {
+    "HIGHWAY": 49,
+    "STREET": 65,
+    "AVENUE": 66
+  },
+  "responses": {
+    "NACK": 2,
+    "OS_VERSION": 3,
+    "NAV_ACK": 16,
+    "AUTH": 32,
+    "SESSION": 33,
+    "SERIAL": 48,
+    "TIME_ACK": 80
+  },
+  "crc": {
+    "algorithm": "CRC-16/CCITT-FALSE",
+    "polynomial": "0x1021",
+    "init": "0xFFFF",
+    "range": [0, 17]
+  }
+}

@@ -1,0 +1,860 @@
+package com.supertripper.app;
+
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattServer;
+import android.bluetooth.BluetoothGattServerCallback;
+import android.bluetooth.BluetoothGattService;
+import android.bluetooth.BluetoothManager;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import androidx.compose.ui.text.input.PartialGapBuffer;
+import androidx.lifecycle.CoroutineLiveDataKt;
+import com.google.android.libraries.navigation.internal.ky.ad;
+import com.google.android.libraries.navigation.internal.xz.A;
+import com.supertripper.app.TripperBleManager;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import kotlin.Lazy;
+import kotlin.LazyKt;
+import kotlin.Metadata;
+import kotlin.Pair;
+import kotlin.Unit;
+import kotlin.collections.EmptySet;
+import kotlin.enums.EnumEntries;
+import kotlin.enums.EnumEntriesKt;
+import kotlin.jvm.functions.Function0;
+import kotlin.jvm.functions.Function1;
+import kotlin.jvm.functions.Function2;
+import kotlin.jvm.internal.Intrinsics;
+import kotlin.ranges.IntRange;
+
+/* JADX INFO: loaded from: classes3.dex */
+@Metadata(d1 = {"\u0000½\u0001\n\u0002\u0018\u0002\n\u0002\u0010\u0000\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0010\u000b\n\u0002\b\u0004\n\u0002\u0010\u0012\n\u0002\b\u0005\n\u0002\u0010\u000e\n\u0002\b\u0004\n\u0002\u0018\u0002\n\u0000\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\u0018\u0002\n\u0002\b\u0002\n\u0002\b\u000f\n\u0002\u0018\u0002\n\u0002\u0010\u0002\n\u0002\b\u000b\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0002\b\u0005\n\u0002\u0018\u0002\n\u0002\b\u0011\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0010\b\n\u0000\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\u0018\u0002\n\u0000\n\u0002\b\u0003\n\u0002\u0010\t\n\u0002\b\u0007\n\u0002\u0018\u0002\n\u0000\n\u0002\u0018\u0002\n\u0002\b\u0003\n\u0002\u0018\u0002\n\u0002\b\u0007\n\u0002\u0010\"\n\u0002\b\u000f\n\u0002\u0010\u0005\n\u0002\b%*\u0003\u0018!a\b\u0007\u0018\u0000 \u00ad\u00012\u00020\u0001:\u0004\u00ad\u0001®\u0001B\r\u0012\u0006\u0010\u0002\u001a\u00020\u0003¢\u0006\u0002\u0010\u0004J\b\u0010o\u001a\u000201H\u0002J\u000e\u0010p\u001a\u0002012\u0006\u0010q\u001a\u00020rJ\u0006\u0010s\u001a\u000201J\u0018\u0010t\u001a\u0002012\u0006\u0010u\u001a\u00020\u000b2\u0006\u0010v\u001a\u00020\u0011H\u0002J\u000e\u0010w\u001a\u0002012\u0006\u0010x\u001a\u00020\u0011J\f\u0010y\u001a\b\u0012\u0004\u0012\u00020\u00110zJ\b\u0010{\u001a\u0004\u0018\u00010\u0011J\b\u0010|\u001a\u0004\u0018\u00010\u0011J\u0010\u0010}\u001a\u0002012\u0006\u0010~\u001a\u00020\u000bH\u0002J\u000e\u0010\u007f\u001a\u00020\u00062\u0006\u0010x\u001a\u00020\u0011J\u001b\u0010\u0080\u0001\u001a\u0002012\u0007\u0010\u0081\u0001\u001a\u00020\u00112\u0007\u0010\u0082\u0001\u001a\u00020>H\u0002J\u000f\u0010\u0083\u0001\u001a\u0002012\u0006\u0010x\u001a\u00020\u0011J\t\u0010\u0084\u0001\u001a\u000201H\u0002J\u0019\u0010\u0085\u0001\u001a\u0002012\u0006\u0010u\u001a\u00020\u000b2\u0006\u0010v\u001a\u00020\u0011H\u0002J\t\u0010\u0086\u0001\u001a\u000201H\u0002J\u0007\u0010\u0087\u0001\u001a\u000201J\u0011\u0010\u0088\u0001\u001a\u0002012\b\u0010\u0089\u0001\u001a\u00030\u008a\u0001J\u0007\u0010\u008b\u0001\u001a\u000201J\u0007\u0010\u008c\u0001\u001a\u000201JT\u0010\u008d\u0001\u001a\u0002012\b\u0010\u008e\u0001\u001a\u00030\u008a\u00012\u0007\u0010\u008f\u0001\u001a\u00020Z2\b\u0010\u0090\u0001\u001a\u00030\u008a\u00012\n\b\u0002\u0010\u0091\u0001\u001a\u00030\u008a\u00012\n\b\u0002\u0010\u0092\u0001\u001a\u00030\u008a\u00012\n\b\u0002\u0010\u0093\u0001\u001a\u00030\u008a\u00012\n\b\u0002\u0010\u0094\u0001\u001a\u00030\u008a\u0001J\u0007\u0010\u0095\u0001\u001a\u000201J\u0010\u0010\u0096\u0001\u001a\u0002012\u0007\u0010\u0097\u0001\u001a\u00020\u0011J\u0007\u0010\u0098\u0001\u001a\u000201J\u0007\u0010\u0099\u0001\u001a\u000201J\u0010\u0010\u009a\u0001\u001a\u0002012\u0007\u0010\u009b\u0001\u001a\u00020\u0011J\u0010\u0010\u009c\u0001\u001a\u0002012\u0007\u0010\u009b\u0001\u001a\u00020\u0011J\u0019\u0010\u009d\u0001\u001a\u0002012\u0007\u0010\u009e\u0001\u001a\u00020Z2\u0007\u0010\u009f\u0001\u001a\u00020ZJ\u0007\u0010 \u0001\u001a\u000201J\u0007\u0010¡\u0001\u001a\u000201J\u0007\u0010¢\u0001\u001a\u000201J\u0007\u0010£\u0001\u001a\u000201J\u0010\u0010¤\u0001\u001a\u0002012\u0007\u0010¥\u0001\u001a\u00020\u0006J\u0010\u0010¦\u0001\u001a\u0002012\u0007\u0010§\u0001\u001a\u00020\u0006J\t\u0010¨\u0001\u001a\u000201H\u0002J\t\u0010©\u0001\u001a\u000201H\u0002J\t\u0010ª\u0001\u001a\u000201H\u0002J\u0010\u0010«\u0001\u001a\u0002012\u0007\u0010¬\u0001\u001a\u00020dR\u001e\u0010\u0007\u001a\u00020\u00062\u0006\u0010\u0005\u001a\u00020\u0006@BX\u0086\u000e¢\u0006\b\n\u0000\u001a\u0004\b\b\u0010\tR\u001b\u0010\n\u001a\u00020\u000b8BX\u0082\u0084\u0002¢\u0006\f\n\u0004\b\u000e\u0010\u000f\u001a\u0004\b\f\u0010\rR\u0011\u0010\u0010\u001a\u00020\u00118F¢\u0006\u0006\u001a\u0004\b\u0012\u0010\u0013R\u000e\u0010\u0002\u001a\u00020\u0003X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010\u0014\u001a\u0004\u0018\u00010\u0011X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0015\u001a\u0004\u0018\u00010\u0016X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010\u0017\u001a\u00020\u0018X\u0082\u0004¢\u0006\u0004\n\u0002\u0010\u0019R\u0010\u0010\u001a\u001a\u0004\u0018\u00010\u001bX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u001c\u001a\u00020\u0006X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010\u001d\u001a\u00020\u001eX\u0082\u0004¢\u0006\u0002\n\u0000R\u000e\u0010\u001f\u001a\u00020\u0006X\u0082\u000e¢\u0006\u0002\n\u0000R\u0010\u0010 \u001a\u00020!X\u0082\u0004¢\u0006\u0004\n\u0002\u0010\"R\u000e\u0010#\u001a\u00020\u0011X\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010$\u001a\u00020\u000bX\u0082\u000e¢\u0006\u0002\n\u0000R\u0011\u0010%\u001a\u00020\u00118F¢\u0006\u0006\u001a\u0004\b&\u0010\u0013R$\u0010(\u001a\u00020\u00062\u0006\u0010'\u001a\u00020\u0006@FX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b)\u0010\t\"\u0004\b*\u0010+R\u001a\u0010,\u001a\u00020\u0006X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b-\u0010\t\"\u0004\b.\u0010+R\"\u0010/\u001a\n\u0012\u0004\u0012\u000201\u0018\u000100X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b2\u00103\"\u0004\b4\u00105R\"\u00106\u001a\n\u0012\u0004\u0012\u000201\u0018\u000100X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b7\u00103\"\u0004\b8\u00105R\"\u00109\u001a\n\u0012\u0004\u0012\u000201\u0018\u000100X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b:\u00103\"\u0004\b;\u00105R.\u0010<\u001a\u0016\u0012\u0004\u0012\u00020\u0011\u0012\u0004\u0012\u00020>\u0012\u0004\u0012\u000201\u0018\u00010=X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\b?\u0010@\"\u0004\bA\u0010BR(\u0010C\u001a\u0010\u0012\u0004\u0012\u00020\u000b\u0012\u0004\u0012\u000201\u0018\u00010DX\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\bE\u0010F\"\u0004\bG\u0010HR\"\u0010I\u001a\n\u0012\u0004\u0012\u000201\u0018\u000100X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\bJ\u00103\"\u0004\bK\u00105R\"\u0010L\u001a\n\u0012\u0004\u0012\u000201\u0018\u000100X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\bM\u00103\"\u0004\bN\u00105R\"\u0010O\u001a\n\u0012\u0004\u0012\u000201\u0018\u000100X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\bP\u00103\"\u0004\bQ\u00105R.\u0010R\u001a\u0016\u0012\u0004\u0012\u00020\u0011\u0012\u0004\u0012\u00020\u0011\u0012\u0004\u0012\u000201\u0018\u00010=X\u0086\u000e¢\u0006\u000e\n\u0000\u001a\u0004\bS\u0010@\"\u0004\bT\u0010BR\u0014\u0010U\u001a\u00020V8BX\u0082\u0004¢\u0006\u0006\u001a\u0004\bW\u0010XR\u000e\u0010Y\u001a\u00020ZX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010[\u001a\u00020\\X\u0082\u0004¢\u0006\u0002\n\u0000R \u0010]\u001a\u0014\u0012\u0010\u0012\u000e\u0012\u0004\u0012\u00020\u000b\u0012\u0004\u0012\u00020\u00110_0^X\u0082\u0004¢\u0006\u0002\n\u0000R\u0010\u0010`\u001a\u00020aX\u0082\u0004¢\u0006\u0004\n\u0002\u0010bR\u000e\u0010c\u001a\u00020dX\u0082\u000e¢\u0006\u0002\n\u0000R\u001c\u0010e\u001a\n f*\u0004\u0018\u00010V0V8BX\u0082\u0004¢\u0006\u0006\u001a\u0004\bg\u0010XR\u000e\u0010h\u001a\u00020\u0006X\u0082\u000e¢\u0006\u0002\n\u0000R\u0011\u0010i\u001a\u00020\u00068F¢\u0006\u0006\u001a\u0004\bj\u0010\tR\u0010\u0010k\u001a\u0004\u0018\u00010lX\u0082\u000e¢\u0006\u0002\n\u0000R\u000e\u0010m\u001a\u00020nX\u0082\u0004¢\u0006\u0002\n\u0000¨\u0006¯\u0001"}, d2 = {"Lcom/supertripper/app/TripperBleManager;", "", "context", "Landroid/content/Context;", "(Landroid/content/Context;)V", "<set-?>", "", "callIconActive", "getCallIconActive", "()Z", "callIconPkt", "", "getCallIconPkt", "()[B", "callIconPkt$delegate", "Lkotlin/Lazy;", "connectionState", "", "getConnectionState", "()Ljava/lang/String;", "currentDeviceMac", "gatt", "Landroid/bluetooth/BluetoothGatt;", "gattCallback", "com/supertripper/app/TripperBleManager$gattCallback$1", "Lcom/supertripper/app/TripperBleManager$gattCallback$1;", "gattServer", "Landroid/bluetooth/BluetoothGattServer;", "hadConnection", "handler", "Landroid/os/Handler;", "keepaliveEnabled", "keepaliveRunnable", "com/supertripper/app/TripperBleManager$keepaliveRunnable$1", "Lcom/supertripper/app/TripperBleManager$keepaliveRunnable$1;", "lastNavLabel", "lastNavPacket", "lastNavSummary", "getLastNavSummary", "value", "locked", "getLocked", "setLocked", "(Z)V", "nightMode", "getNightMode", "setNightMode", "onAlreadyPaired", "Lkotlin/Function0;", "", "getOnAlreadyPaired", "()Lkotlin/jvm/functions/Function0;", "setOnAlreadyPaired", "(Lkotlin/jvm/functions/Function0;)V", "onConnected", "getOnConnected", "setOnConnected", "onDisconnected", "getOnDisconnected", "setOnDisconnected", "onLog", "Lkotlin/Function2;", "Lcom/supertripper/app/TripperBleManager$LogLevel;", "getOnLog", "()Lkotlin/jvm/functions/Function2;", "setOnLog", "(Lkotlin/jvm/functions/Function2;)V", "onNotification", "Lkotlin/Function1;", "getOnNotification", "()Lkotlin/jvm/functions/Function1;", "setOnNotification", "(Lkotlin/jvm/functions/Function1;)V", "onPinAccepted", "getOnPinAccepted", "setOnPinAccepted", "onPinRejected", "getOnPinRejected", "setOnPinRejected", "onReadyForPin", "getOnReadyForPin", "setOnReadyForPin", "onTripperInfo", "getOnTripperInfo", "setOnTripperInfo", "prefs", "Landroid/content/SharedPreferences;", "getPrefs", "()Landroid/content/SharedPreferences;", "reconnectAttempts", "", "reconnectRunnable", "Ljava/lang/Runnable;", "sendQueue", "Ljava/util/concurrent/ConcurrentLinkedQueue;", "Lkotlin/Pair;", "serverCallback", "com/supertripper/app/TripperBleManager$serverCallback$1", "Lcom/supertripper/app/TripperBleManager$serverCallback$1;", "startupReconnectDeadline", "", "tripperPrefs", "kotlin.jvm.PlatformType", "getTripperPrefs", "userDisconnected", "wasEverConnected", "getWasEverConnected", "writeChar", "Landroid/bluetooth/BluetoothGattCharacteristic;", "writePending", "Ljava/util/concurrent/atomic/AtomicBoolean;", "cleanup", "connectDevice", "device", "Landroid/bluetooth/BluetoothDevice;", "disconnectDevice", "enqueuePacket", "data", "label", "forgetDevice", "mac", "getKnownDevices", "", "getLastConnectedMac", "getLastFirmware", "handleNotification", "bytes", "isDeviceKnown", "logMsg", "msg", "level", "markDeviceAsKnown", "pumpQueue", "rawWrite", "scheduleReconnect", "sendClose", "sendCompass", "direction", "", "sendLoadingScreen", "sendLocked", "sendNav", "screen", "dist", MapsNavigationService.EXTRA_MANEUVER, "heading", "speedFlags", "roadType", "eta", "sendNavIdle", "sendPin", "code", "sendPingFirmware", "sendPingWaypoint", "sendRawBytes", "hexStr", "sendRawPacket", "sendSetTime", "h", "m", "sendSetTimeNow", "sendShowPin", "sendStopNav", "sendVersion", "setCallIcon", "active", "setKeepaliveEnabled", "enabled", "startGattServer", "startHandshake", "stopGattServer", "tryAutoReconnectOnStartup", "windowMs", "Companion", "LogLevel", "app_release"}, k = 1, mv = {1, ad.f32211c, 0}, xi = 48)
+public final class TripperBleManager {
+    private static final String PREFS_KEY = "knownMacs";
+    private static final String PREFS_KEY_FW = "lastTripperFirmware";
+    private static final String PREFS_NAME = "TripperKnownDevices";
+    private static final String TAG = "TripperBle";
+    private static final long WRITE_DELAY_MS = 80;
+    private volatile boolean callIconActive;
+
+    /* JADX INFO: renamed from: callIconPkt$delegate, reason: from kotlin metadata */
+    private final Lazy callIconPkt;
+    private final Context context;
+    private String currentDeviceMac;
+    private BluetoothGatt gatt;
+    private final TripperBleManager$gattCallback$1 gattCallback;
+    private BluetoothGattServer gattServer;
+    private volatile boolean hadConnection;
+    private final Handler handler;
+    private volatile boolean keepaliveEnabled;
+    private final TripperBleManager$keepaliveRunnable$1 keepaliveRunnable;
+    private volatile String lastNavLabel;
+    private volatile byte[] lastNavPacket;
+    private volatile boolean locked;
+    private volatile boolean nightMode;
+    private Function0<Unit> onAlreadyPaired;
+    private Function0<Unit> onConnected;
+    private Function0<Unit> onDisconnected;
+    private Function2<? super String, ? super LogLevel, Unit> onLog;
+    private Function1<? super byte[], Unit> onNotification;
+    private Function0<Unit> onPinAccepted;
+    private Function0<Unit> onPinRejected;
+    private Function0<Unit> onReadyForPin;
+    private Function2<? super String, ? super String, Unit> onTripperInfo;
+    private int reconnectAttempts;
+    private final Runnable reconnectRunnable;
+    private final ConcurrentLinkedQueue<Pair<byte[], String>> sendQueue;
+    private final TripperBleManager$serverCallback$1 serverCallback;
+    private long startupReconnectDeadline;
+    private volatile boolean userDisconnected;
+    private BluetoothGattCharacteristic writeChar;
+    private final AtomicBoolean writePending;
+    public static final int $stable = 8;
+
+    /* JADX WARN: Failed to restore enum class, 'enum' modifier and super class removed */
+    /* JADX WARN: Unknown enum class pattern. Please report as an issue! */
+    @Metadata(d1 = {"\u0000\f\n\u0002\u0018\u0002\n\u0002\u0010\u0010\n\u0002\b\b\b\u0086\u0081\u0002\u0018\u00002\b\u0012\u0004\u0012\u00020\u00000\u0001B\u0007\b\u0002¢\u0006\u0002\u0010\u0002j\u0002\b\u0003j\u0002\b\u0004j\u0002\b\u0005j\u0002\b\u0006j\u0002\b\u0007j\u0002\b\b¨\u0006\t"}, d2 = {"Lcom/supertripper/app/TripperBleManager$LogLevel;", "", "(Ljava/lang/String;I)V", "INFO", "OK", "ERROR", "WARN", "SEND", "RECV", "app_release"}, k = 1, mv = {1, ad.f32211c, 0}, xi = 48)
+    public static final class LogLevel {
+        private static final /* synthetic */ EnumEntries $ENTRIES;
+        private static final /* synthetic */ LogLevel[] $VALUES;
+        public static final LogLevel INFO = new LogLevel("INFO", 0);
+        public static final LogLevel OK = new LogLevel("OK", 1);
+        public static final LogLevel ERROR = new LogLevel("ERROR", 2);
+        public static final LogLevel WARN = new LogLevel("WARN", 3);
+        public static final LogLevel SEND = new LogLevel("SEND", 4);
+        public static final LogLevel RECV = new LogLevel("RECV", 5);
+
+        private static final /* synthetic */ LogLevel[] $values() {
+            return new LogLevel[]{INFO, OK, ERROR, WARN, SEND, RECV};
+        }
+
+        static {
+            LogLevel[] logLevelArr$values = $values();
+            $VALUES = logLevelArr$values;
+            $ENTRIES = EnumEntriesKt.a(logLevelArr$values);
+        }
+
+        private LogLevel(String str, int i6) {
+        }
+
+        public static EnumEntries<LogLevel> getEntries() {
+            return $ENTRIES;
+        }
+
+        public static LogLevel valueOf(String str) {
+            return (LogLevel) Enum.valueOf(LogLevel.class, str);
+        }
+
+        public static LogLevel[] values() {
+            return (LogLevel[]) $VALUES.clone();
+        }
+    }
+
+    /* JADX WARN: Type inference failed for: r2v10, types: [com.supertripper.app.TripperBleManager$keepaliveRunnable$1] */
+    /* JADX WARN: Type inference failed for: r2v12, types: [com.supertripper.app.TripperBleManager$serverCallback$1] */
+    public TripperBleManager(Context context) {
+        Intrinsics.f(context, "context");
+        this.context = context;
+        this.sendQueue = new ConcurrentLinkedQueue<>();
+        this.writePending = new AtomicBoolean(false);
+        this.handler = new Handler(Looper.getMainLooper());
+        this.reconnectRunnable = new w(this, 3);
+        this.lastNavPacket = TripperProtocol.INSTANCE.getPKT_NAV_IDLE();
+        this.lastNavLabel = "NAV IDLE";
+        this.callIconPkt = LazyKt.a(new Function0<byte[]>() { // from class: com.supertripper.app.TripperBleManager$callIconPkt$2
+            @Override // kotlin.jvm.functions.Function0
+            public final byte[] invoke() {
+                byte[] bArr = new byte[20];
+                bArr[0] = 64;
+                bArr[1] = 5;
+                int iCrc16 = TripperProtocol.INSTANCE.crc16(kotlin.collections.c.h0(bArr, new IntRange(0, 17, 1)));
+                bArr[18] = (byte) ((iCrc16 >> 8) & PartialGapBuffer.BUF_SIZE);
+                bArr[19] = (byte) (iCrc16 & PartialGapBuffer.BUF_SIZE);
+                return bArr;
+            }
+        });
+        this.keepaliveRunnable = new Runnable() { // from class: com.supertripper.app.TripperBleManager$keepaliveRunnable$1
+            @Override // java.lang.Runnable
+            public void run() {
+                if (this.this$0.keepaliveEnabled) {
+                    if (this.this$0.writeChar != null && this.this$0.sendQueue.isEmpty() && !this.this$0.writePending.get()) {
+                        if (this.this$0.getCallIconActive()) {
+                            TripperBleManager tripperBleManager = this.this$0;
+                            tripperBleManager.rawWrite(tripperBleManager.getCallIconPkt(), "KEEPALIVE [CALL ICON]");
+                        } else {
+                            TripperBleManager tripperBleManager2 = this.this$0;
+                            tripperBleManager2.rawWrite(tripperBleManager2.lastNavPacket, "KEEPALIVE [" + this.this$0.lastNavLabel + ']');
+                        }
+                    }
+                    this.this$0.handler.postDelayed(this, 1000L);
+                }
+            }
+        };
+        this.gattCallback = new TripperBleManager$gattCallback$1(this);
+        this.serverCallback = new BluetoothGattServerCallback() { // from class: com.supertripper.app.TripperBleManager$serverCallback$1
+            @Override // android.bluetooth.BluetoothGattServerCallback
+            public void onCharacteristicReadRequest(BluetoothDevice dev, int reqId, int off, BluetoothGattCharacteristic chr) {
+                try {
+                    BluetoothGattServer bluetoothGattServer = this.this$0.gattServer;
+                    if (bluetoothGattServer != null) {
+                        bluetoothGattServer.sendResponse(dev, reqId, 0, off, new byte[0]);
+                    }
+                } catch (Exception unused) {
+                }
+            }
+
+            @Override // android.bluetooth.BluetoothGattServerCallback
+            public void onCharacteristicWriteRequest(BluetoothDevice dev, int reqId, BluetoothGattCharacteristic chr, boolean prep, boolean respNeeded, int off, byte[] value) {
+                if (value == null) {
+                    value = new byte[0];
+                }
+                this.this$0.logMsg("← [Tripper] " + TripperProtocol.INSTANCE.toHex(value), TripperBleManager.LogLevel.RECV);
+                if (respNeeded) {
+                    try {
+                        BluetoothGattServer bluetoothGattServer = this.this$0.gattServer;
+                        if (bluetoothGattServer != null) {
+                            bluetoothGattServer.sendResponse(dev, reqId, 0, off, null);
+                        }
+                    } catch (Exception unused) {
+                    }
+                }
+                if (value.length == 0) {
+                    return;
+                }
+                this.this$0.handleNotification(value);
+            }
+
+            @Override // android.bluetooth.BluetoothGattServerCallback
+            public void onConnectionStateChange(BluetoothDevice dev, int s2, int ns) {
+                TripperBleManager tripperBleManager = this.this$0;
+                StringBuilder sb = new StringBuilder("[Server] ");
+                sb.append(dev != null ? dev.getAddress() : null);
+                sb.append(" state=");
+                sb.append(ns);
+                tripperBleManager.logMsg(sb.toString(), TripperBleManager.LogLevel.INFO);
+            }
+
+            @Override // android.bluetooth.BluetoothGattServerCallback
+            public void onServiceAdded(int status, BluetoothGattService svc) {
+                this.this$0.logMsg(A.h(status, "[Server] onServiceAdded "), status == 0 ? TripperBleManager.LogLevel.OK : TripperBleManager.LogLevel.ERROR);
+            }
+        };
+    }
+
+    private final void cleanup() {
+        setKeepaliveEnabled(false);
+        this.sendQueue.clear();
+        this.writePending.set(false);
+        this.writeChar = null;
+        try {
+            BluetoothGatt bluetoothGatt = this.gatt;
+            if (bluetoothGatt != null) {
+                bluetoothGatt.close();
+            }
+        } catch (Exception unused) {
+        }
+        this.gatt = null;
+        stopGattServer();
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void connectDevice$lambda$2(TripperBleManager this$0, BluetoothDevice device) {
+        Intrinsics.f(this$0, "this$0");
+        Intrinsics.f(device, "$device");
+        this$0.logMsg("connectGatt TRANSPORT_LE", LogLevel.INFO);
+        this$0.gatt = device.connectGatt(this$0.context, false, this$0.gattCallback, 2);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void disconnectDevice$lambda$3(TripperBleManager this$0) {
+        Intrinsics.f(this$0, "this$0");
+        BluetoothGatt bluetoothGatt = this$0.gatt;
+        if (bluetoothGatt != null) {
+            bluetoothGatt.disconnect();
+        }
+        this$0.stopGattServer();
+    }
+
+    private final void enqueuePacket(byte[] data, String label) {
+        this.sendQueue.offer(new Pair<>(data, label));
+        pumpQueue();
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public final byte[] getCallIconPkt() {
+        return (byte[]) this.callIconPkt.getF50269b();
+    }
+
+    private final SharedPreferences getPrefs() {
+        SharedPreferences sharedPreferences = this.context.getSharedPreferences(PREFS_NAME, 0);
+        Intrinsics.e(sharedPreferences, "getSharedPreferences(...)");
+        return sharedPreferences;
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public final SharedPreferences getTripperPrefs() {
+        return this.context.getSharedPreferences("TripperPrefs", 0);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    /* JADX WARN: Can't fix incorrect switch cases order, some code will duplicate */
+    /* JADX WARN: Failed to restore switch over string. Please report as a decompilation issue */
+    /* JADX WARN: Removed duplicated region for block: B:33:0x006d  */
+    /* JADX WARN: Removed duplicated region for block: B:34:0x0070  */
+    /*
+        Code decompiled incorrectly, please refer to instructions dump.
+        To view partially-correct add '--show-bad-code' argument
+    */
+    public final void handleNotification(byte[] r9) {
+        /*
+            Method dump skipped, instruction units count: 360
+            To view this dump add '--comments-level debug' option
+        */
+        throw new UnsupportedOperationException("Method not decompiled: com.supertripper.app.TripperBleManager.handleNotification(byte[]):void");
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public final void logMsg(String msg, LogLevel level) {
+        Log.i(TAG, "[" + level + "] " + msg);
+        Function2<? super String, ? super LogLevel, Unit> function2 = this.onLog;
+        if (function2 != null) {
+            function2.invoke(msg, level);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public final void pumpQueue() {
+        BluetoothGattCharacteristic bluetoothGattCharacteristic;
+        Pair<byte[], String> pairPoll;
+        if (this.writePending.get() || (bluetoothGattCharacteristic = this.writeChar) == null || (pairPoll = this.sendQueue.poll()) == null) {
+            return;
+        }
+        if (!this.writePending.compareAndSet(false, true)) {
+            this.sendQueue.offer(pairPoll);
+            return;
+        }
+        byte[] bArr = (byte[]) pairPoll.f50276b;
+        StringBuilder sbK = A.k("→ ", (String) pairPoll.f50277g0, "  ");
+        sbK.append(TripperProtocol.INSTANCE.toHex(bArr));
+        logMsg(sbK.toString(), LogLevel.SEND);
+        bluetoothGattCharacteristic.setWriteType(1);
+        bluetoothGattCharacteristic.setValue(bArr);
+        BluetoothGatt bluetoothGatt = this.gatt;
+        if (bluetoothGatt != null ? bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristic) : false) {
+            this.handler.postDelayed(new w(this, 4), WRITE_DELAY_MS);
+        } else {
+            this.writePending.set(false);
+            logMsg("writeChar FALHOU", LogLevel.ERROR);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void pumpQueue$lambda$9(TripperBleManager this$0) {
+        Intrinsics.f(this$0, "this$0");
+        this$0.writePending.set(false);
+        this$0.pumpQueue();
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public final void rawWrite(byte[] data, String label) {
+        BluetoothGattCharacteristic bluetoothGattCharacteristic = this.writeChar;
+        if (bluetoothGattCharacteristic == null) {
+            return;
+        }
+        StringBuilder sbK = A.k("→ ", label, "  ");
+        sbK.append(TripperProtocol.INSTANCE.toHex(data));
+        logMsg(sbK.toString(), LogLevel.SEND);
+        bluetoothGattCharacteristic.setWriteType(1);
+        bluetoothGattCharacteristic.setValue(data);
+        BluetoothGatt bluetoothGatt = this.gatt;
+        if (bluetoothGatt != null) {
+            bluetoothGatt.writeCharacteristic(bluetoothGattCharacteristic);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void reconnectRunnable$lambda$0(TripperBleManager this$0) {
+        String str;
+        Intrinsics.f(this$0, "this$0");
+        if (this$0.startupReconnectDeadline > 0 && System.currentTimeMillis() > this$0.startupReconnectDeadline) {
+            this$0.startupReconnectDeadline = 0L;
+            this$0.logMsg("Auto-reconexão startup: prazo expirado, desistindo", LogLevel.WARN);
+            return;
+        }
+        if (this$0.userDisconnected || (str = this$0.currentDeviceMac) == null) {
+            return;
+        }
+        this$0.reconnectAttempts++;
+        this$0.logMsg("Auto-reconexão tentativa " + this$0.reconnectAttempts + " para " + str + (char) 8230, LogLevel.INFO);
+        try {
+            Object systemService = this$0.context.getSystemService("bluetooth");
+            Intrinsics.d(systemService, "null cannot be cast to non-null type android.bluetooth.BluetoothManager");
+            BluetoothDevice remoteDevice = ((BluetoothManager) systemService).getAdapter().getRemoteDevice(str);
+            Intrinsics.e(remoteDevice, "getRemoteDevice(...)");
+            this$0.connectDevice(remoteDevice);
+        } catch (Exception e2) {
+            this$0.logMsg("Auto-reconexão erro: " + e2.getMessage(), LogLevel.ERROR);
+            this$0.scheduleReconnect();
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public final void scheduleReconnect() {
+        this.handler.removeCallbacks(this.reconnectRunnable);
+        this.handler.postDelayed(this.reconnectRunnable, CoroutineLiveDataKt.DEFAULT_TIMEOUT);
+    }
+
+    private final void startGattServer() {
+        if (this.gattServer != null) {
+            return;
+        }
+        try {
+            Object systemService = this.context.getSystemService("bluetooth");
+            Intrinsics.d(systemService, "null cannot be cast to non-null type android.bluetooth.BluetoothManager");
+            BluetoothGattServer bluetoothGattServerOpenGattServer = ((BluetoothManager) systemService).openGattServer(this.context, this.serverCallback);
+            if (bluetoothGattServerOpenGattServer == null) {
+                logMsg("openGattServer null", LogLevel.ERROR);
+                return;
+            }
+            this.gattServer = bluetoothGattServerOpenGattServer;
+            TripperProtocol tripperProtocol = TripperProtocol.INSTANCE;
+            BluetoothGattService bluetoothGattService = new BluetoothGattService(tripperProtocol.getSERVICE_UUID(), 0);
+            bluetoothGattService.addCharacteristic(new BluetoothGattCharacteristic(tripperProtocol.getWRITE_CHAR_UUID(), 12, 16));
+            boolean zAddService = bluetoothGattServerOpenGattServer.addService(bluetoothGattService);
+            logMsg("GATT Server: ".concat(zAddService ? "✓ OK" : "❌ erro"), zAddService ? LogLevel.OK : LogLevel.ERROR);
+        } catch (Exception e2) {
+            logMsg("GATT Server erro: " + e2.getMessage(), LogLevel.ERROR);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public final void startHandshake() {
+        String str = this.currentDeviceMac;
+        if (str == null) {
+            str = "";
+        }
+        if (isDeviceKnown(str)) {
+            logMsg("RECONEXAO: 0x21 00 + SET TIME + PING FW", LogLevel.OK);
+            enqueuePacket(TripperProtocol.INSTANCE.getPKT_CLOSE(), "CLOSE/RESUME");
+            this.handler.postDelayed(new w(this, 1), 200L);
+        } else {
+            logMsg("NOVO DEVICE: SHOW PIN (0x21 01)", LogLevel.OK);
+            enqueuePacket(TripperProtocol.INSTANCE.getPKT_PIN_SHOW(), "SHOW PIN");
+            this.handler.postDelayed(new w(this, 2), 300L);
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void startHandshake$lambda$12(TripperBleManager this$0) {
+        Intrinsics.f(this$0, "this$0");
+        this$0.enqueuePacket(TripperProtocol.INSTANCE.buildSetTimeNowPacket(), "SET TIME");
+        this$0.handler.postDelayed(new w(this$0, 5), 150L);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void startHandshake$lambda$12$lambda$11(TripperBleManager this$0) {
+        Intrinsics.f(this$0, "this$0");
+        TripperProtocol tripperProtocol = TripperProtocol.INSTANCE;
+        this$0.enqueuePacket(tripperProtocol.getPKT_PING_FW(), "PING FW (0x03)");
+        this$0.enqueuePacket(tripperProtocol.getPKT_PING_FW(), "PING FW (0x03)");
+        this$0.handler.postDelayed(new w(this$0, 0), 300L);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void startHandshake$lambda$12$lambda$11$lambda$10(TripperBleManager this$0) {
+        Intrinsics.f(this$0, "this$0");
+        Function0<Unit> function0 = this$0.onAlreadyPaired;
+        if (function0 != null) {
+            function0.invoke();
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static final void startHandshake$lambda$13(TripperBleManager this$0) {
+        Intrinsics.f(this$0, "this$0");
+        Function0<Unit> function0 = this$0.onReadyForPin;
+        if (function0 != null) {
+            function0.invoke();
+        }
+    }
+
+    private final void stopGattServer() {
+        try {
+            BluetoothGattServer bluetoothGattServer = this.gattServer;
+            if (bluetoothGattServer != null) {
+                bluetoothGattServer.close();
+            }
+        } catch (Exception unused) {
+        }
+        this.gattServer = null;
+    }
+
+    public final void connectDevice(BluetoothDevice device) {
+        Intrinsics.f(device, "device");
+        this.userDisconnected = false;
+        this.hadConnection = false;
+        TripperService companion = TripperService.INSTANCE.getInstance();
+        if (companion != null) {
+            companion.cancelAutoShutdown();
+        }
+        this.handler.removeCallbacks(this.reconnectRunnable);
+        logMsg("Conectando " + device.getAddress() + "...", LogLevel.INFO);
+        this.currentDeviceMac = device.getAddress();
+        this.lastNavPacket = TripperProtocol.INSTANCE.getPKT_NAV_IDLE();
+        this.lastNavLabel = "NAV IDLE";
+        cleanup();
+        startGattServer();
+        this.handler.postDelayed(new j(this, device, 1), 200L);
+    }
+
+    public final void disconnectDevice() {
+        this.userDisconnected = true;
+        this.hadConnection = false;
+        this.reconnectAttempts = 0;
+        this.handler.removeCallbacks(this.reconnectRunnable);
+        setKeepaliveEnabled(false);
+        enqueuePacket(TripperProtocol.INSTANCE.getPKT_CLOSE(), "CLOSE");
+        this.handler.postDelayed(new w(this, 6), 300L);
+    }
+
+    public final void forgetDevice(String mac) {
+        Intrinsics.f(mac, "mac");
+        SharedPreferences prefs = getPrefs();
+        Set<String> set = EmptySet.f50307b;
+        Set<String> stringSet = prefs.getStringSet(PREFS_KEY, set);
+        if (stringSet != null) {
+            set = stringSet;
+        }
+        Set<String> setE0 = Y3.h.E0(set);
+        if (setE0.remove(mac)) {
+            getPrefs().edit().putStringSet(PREFS_KEY, setE0).apply();
+            logMsg(mac.concat(" esquecido"), LogLevel.WARN);
+        }
+    }
+
+    public final boolean getCallIconActive() {
+        return this.callIconActive;
+    }
+
+    public final String getConnectionState() {
+        BluetoothGatt bluetoothGatt = this.gatt;
+        if (bluetoothGatt == null || this.writeChar == null) {
+            return bluetoothGatt != null ? "Conectado sem serviço" : "Desconectado";
+        }
+        StringBuilder sb = new StringBuilder("Conectado (");
+        String str = this.currentDeviceMac;
+        if (str == null) {
+            str = "?";
+        }
+        return androidx.compose.foundation.a.s(sb, str, ')');
+    }
+
+    public final Set<String> getKnownDevices() {
+        SharedPreferences prefs = getPrefs();
+        EmptySet emptySet = EmptySet.f50307b;
+        Set<String> stringSet = prefs.getStringSet(PREFS_KEY, emptySet);
+        return stringSet == null ? emptySet : stringSet;
+    }
+
+    public final String getLastConnectedMac() {
+        return getTripperPrefs().getString("lastConnectedMac", null);
+    }
+
+    public final String getLastFirmware() {
+        return getTripperPrefs().getString(PREFS_KEY_FW, null);
+    }
+
+    public final String getLastNavSummary() {
+        String str = this.lastNavLabel;
+        return c5.l.N(str) ? "—" : str;
+    }
+
+    public final boolean getLocked() {
+        return this.locked;
+    }
+
+    public final boolean getNightMode() {
+        return this.nightMode;
+    }
+
+    public final Function0<Unit> getOnAlreadyPaired() {
+        return this.onAlreadyPaired;
+    }
+
+    public final Function0<Unit> getOnConnected() {
+        return this.onConnected;
+    }
+
+    public final Function0<Unit> getOnDisconnected() {
+        return this.onDisconnected;
+    }
+
+    public final Function2<String, LogLevel, Unit> getOnLog() {
+        return this.onLog;
+    }
+
+    public final Function1<byte[], Unit> getOnNotification() {
+        return this.onNotification;
+    }
+
+    public final Function0<Unit> getOnPinAccepted() {
+        return this.onPinAccepted;
+    }
+
+    public final Function0<Unit> getOnPinRejected() {
+        return this.onPinRejected;
+    }
+
+    public final Function0<Unit> getOnReadyForPin() {
+        return this.onReadyForPin;
+    }
+
+    public final Function2<String, String, Unit> getOnTripperInfo() {
+        return this.onTripperInfo;
+    }
+
+    /* JADX INFO: renamed from: getWasEverConnected, reason: from getter */
+    public final boolean getHadConnection() {
+        return this.hadConnection;
+    }
+
+    public final boolean isDeviceKnown(String mac) {
+        Intrinsics.f(mac, "mac");
+        SharedPreferences prefs = getPrefs();
+        Set<String> set = EmptySet.f50307b;
+        Set<String> stringSet = prefs.getStringSet(PREFS_KEY, set);
+        if (stringSet != null) {
+            set = stringSet;
+        }
+        return set.contains(mac);
+    }
+
+    public final void markDeviceAsKnown(String mac) {
+        Intrinsics.f(mac, "mac");
+        SharedPreferences prefs = getPrefs();
+        Set<String> set = EmptySet.f50307b;
+        Set<String> stringSet = prefs.getStringSet(PREFS_KEY, set);
+        if (stringSet != null) {
+            set = stringSet;
+        }
+        Set<String> setE0 = Y3.h.E0(set);
+        if (setE0.add(mac)) {
+            getPrefs().edit().putStringSet(PREFS_KEY, setE0).apply();
+            logMsg("★ " + mac + " salvo", LogLevel.OK);
+        }
+    }
+
+    public final void sendClose() {
+        enqueuePacket(TripperProtocol.INSTANCE.getPKT_CLOSE(), "CLOSE (0x21 00)");
+    }
+
+    public final void sendCompass(byte direction) {
+        if (this.locked) {
+            return;
+        }
+        byte[] bArrBuildCompassPacket = TripperProtocol.INSTANCE.buildCompassPacket(direction, this.nightMode);
+        this.lastNavPacket = bArrBuildCompassPacket;
+        this.lastNavLabel = "BÚSSOLA";
+        enqueuePacket(bArrBuildCompassPacket, "COMPASS 0x".concat(String.format("%02X", Arrays.copyOf(new Object[]{Byte.valueOf(direction)}, 1))));
+    }
+
+    public final void sendLoadingScreen() {
+        if (this.locked) {
+            return;
+        }
+        byte[] bArr = new byte[20];
+        bArr[0] = 16;
+        bArr[1] = 17;
+        bArr[2] = TripperProtocol.SCREEN_STOP;
+        for (int i6 = 3; i6 < 18; i6++) {
+            bArr[i6] = 0;
+        }
+        if (this.nightMode) {
+            bArr[6] = 1;
+        }
+        int iCrc16 = TripperProtocol.INSTANCE.crc16(kotlin.collections.c.h0(bArr, new IntRange(0, 17, 1)));
+        bArr[18] = (byte) ((iCrc16 >> 8) & PartialGapBuffer.BUF_SIZE);
+        bArr[19] = (byte) (iCrc16 & PartialGapBuffer.BUF_SIZE);
+        this.lastNavPacket = bArr;
+        this.lastNavLabel = "LOADING";
+        enqueuePacket(bArr, "LOADING SCREEN");
+    }
+
+    public final void sendLocked() {
+        byte[] bArr = new byte[20];
+        bArr[0] = 16;
+        bArr[1] = 17;
+        bArr[2] = TripperProtocol.ROAD_AVENUE;
+        for (int i6 = 3; i6 < 18; i6++) {
+            bArr[i6] = -1;
+        }
+        int iCrc16 = TripperProtocol.INSTANCE.crc16(kotlin.collections.c.h0(bArr, new IntRange(0, 17, 1)));
+        bArr[18] = (byte) ((iCrc16 >> 8) & PartialGapBuffer.BUF_SIZE);
+        bArr[19] = (byte) (iCrc16 & PartialGapBuffer.BUF_SIZE);
+        this.lastNavPacket = bArr;
+        this.lastNavLabel = "LOCKED(WIFI)";
+        enqueuePacket(bArr, "LOCKED 0x42");
+    }
+
+    public final void sendNav(byte screen, int dist, byte maneuver, byte heading, byte speedFlags, byte roadType, byte eta) {
+        if (this.locked) {
+            return;
+        }
+        TripperProtocol tripperProtocol = TripperProtocol.INSTANCE;
+        byte[] bArrBuildNavPacket = tripperProtocol.buildNavPacket(screen, dist, maneuver, heading, speedFlags, roadType, eta);
+        String str = "NAV [" + tripperProtocol.screenLabel(screen) + "] " + dist + "m " + tripperProtocol.maneuverLabel(maneuver);
+        this.lastNavPacket = bArrBuildNavPacket;
+        this.lastNavLabel = str;
+        enqueuePacket(bArrBuildNavPacket, str);
+    }
+
+    public final void sendNavIdle() {
+        TripperProtocol tripperProtocol = TripperProtocol.INSTANCE;
+        this.lastNavPacket = tripperProtocol.getPKT_NAV_IDLE();
+        this.lastNavLabel = "NAV IDLE";
+        enqueuePacket(tripperProtocol.getPKT_NAV_IDLE(), "NAV IDLE");
+    }
+
+    public final void sendPin(String code) {
+        Intrinsics.f(code, "code");
+        enqueuePacket(TripperProtocol.INSTANCE.buildPinPacket(code), "PIN \"" + code + '\"');
+    }
+
+    public final void sendPingFirmware() {
+        enqueuePacket(TripperProtocol.INSTANCE.getPKT_PING_FW(), "PING FW (0x03)");
+    }
+
+    public final void sendPingWaypoint() {
+        enqueuePacket(TripperProtocol.INSTANCE.getPKT_PING_WP(), "PING WP (0x30)");
+    }
+
+    public final void sendRawBytes(String hexStr) {
+        Intrinsics.f(hexStr, "hexStr");
+        try {
+            String strC = c5.j.C(c5.j.C(hexStr, " ", ""), ":", "");
+            if (strC.length() % 2 != 0) {
+                throw new IllegalArgumentException("hex deve ter tamanho par");
+            }
+            int length = strC.length() / 2;
+            byte[] bArr = new byte[length];
+            for (int i6 = 0; i6 < length; i6++) {
+                int i7 = i6 * 2;
+                String strSubstring = strC.substring(i7, i7 + 2);
+                Intrinsics.e(strSubstring, "substring(...)");
+                kotlin.text.a.a(16);
+                bArr[i6] = (byte) Integer.parseInt(strSubstring, 16);
+            }
+            enqueuePacket(bArr, "RAW BYTES: " + hexStr);
+        } catch (Exception e2) {
+            logMsg("RAW BYTES erro: " + e2.getMessage(), LogLevel.ERROR);
+        }
+    }
+
+    public final void sendRawPacket(String hexStr) {
+        Intrinsics.f(hexStr, "hexStr");
+        if (this.locked) {
+            return;
+        }
+        try {
+            String strC = c5.j.C(c5.j.C(hexStr, " ", ""), ":", "");
+            if (strC.length() != 40) {
+                throw new IllegalArgumentException("deve ter 20 bytes (40 hex)");
+            }
+            byte[] bArr = new byte[20];
+            for (int i6 = 0; i6 < 20; i6++) {
+                int i7 = i6 * 2;
+                String strSubstring = strC.substring(i7, i7 + 2);
+                Intrinsics.e(strSubstring, "substring(...)");
+                kotlin.text.a.a(16);
+                bArr[i6] = (byte) Integer.parseInt(strSubstring, 16);
+            }
+            if (bArr[0] == 16) {
+                this.lastNavPacket = bArr;
+                this.lastNavLabel = "RAW NAV";
+            }
+            enqueuePacket(bArr, "RAW: " + hexStr);
+        } catch (Exception e2) {
+            logMsg("RAW erro: " + e2.getMessage(), LogLevel.ERROR);
+        }
+    }
+
+    public final void sendSetTime(int h6, int m3) {
+        enqueuePacket(TripperProtocol.buildSetTimePacket$default(TripperProtocol.INSTANCE, h6, m3, false, 4, null), String.format("SET TIME %02d:%02d", Arrays.copyOf(new Object[]{Integer.valueOf(h6), Integer.valueOf(m3)}, 2)));
+    }
+
+    public final void sendSetTimeNow() {
+        byte[] bArrBuildSetTimeNowPacket = TripperProtocol.INSTANCE.buildSetTimeNowPacket();
+        Calendar calendar = Calendar.getInstance();
+        enqueuePacket(bArrBuildSetTimeNowPacket, String.format("SET TIME %02d:%02d", Arrays.copyOf(new Object[]{Integer.valueOf(calendar.get(11)), Integer.valueOf(calendar.get(12))}, 2)));
+    }
+
+    public final void sendShowPin() {
+        enqueuePacket(TripperProtocol.INSTANCE.getPKT_PIN_SHOW(), "SHOW PIN (0x21 01)");
+    }
+
+    public final void sendStopNav() {
+        TripperProtocol tripperProtocol = TripperProtocol.INSTANCE;
+        this.lastNavPacket = tripperProtocol.getPKT_NAV_IDLE();
+        this.lastNavLabel = "NAV IDLE";
+        enqueuePacket(tripperProtocol.getPKT_STOP_NAV(), "STOP NAV");
+    }
+
+    public final void sendVersion() {
+        enqueuePacket(TripperProtocol.INSTANCE.buildSetTimeNowPacket(), "VERSION/TIME");
+    }
+
+    public final void setCallIcon(boolean active) {
+        if (this.locked) {
+            return;
+        }
+        this.callIconActive = active;
+        if (active) {
+            rawWrite(getCallIconPkt(), "CALL ICON");
+            return;
+        }
+        rawWrite(this.lastNavPacket, "CALL ICON OFF → " + this.lastNavLabel);
+    }
+
+    public final void setKeepaliveEnabled(boolean enabled) {
+        this.keepaliveEnabled = enabled;
+        this.handler.removeCallbacks(this.keepaliveRunnable);
+        if (!enabled || this.writeChar == null) {
+            return;
+        }
+        this.handler.postDelayed(this.keepaliveRunnable, 1000L);
+        logMsg("Keepalive ON (mantém manobra)", LogLevel.INFO);
+    }
+
+    public final void setLocked(boolean z5) {
+        if (this.locked == z5) {
+            return;
+        }
+        this.locked = z5;
+        if (z5) {
+            this.callIconActive = false;
+            sendLocked();
+        } else if (this.writeChar != null) {
+            sendLoadingScreen();
+        }
+    }
+
+    public final void setNightMode(boolean z5) {
+        this.nightMode = z5;
+    }
+
+    public final void setOnAlreadyPaired(Function0<Unit> function0) {
+        this.onAlreadyPaired = function0;
+    }
+
+    public final void setOnConnected(Function0<Unit> function0) {
+        this.onConnected = function0;
+    }
+
+    public final void setOnDisconnected(Function0<Unit> function0) {
+        this.onDisconnected = function0;
+    }
+
+    public final void setOnLog(Function2<? super String, ? super LogLevel, Unit> function2) {
+        this.onLog = function2;
+    }
+
+    public final void setOnNotification(Function1<? super byte[], Unit> function1) {
+        this.onNotification = function1;
+    }
+
+    public final void setOnPinAccepted(Function0<Unit> function0) {
+        this.onPinAccepted = function0;
+    }
+
+    public final void setOnPinRejected(Function0<Unit> function0) {
+        this.onPinRejected = function0;
+    }
+
+    public final void setOnReadyForPin(Function0<Unit> function0) {
+        this.onReadyForPin = function0;
+    }
+
+    public final void setOnTripperInfo(Function2<? super String, ? super String, Unit> function2) {
+        this.onTripperInfo = function2;
+    }
+
+    public final void tryAutoReconnectOnStartup(long windowMs) {
+        String lastConnectedMac = getLastConnectedMac();
+        if (lastConnectedMac != null && isDeviceKnown(lastConnectedMac)) {
+            this.currentDeviceMac = lastConnectedMac;
+            this.userDisconnected = false;
+            this.startupReconnectDeadline = System.currentTimeMillis() + windowMs;
+            logMsg(I3.p.j(windowMs / 60000, " min", A.k("Auto-reconexão startup: tentando ", lastConnectedMac, " por ")), LogLevel.INFO);
+            scheduleReconnect();
+        }
+    }
+}
