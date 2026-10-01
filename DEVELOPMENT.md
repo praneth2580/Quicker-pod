@@ -143,6 +143,8 @@ Canonical BLE protocol reference: **[`tripper-protocol/re-engineered-protocol/`]
 
 TypeScript packet builders live in `src/bluetooth/tripper/`. Python SDK in `tripper-sdk/`.
 
+Protocol fuzzing and differential reverse-engineering (Python CLI, dry-run by default): [`tripper-sdk/docs/fuzzing.md`](./tripper-sdk/docs/fuzzing.md).
+
 ---
 
 ## Architecture

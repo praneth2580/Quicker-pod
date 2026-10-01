@@ -4,3 +4,7 @@ dist-ssr
 *.local
 .DS_Store
 *.log
+__pycache__/
+
+# Protocol-fuzzing experiment store (tripper-sdk/tripper.py)
+tripper-experiments/
