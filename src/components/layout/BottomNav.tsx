@@ -5,6 +5,7 @@ const navItems = [
   { path: "/connect", label: "Connect", icon: "◎" },
   { path: "/ble-debug", label: "Debug", icon: "◉" },
   { path: "/protocol-lab", label: "Lab", icon: "⚗" },
+  { path: "/fuzzer", label: "Fuzz", icon: "⌖" },
   { path: "/settings", label: "Settings", icon: "⚙" },
 ];
 

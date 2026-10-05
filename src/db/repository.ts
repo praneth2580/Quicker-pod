@@ -8,6 +8,7 @@ import type {
   SessionImportData,
 } from "./types";
 import type { MutationJob, MutationResult, ProtocolLogEntry } from "@/features/protocol-lab/types";
+import type { FuzzResult, FuzzSession } from "@/features/fuzzer/types";
 
 const LOG_LIMIT = 2000;
 
@@ -188,6 +189,54 @@ export async function saveMutationPrefs(
   prefs: Omit<StoredMutationPrefs, "id">,
 ): Promise<void> {
   await db.mutationPrefs.put({ id: "default", ...prefs });
+}
+
+// --- Fuzzer sessions (resumable brute-force) -------------------------------
+
+export async function listFuzzSessions(): Promise<FuzzSession[]> {
+  return db.fuzzSessions.orderBy("createdAt").reverse().toArray();
+}
+
+export async function getFuzzSession(id: string): Promise<FuzzSession | undefined> {
+  return db.fuzzSessions.get(id);
+}
+
+export async function putFuzzSession(session: FuzzSession): Promise<void> {
+  await db.fuzzSessions.put(session);
+}
+
+export async function updateFuzzSession(
+  id: string,
+  patch: Partial<FuzzSession>,
+): Promise<void> {
+  await db.fuzzSessions.update(id, { ...patch, updatedAt: new Date().toISOString() });
+}
+
+export async function deleteFuzzSession(id: string): Promise<void> {
+  await db.transaction("rw", db.fuzzSessions, db.fuzzResults, async () => {
+    await db.fuzzResults.where("sessionId").equals(id).delete();
+    await db.fuzzSessions.delete(id);
+  });
+}
+
+export async function listFuzzResults(sessionId: string): Promise<FuzzResult[]> {
+  const rows = await db.fuzzResults.where("sessionId").equals(sessionId).toArray();
+  return rows.sort((a, b) => a.sequence - b.sequence);
+}
+
+export async function putFuzzResult(result: FuzzResult): Promise<void> {
+  await db.fuzzResults.put(result);
+}
+
+export async function updateFuzzResult(
+  id: string,
+  patch: Partial<FuzzResult>,
+): Promise<void> {
+  await db.fuzzResults.update(id, patch);
+}
+
+export async function clearFuzzResults(sessionId: string): Promise<void> {
+  await db.fuzzResults.where("sessionId").equals(sessionId).delete();
 }
 
 export async function migrateFromLocalStorage(): Promise<void> {

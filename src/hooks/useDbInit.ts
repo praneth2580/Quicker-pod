@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { migrateFromLocalStorage } from "@/db/repository";
 import { useProtocolLabPacketLogger } from "@/features/protocol-lab/store/packetLoggerStore";
 import { useMutationStore } from "@/features/protocol-lab/store";
+import { useFuzzStore } from "@/features/fuzzer/store";
 import { useDeviceStore } from "@/store/deviceStore";
 import { useSavedPacketStore } from "@/store/savedPacketStore";
 
@@ -16,6 +17,7 @@ export function useDbInit(): boolean {
       await Promise.all([
         useProtocolLabPacketLogger.getState().hydrateFromDb(),
         useMutationStore.getState().hydrateFromDb(),
+        useFuzzStore.getState().hydrateFromDb(),
         useDeviceStore.getState().loadDevices(),
         useSavedPacketStore.getState().loadPackets(),
       ]);
