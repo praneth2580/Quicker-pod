@@ -26,6 +26,9 @@ function charProperties(char: BluetoothRemoteGATTCharacteristic) {
 
 /** Dump all GATT services and characteristics to console + debug store. */
 export async function dumpGattServices(server: GattServer): Promise<DiscoveredService[]> {
+  if (!server.connected) {
+    throw new Error("GATT disconnected before service discovery");
+  }
   bleDebugLogger.log("Discovering service");
   const services = await withBleErrorLogging("getPrimaryServices failed", () =>
     server.getPrimaryServices(),
@@ -77,9 +80,11 @@ export async function ensureGattConnected(device: BluetoothDevice): Promise<Gatt
     const server = await withBleErrorLogging("gatt.connect failed on reconnect", () =>
       device.gatt!.connect(),
     );
+    if (!server.connected) {
+      throw new Error("GATT disconnected immediately after connect");
+    }
     bleDebugLogger.log("Connected");
     useBleDebugStore.getState().setGattConnected(true);
-    await sleep(1000);
     return server;
   }
 
@@ -95,14 +100,16 @@ export async function assertServerConnected(server: GattServer): Promise<GattSer
   return ensureGattConnected(activeDevice);
 }
 
-/** Connect with post-connect settle delay. */
+/** Connect and return immediately so service discovery can start while the link is up. */
 export async function connectGattWithSettle(device: BluetoothDevice): Promise<GattServer> {
   bleDebugLogger.log("Connecting...");
   const server = await withBleErrorLogging("gatt.connect failed", () => device.gatt!.connect());
+  if (!server.connected) {
+    throw new Error("GATT disconnected immediately after connect");
+  }
   bleDebugLogger.log("Connected");
   useBleDebugStore.getState().setGattConnected(true);
   bleDebugLogger.setHandshakeStage("connected");
-  await sleep(1000);
   return server;
 }
 
