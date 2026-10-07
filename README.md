@@ -6,30 +6,59 @@
 
 <p align="center">
   <strong>Free &amp; open-source Tripper Pod companion</strong><br />
-  Connect over BLE, explore the protocol, and monitor live traffic — no account, no fees, no app store.
+  Download the Android APK for full BLE pairing, or explore the protocol lab on the web.
 </p>
 
 <p align="center">
-  <a href="https://praneth2580.github.io/Quicker-pod/"><strong>Live demo</strong></a>
+  <a href="https://praneth2580.github.io/Quicker-pod/"><strong>Landing page</strong></a>
   ·
-  <a href="https://praneth2580.github.io/Quicker-pod/dashboard">Open dashboard</a>
+  <a href="https://github.com/praneth2580/Quicker-pod/releases/latest"><strong>Download APK</strong></a>
+  ·
+  <a href="https://praneth2580.github.io/Quicker-pod/app">Web lab</a>
   ·
   <a href="https://github.com/praneth2580/Quicker-pod">GitHub</a>
 </p>
 
 <p align="center">
   <a href="https://praneth2580.github.io/Quicker-pod/">
-    <img src="public/screenshots/mobile-narrow.png" width="280" alt="Quicker-pod Protocol Lab on mobile" />
+    <img src="public/screenshots/mobile-narrow.png" width="280" alt="Quicker-pod on mobile" />
   </a>
 </p>
 
-> **Install the PWA for the full app experience.** Add Quicker-pod to your home screen (Android Chrome or iOS Safari). Once installed, the app opens the **dashboard** directly — no marketing landing page — so you can connect and test faster on the bike.
+> **Prefer the Android APK for real Tripper pairing.** Full PIN + AUTH needs the phone GATT server role, which browsers cannot host. The website is a **landing + download** page; the web BLE lab remains at `/app` for Chrome diagnostics.
 
-**Quicker-pod** is an open-source, mobile-first Progressive Web App for exploring and communicating with the Royal Enfield **Tripper Pod** over Bluetooth Low Energy (BLE).
-
-It is a community-driven alternative to the official Tripper Pod app. Version 1 focuses on **protocol exploration and BLE diagnostics** — not turn-by-turn navigation. The goal is to reverse-engineer the Tripper Pod communication protocol and build a fully open replacement over time.
+**Quicker-pod** is an open-source companion for the Royal Enfield **Tripper Pod**. Version 1 focuses on **protocol exploration and BLE diagnostics**, with a Capacitor Android build for the full pairing path.
 
 For setup, development, build, and deployment instructions, see **[DEVELOPMENT.md](./DEVELOPMENT.md)**.
+
+---
+
+## Download the APK
+
+1. Open the [landing page](https://praneth2580.github.io/Quicker-pod/) and tap **Download APK**, or go to [latest release](https://github.com/praneth2580/Quicker-pod/releases/latest).
+2. Install `quicker-pod.apk` (enable install from that source on Android).
+3. Open **Quicker Pod** and connect your Tripper.
+
+**Stable download URL** (once a release with that asset exists):
+
+```text
+https://github.com/praneth2580/Quicker-pod/releases/latest/download/quicker-pod.apk
+```
+
+The landing page also calls the GitHub Releases API (`/repos/praneth2580/Quicker-pod/releases/latest`) and links the APK asset when present.
+
+### Cut a new APK release
+
+```bash
+# Local build → dist-apk/quicker-pod.apk
+npm run build:apk
+
+# Publish via CI (preferred): push a version tag
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The **Release APK** workflow (`.github/workflows/release-apk.yml`) builds the Capacitor Android release APK and uploads `quicker-pod.apk` to the GitHub Release for that tag. You can also run it manually from the Actions tab (`workflow_dispatch`).
 
 ---
 
@@ -37,62 +66,29 @@ For setup, development, build, and deployment instructions, see **[DEVELOPMENT.m
 
 | Area | What it does |
 |------|----------------|
-| **Dashboard** | See Bluetooth status, connection state, device info, and your last sent/received packets |
-| **Connect** | Scan for BLE devices, filter results, connect, and disconnect |
-| **Protocol Lab** | Full BLE workbench — explore GATT, monitor live device traffic, send packets, run mutations, export sessions |
-| **Settings** | Toggle dark mode, debug mode, and experimental features |
-
-Install the app on your phone (PWA) for a standalone experience optimized for on-bike protocol testing with Android Chrome. **Installed users skip the landing page and land on the dashboard** (`/dashboard`) automatically.
+| **Android APK** | Full companion with native BLE / GATT server for Tripper pairing |
+| **Landing** | Promotional download page with latest release link |
+| **Web lab** (`/app`) | Dashboard, Connect, Protocol Lab, Settings in Chrome (Web Bluetooth) |
 
 ---
 
 ## How to use Quicker-pod
 
-### 1. Connect your Tripper
+### Android (recommended for pairing)
 
-1. Open **Connect** (`/connect`)
-2. Tap **Connect** and select your device (`RE_DISP` or `RE_*`) in the Chrome BLE picker
-3. Enter the **6-digit PIN** shown on your Tripper display
-4. Confirm connection on the **Dashboard**
+1. Install the latest APK from GitHub Releases
+2. Connect to your Tripper and complete the PIN shown on the display
+3. Use the in-app dashboard and Protocol Lab
 
-Requires Chrome on Android or desktop with Web Bluetooth support.
+See [docs/capacitor-tripper-ble.md](./docs/capacitor-tripper-ble.md) for native BLE details.
 
-### 2. Explore services (Protocol Lab → Explorer)
+### Web lab (Chrome diagnostics)
 
-1. Open **Lab** → **Explorer**
-2. Review device name, ID, and connection state
-3. Expand services to see characteristics, descriptors, and properties
-4. **Read** values, **Subscribe** to notifications, or **Select TX** on a writable characteristic for sending packets
+1. Open **[`/app`](https://praneth2580.github.io/Quicker-pod/app)** (or `/dashboard`)
+2. Use **Connect** with Web Bluetooth (`RE_DISP` / `RE_*`)
+3. Explore GATT, monitor traffic, send packets in **Protocol Lab**
 
-### 3. Monitor live traffic (Protocol Lab → Monitor)
-
-1. Tap **Subscribe All Notify / Indicate** (or subscribe per characteristic in Explorer)
-2. Watch the live log: timestamp, direction, UUIDs, and HEX payload
-3. **Pause**, **Clear**, **Copy**, or **Export** logs as needed
-
-### 4. Send packets manually (Protocol Lab → Sender)
-
-1. Select a writable characteristic in Explorer first
-2. Enter a HEX payload (e.g. `20 01 00 64`)
-3. Tap **Send**, **Save**, or **Repeat Last**
-4. Review last sent packet, response, and any errors
-
-### 5. Explore the protocol (Protocol Lab → Mutation)
-
-1. Select a writable characteristic
-2. Set a **base packet** and **lock bytes** you want to keep fixed
-3. Choose a mutation mode (single byte, range, increment, dictionary, etc.)
-4. Tap **Start Mutation** — rate-limited for safety (min 500 ms between packets)
-5. Review results in the table; stop anytime or on disconnect/error
-
-### 6. Export your session (Protocol Lab → Export)
-
-Export or import a full session as **JSON** or **CSV**, including:
-
-- Services, characteristics, and descriptors
-- Notifications and sent packets
-- Mutation results
-- Device information
+> **Full Tripper pairing (PIN on pod + AUTH)** needs the phone GATT server role — use the **Android APK**, not Web Bluetooth alone.
 
 ---
 
@@ -100,35 +96,23 @@ Export or import a full session as **JSON** or **CSV**, including:
 
 | Screen | Route | Notes |
 |--------|-------|-------|
-| Landing | `/` | Marketing page for first-time visitors in the browser |
-| Dashboard | `/dashboard` | Main app home — opens here when installed as a PWA |
+| Landing | `/` | Download / promo page — default for `npm run dev` |
+| Web lab home | `/app` → `/dashboard` | BLE diagnostics UI |
 | Connect | `/connect` | BLE scan and pairing |
 | Protocol Lab | `/protocol-lab` | GATT explorer, monitor, sender, mutation, export |
 | Settings | `/settings` | Theme, debug, and experimental toggles |
-
-### Protocol Lab tabs
-
-| Tab | Route hint | Purpose |
-|-----|------------|---------|
-| Explorer | `?tab=explorer` | GATT tree, read, subscribe, select TX |
-| Monitor | `?tab=notifications` | Live notification log |
-| Sender | `?tab=sender` | Manual HEX transmission |
-| Mutation | `?tab=mutation` | Guided byte mutation |
-| Export | `?tab=export` | Session export/import |
 
 Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to Protocol Lab tabs.
 
 ---
 
-## Browser requirements
+## Browser / platform requirements
 
-| Feature | Chrome (Android) | Chrome (Desktop) | Firefox | Safari |
-|---------|------------------|------------------|---------|--------|
-| App UI | ✅ | ✅ | ✅ | ✅ |
-| Web Bluetooth | ✅ | ✅ | ❌ | ❌ |
-| PWA install | ✅ | ✅ | Limited | ✅ (iOS 16.4+) |
-
-Real BLE requires a Chromium-based browser on **HTTPS** or `localhost`.
+| Feature | Android APK | Chrome (Android/Desktop) | Firefox / Safari |
+|---------|-------------|--------------------------|------------------|
+| Full Tripper pairing (GATT server) | ✅ | ❌ | ❌ |
+| Web Bluetooth client | — | ✅ | ❌ |
+| Landing + download | ✅ (site) | ✅ | ✅ |
 
 ---
 

@@ -36,6 +36,17 @@ import {
 } from "./tripper/session";
 import { PKT_NAV_IDLE } from "./tripper/packets";
 import { useBleDebugStore } from "@/store/bleDebugStore";
+import {
+  ensureNativeTripperListeners,
+  isNativeTripperBle,
+  nativeDisconnect,
+  nativeReconnect,
+  nativeRunPostPinSequence,
+  nativeStartPairing,
+  nativeSubmitPin,
+  nativeWritePacket,
+  setNativeTripperListeners,
+} from "./nativeTripperBle";
 
 type GattCharacteristic = BluetoothRemoteGATTCharacteristic;
 
@@ -49,6 +60,26 @@ function parseProperties(char: GattCharacteristic): BluetoothCharacteristicInfo[
   };
 }
 
+function nativeTripperServices(): BluetoothServiceInfo[] {
+  return [
+    {
+      uuid: TRIPPER_SERVICE_UUID,
+      characteristics: [
+        {
+          uuid: TRIPPER_CHAR_UUID,
+          properties: {
+            read: false,
+            write: true,
+            writeWithoutResponse: true,
+            notify: false,
+            indicate: false,
+          },
+        },
+      ],
+    },
+  ];
+}
+
 class BluetoothManager {
   private device: BluetoothDevice | null = null;
   private server: BluetoothRemoteGATTServer | null = null;
@@ -58,7 +89,19 @@ class BluetoothManager {
   private connectionPollTimer: ReturnType<typeof setInterval> | null = null;
   private disconnectHandler: ((event: Event) => void) | null = null;
 
+  /** Capacitor Android path (GATT server + client). */
+  private nativeMode = false;
+  private nativeDevice: BluetoothDeviceInfo | null = null;
+  private nativeConnected = false;
+  /** True after native startPairing already sent SHOW PIN / known handshake. */
+  private nativeHandshakeDone = false;
+
+  isNativeBle(): boolean {
+    return isNativeTripperBle();
+  }
+
   isSupported(): boolean {
+    if (isNativeTripperBle()) return true;
     return typeof navigator !== "undefined" && "bluetooth" in navigator;
   }
 
@@ -76,6 +119,7 @@ class BluetoothManager {
   }
 
   getDeviceInfo(): BluetoothDeviceInfo | null {
+    if (this.nativeMode && this.nativeDevice) return this.nativeDevice;
     if (!this.device) return null;
     return {
       id: this.device.id,
@@ -84,15 +128,20 @@ class BluetoothManager {
   }
 
   isConnected(): boolean {
+    if (this.nativeMode) return this.nativeConnected;
     return Boolean(this.server?.connected && this.device?.gatt?.connected);
   }
 
-  async connectNewDevice(): Promise<BluetoothDevice> {
+  async connectNewDevice(): Promise<BluetoothDeviceInfo> {
     if (!this.isSupported()) {
       throw new BluetoothError(
         "UNAVAILABLE",
-        "Bluetooth is not available. Use Chrome on Android or desktop with BLE support.",
+        "Bluetooth is not available. Use Chrome on Android/desktop, or the Quicker Pod Android app.",
       );
+    }
+
+    if (isNativeTripperBle()) {
+      return this.nativeConnectNewDevice();
     }
 
     try {
@@ -101,12 +150,47 @@ class BluetoothManager {
         filters: ROYAL_ENFIELD_DEVICE_FILTERS,
         optionalServices: ROYAL_ENFIELD_OPTIONAL_SERVICES,
       });
-      this.attachDevice(device);
-      return device;
+      return this.attachDevice(device);
     } catch (error) {
       bleDebugLogger.error("requestDevice failed", error);
       throw mapBluetoothError(error);
     }
+  }
+
+  private async nativeConnectNewDevice(): Promise<BluetoothDeviceInfo> {
+    this.nativeMode = true;
+    await ensureNativeTripperListeners();
+    setNativeTripperListeners({
+      onDisconnected: () => this.handleNativeDisconnect(),
+      onConnected: (d) => {
+        this.nativeDevice = { id: d.address, name: d.name };
+        this.nativeConnected = true;
+        useBleDebugStore.getState().setGattConnected(true);
+        useBleDebugStore.getState().setDeviceName(d.name);
+      },
+    });
+
+    bleDebugLogger.log("Native TripperBle startPairing (GATT server + scan)");
+    try {
+      const device = await nativeStartPairing({ knownDevice: false });
+      this.nativeDevice = { id: device.address, name: device.name };
+      this.nativeConnected = true;
+      this.nativeHandshakeDone = true;
+      useBleDebugStore.getState().setDeviceName(device.name);
+      useBleDebugStore.getState().setGattConnected(true);
+      this.emit({ type: "device-found", payload: this.nativeDevice });
+      return this.nativeDevice;
+    } catch (error) {
+      bleDebugLogger.error("native startPairing failed", error);
+      throw mapBluetoothError(error);
+    }
+  }
+
+  private handleNativeDisconnect(): void {
+    this.nativeConnected = false;
+    this.nativeHandshakeDone = false;
+    useBleDebugStore.getState().setGattConnected(false);
+    this.emit({ type: "disconnected" });
   }
 
   async requestDevice(filters?: BluetoothLEScanFilter[]): Promise<BluetoothDeviceInfo> {
@@ -147,9 +231,31 @@ class BluetoothManager {
     if (!this.isSupported()) {
       throw new BluetoothError(
         "UNAVAILABLE",
-        "Bluetooth is not available. Use Chrome on Android or desktop with BLE support.",
+        "Bluetooth is not available. Use Chrome on Android/desktop, or the Quicker Pod Android app.",
       );
     }
+
+    if (isNativeTripperBle()) {
+      this.nativeMode = true;
+      this.nativeHandshakeDone = false;
+      this.nativeDevice = {
+        id: deviceId,
+        name: this.nativeDevice?.id === deviceId ? this.nativeDevice.name : "Tripper",
+      };
+      await ensureNativeTripperListeners();
+      setNativeTripperListeners({
+        onDisconnected: () => this.handleNativeDisconnect(),
+        onConnected: (d) => {
+          this.nativeDevice = { id: d.address, name: d.name };
+          this.nativeConnected = true;
+          useBleDebugStore.getState().setGattConnected(true);
+          useBleDebugStore.getState().setDeviceName(d.name);
+        },
+      });
+      this.emit({ type: "device-found", payload: this.nativeDevice });
+      return this.nativeDevice;
+    }
+
     if (!navigator.bluetooth.getDevices) {
       throw new BluetoothError(
         "UNAVAILABLE",
@@ -222,6 +328,15 @@ class BluetoothManager {
   }
 
   async ensureConnected(): Promise<BluetoothRemoteGATTServer> {
+    if (this.nativeMode) {
+      if (!this.nativeConnected) {
+        throw new BluetoothError("NOT_FOUND", "Native BLE not connected.");
+      }
+      throw new BluetoothError(
+        "UNAVAILABLE",
+        "Web GATT server handle is unavailable on Capacitor; use TripperBle plugin APIs.",
+      );
+    }
     if (!this.device) {
       throw new BluetoothError("NOT_FOUND", "No device selected.");
     }
@@ -230,21 +345,57 @@ class BluetoothManager {
   }
 
   async startTripperHandshake(options: StartHandshakeOptions): Promise<void> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      this.nativeMode = true;
+      // startPairing already ran SHOW PIN; skip duplicate handshake on first connect.
+      if (this.nativeHandshakeDone && !options.knownDevice) {
+        bleDebugLogger.log("Native handshake already completed during startPairing");
+        return;
+      }
+      const address = options.deviceId ?? this.nativeDevice?.id;
+      if (!address) {
+        throw new BluetoothError("NOT_FOUND", "No device address for native reconnect.");
+      }
+      bleDebugLogger.log("Native TripperBle reconnect/handshake", {
+        address,
+        knownDevice: options.knownDevice,
+        source: options.source,
+      });
+      const device = await nativeReconnect({
+        address,
+        knownDevice: options.knownDevice,
+      });
+      this.nativeDevice = { id: device.address, name: device.name };
+      this.nativeConnected = true;
+      this.nativeHandshakeDone = true;
+      useBleDebugStore.getState().setGattConnected(true);
+      return;
+    }
+
     const server = await this.ensureConnected();
     await startHandshake(server, options);
   }
 
   async runNewDeviceHandshake(): Promise<void> {
+    if (this.nativeMode) return;
     const server = await this.ensureConnected();
     await runNewDeviceHandshake(server);
   }
 
   async runKnownDeviceHandshake(): Promise<void> {
+    if (this.nativeMode) {
+      await this.startTripperHandshake({ knownDevice: true, source: "runKnownDeviceHandshake" });
+      return;
+    }
     const server = await this.ensureConnected();
     await runKnownDeviceHandshake(server);
   }
 
   async runPostPinSequence(): Promise<void> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      await nativeRunPostPinSequence();
+      return;
+    }
     const server = await this.ensureConnected();
     await runPostPinSequence(server);
   }
@@ -253,6 +404,10 @@ class BluetoothManager {
     pin: string,
     config: TripperPairingConfig = DEFAULT_PAIRING_CONFIG,
   ): Promise<SendTripperPinResult> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      return nativeSubmitPin(pin, config.responseTimeoutMs);
+    }
+
     if (!this.server?.connected) {
       await this.connectGatt();
     }
@@ -278,7 +433,14 @@ class BluetoothManager {
     this.lastNavPacket = packet;
   }
 
-  async connectGatt(): Promise<BluetoothRemoteGATTServer> {
+  async connectGatt(): Promise<BluetoothRemoteGATTServer | null> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      this.nativeMode = true;
+      // Native connect is performed inside startPairing / startTripperHandshake.
+      this.lastNavPacket = PKT_NAV_IDLE;
+      return null;
+    }
+
     if (!this.device?.gatt) {
       throw new BluetoothError("NOT_FOUND", "No device selected.");
     }
@@ -294,6 +456,13 @@ class BluetoothManager {
   }
 
   async connect(): Promise<BluetoothServiceInfo[]> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      this.nativeMode = true;
+      const services = nativeTripperServices();
+      this.emit({ type: "connected", payload: services });
+      return services;
+    }
+
     if (!this.server?.connected) {
       await this.connectGatt();
     } else {
@@ -332,6 +501,14 @@ class BluetoothManager {
 
   async disconnect(): Promise<void> {
     bleDebugLogger.log("Disconnecting (user initiated)");
+    if (this.nativeMode || isNativeTripperBle()) {
+      await nativeDisconnect();
+      this.nativeConnected = false;
+      this.nativeHandshakeDone = false;
+      this.cleanup();
+      this.emit({ type: "disconnected" });
+      return;
+    }
     if (this.server?.connected) {
       this.server.disconnect();
     }
@@ -356,6 +533,9 @@ class BluetoothManager {
   }
 
   async discoverServices(): Promise<BluetoothServiceInfo[]> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      return nativeTripperServices();
+    }
     const server = await this.ensureConnected();
 
     const services = await withBleErrorLogging("discoverServices getPrimaryServices", () =>
@@ -426,6 +606,15 @@ class BluetoothManager {
     data: Uint8Array,
     withResponse?: boolean,
   ): Promise<void> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      await nativeWritePacket(data);
+      this.emit({
+        type: "packet-sent",
+        payload: { serviceUuid, characteristicUuid, payload: data },
+      });
+      return;
+    }
+
     const char = await this.getCharacteristic(serviceUuid, characteristicUuid);
     const useResponse =
       withResponse ?? (char.properties.write && !char.properties.writeWithoutResponse);
@@ -466,6 +655,11 @@ class BluetoothManager {
     serviceUuid: string,
     characteristicUuid: string,
   ): Promise<void> {
+    if (this.nativeMode || isNativeTripperBle()) {
+      // AUTH / RX arrive via phone GATT server callbacks — no client CCCD needed.
+      bleDebugLogger.log("subscribeToNotifications skipped on native (GATT server RX)");
+      return;
+    }
     const char = await this.getCharacteristic(serviceUuid, characteristicUuid);
     if (!char.properties.notify && !char.properties.indicate) {
       return;

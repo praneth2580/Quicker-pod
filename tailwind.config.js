@@ -21,7 +21,8 @@ export default {
       },
       fontFamily: {
         mono: ["JetBrains Mono", "Fira Code", "monospace"],
-        sans: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Figtree", "ui-sans-serif", "sans-serif"],
+        display: ["Syne", "Figtree", "ui-sans-serif", "sans-serif"],
       },
       boxShadow: {
         glow: "0 0 20px rgba(34, 211, 238, 0.15)",
@@ -39,6 +40,25 @@ export default {
       },
       minWidth: {
         touch: "3rem",
+      },
+      keyframes: {
+        "landing-rise": {
+          from: { opacity: "0", transform: "translateY(18px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "landing-drift": {
+          "0%, 100%": { transform: "translate3d(0, 0, 0) scale(1)" },
+          "50%": { transform: "translate3d(2%, -1.5%, 0) scale(1.03)" },
+        },
+        "landing-float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+      },
+      animation: {
+        "landing-rise": "landing-rise 0.8s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "landing-drift": "landing-drift 18s ease-in-out infinite",
+        "landing-float": "landing-float 6s ease-in-out infinite",
       },
     },
   },

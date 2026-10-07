@@ -8,7 +8,9 @@ const REPO_BASE = "/Quicker-pod/";
 const shortcutIcon = [{ src: "pwa-192x192.png", sizes: "192x192", type: "image/png" }];
 
 export default defineConfig(({ command }) => {
-  const base = command === "build" ? REPO_BASE : "/";
+  // Capacitor needs root-relative (or ./) assets; GitHub Pages uses the repo base path.
+  const forCapacitor = process.env.CAPACITOR === "1" || process.env.CAPACITOR === "true";
+  const base = forCapacitor ? "/" : command === "build" ? REPO_BASE : "/";
 
   return {
     base,
@@ -94,7 +96,11 @@ export default defineConfig(({ command }) => {
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "tripper-ble": path.resolve(__dirname, "./plugins/tripper-ble/src/index.ts"),
       },
+    },
+    optimizeDeps: {
+      exclude: ["tripper-ble"],
     },
   };
 });

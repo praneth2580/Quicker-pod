@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Quicker Pod</string>
+    <string name="title_activity_main">Quicker Pod</string>
+    <string name="package_name">com.quickerpod.app</string>
+    <string name="custom_url_scheme">com.quickerpod.app</string>
+</resources>

@@ -182,10 +182,13 @@ export const useConnectionStore = create<ConnectionState>()(
           const result = await bluetoothManager.sendTripperPin(pin, getPairingConfig());
           await bluetoothManager.runPostPinSequence();
           await finalizeConnection(pending, true, get, set);
+          const native = bluetoothManager.isNativeBle();
           set({
             pairingMessage: result.authVerified
               ? "PIN accepted. Tripper paired successfully."
-              : "PIN sent. Pairing could not be confirmed in the browser — Tripper AUTH uses the phone GATT server role.",
+              : native
+                ? "PIN sent. Waiting for AUTH on phone GATT server — if the pod accepted the code you are paired."
+                : "PIN sent. Pairing could not be confirmed in the browser — Tripper AUTH uses the phone GATT server role.",
           });
         } catch (err) {
           set({

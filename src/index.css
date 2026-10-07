@@ -65,3 +65,11 @@
     display: none;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-landing-rise,
+  .animate-landing-drift,
+  .animate-landing-float {
+    animation: none !important;
+  }
+}

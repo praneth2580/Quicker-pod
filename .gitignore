@@ -8,3 +8,17 @@ __pycache__/
 
 # Protocol-fuzzing experiment store (tripper-sdk/tripper.py)
 tripper-experiments/
+
+# Capacitor / Android
+android/.gradle/
+android/app/build/
+android/build/
+android/captures/
+android/local.properties
+dist-apk/
+*.apk
+*.aab
+*.keystore
+!debug.keystore
+plugins/tripper-ble/dist/
+plugins/tripper-ble/node_modules/

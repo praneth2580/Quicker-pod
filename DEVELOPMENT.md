@@ -14,10 +14,13 @@ For app features and usage workflows, see **[README.md](./README.md)**.
 - **Zustand** — state management
 - **Tailwind CSS** — mobile-first styling
 - **vite-plugin-pwa** — installable PWA with offline shell
-- **Web Bluetooth API** — BLE device communication
+- **Web Bluetooth API** — BLE device communication (browser)
+- **Capacitor 7** + local **tripper-ble** plugin — Android dual-role BLE (GATT client + phone GATT server)
 - **@vite-pwa/assets-generator** — PWA icon generation
 
 No backend is required.
+
+For Android Tripper pairing (SHOW PIN / AUTH), see **[docs/capacitor-tripper-ble.md](./docs/capacitor-tripper-ble.md)**.
 
 ---
 
@@ -36,7 +39,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173](http://localhost:5173). The default route `/` is the **landing / download page**. The web BLE lab is at [`/app`](http://localhost:5173/app) (aliases `/dashboard`).
 
 ---
 
@@ -44,13 +47,17 @@ Open [http://localhost:5173](http://localhost:5173).
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Vite dev server |
-| `npm run build` | Generate PWA assets, typecheck, and production build |
+| `npm run dev` | Start Vite dev server (landing page at `/`) |
+| `npm run build` | Generate PWA assets, typecheck, and production web (GitHub Pages) build |
+| `npm run build:cap` | Build plugin + Vite with `CAPACITOR=1` (base `/` for Android WebView) |
+| `npm run build:plugin` | Compile `plugins/tripper-ble` TypeScript |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
 | `npm run generate-pwa-assets` | Regenerate icons and screenshots from `public/icon.svg` |
-| `npm run deploy` | Build and push `dist/` to the `gh-pages` branch |
-
+| `npm run deploy` | Build and push `dist/` to the `gh-pages` branch (landing site) |
+| `npm run cap:sync` | `build:cap` then `npx cap sync android` |
+| `npm run cap:open:android` | Open the Android project in Android Studio |
+| `npm run cap:run:android` | Sync and run on a connected Android device |
 ---
 
 ## Build
@@ -81,6 +88,36 @@ npm run deploy
 
 Live URL: [https://praneth2580.github.io/Quicker-pod/](https://praneth2580.github.io/Quicker-pod/)
 
+---
+
+## Android APK releases
+
+The marketing site downloads the APK from **GitHub Releases** (asset name `quicker-pod.apk`).
+
+### Local APK
+
+Requires JDK 17+, Android SDK, and the `android/` Capacitor project.
+
+```bash
+npm run build:apk
+# → dist-apk/quicker-pod.apk
+```
+
+### CI / GitHub Release
+
+1. Push a version tag: `git tag v0.1.0 && git push origin v0.1.0`
+2. Workflow [`.github/workflows/release-apk.yml`](./.github/workflows/release-apk.yml) builds and uploads `quicker-pod.apk`
+3. Landing **Download APK** resolves via `GET https://api.github.com/repos/praneth2580/Quicker-pod/releases/latest`
+
+Manual run: GitHub → **Actions** → **Release APK** → **Run workflow**.
+
+Stable URL pattern:
+
+```text
+https://github.com/praneth2580/Quicker-pod/releases/latest/download/quicker-pod.apk
+```
+
+CI release APKs are signed with the Android **debug** keystore for sideloading. Use a real release keystore before Play Store distribution.
 ---
 
 ## PWA assets
@@ -153,11 +190,12 @@ Protocol fuzzing and differential reverse-engineering (Python CLI, dry-run by de
 
 | Route | Page |
 |-------|------|
-| `/` | Dashboard |
-| `/scanner` | Connect (BLE scanner) |
+| `/` | Landing (download / promo) |
+| `/app` | Redirects to Dashboard (web lab) |
+| `/dashboard` | Web lab home |
+| `/connect` | Connect (BLE scanner) |
 | `/protocol-lab` | Protocol Lab |
 | `/settings` | Settings |
-
 Legacy routes redirect to Protocol Lab tabs with `?tab=`.
 
 ### State management

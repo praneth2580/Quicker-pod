@@ -1,0 +1,6 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.quickerpod.tripperble" > <!-- Declared on the host app; kept here for documentation / merge. -->
+4    <uses-sdk android:minSdkVersion="23" />
+5
+6</manifest>

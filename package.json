@@ -6,20 +6,32 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run generate-pwa-assets && tsc -b && vite build",
+    "build:cap": "npm run build:plugin && CAPACITOR=1 npm run generate-pwa-assets && CAPACITOR=1 tsc -b && CAPACITOR=1 vite build",
+    "build:plugin": "npm run build --prefix plugins/tripper-ble",
+    "build:apk": "bash scripts/build-apk.sh",
+    "android:apk": "npm run build:apk",
+    "release:apk": "npm run build:apk && echo \"Upload dist-apk/quicker-pod.apk to a GitHub Release, or push a v* tag / run the Release APK workflow.\"",
     "generate-pwa-assets": "pwa-assets-generator && node scripts/generate-screenshots.mjs",
     "postbuild": "cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "lint": "eslint .",
-    "deploy": "npm run build && gh-pages -d dist -b gh-pages"
+    "deploy": "npm run build && gh-pages -d dist -b gh-pages",
+    "cap:sync": "npm run build:cap && npx cap sync android",
+    "cap:open:android": "npx cap open android",
+    "cap:run:android": "npm run cap:sync && npx cap run android"
   },
   "dependencies": {
+    "@capacitor/android": "^7.6.9",
+    "@capacitor/core": "^7.6.9",
     "dexie": "^4.4.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
+    "tripper-ble": "file:plugins/tripper-ble",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.6.9",
     "@eslint/js": "^9.28.0",
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.5",

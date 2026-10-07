@@ -34,6 +34,8 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<RootRoute />} />
+      {/* Web BLE lab — primary Android experience is the APK from GitHub Releases */}
+      <Route path="/app" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/connect" element={<ConnectPage />} />
       <Route path="/scanner" element={<Navigate to="/connect" replace />} />

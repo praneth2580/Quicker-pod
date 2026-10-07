@@ -8,6 +8,7 @@ import { BleLogConsole } from "@/components/ble/BleLogConsole";
 import { useBluetoothConnect } from "@/hooks/useBluetoothConnect";
 import { ROYAL_ENFIELD_NAME_PREFIX } from "@/bluetooth/filters";
 import { validateTripperPin } from "@/bluetooth/pairingConfig";
+import { isNativeTripperBle } from "@/bluetooth/nativeTripperBle";
 
 function formatTimestamp(ms: number): string {
   try {
@@ -139,7 +140,18 @@ export function ConnectPage() {
         {!bluetoothSupported && (
           <Card className="border-warning/30">
             <p className="text-sm text-warning">
-              Web Bluetooth is not available in this browser. Use Chrome on Android or desktop.
+              {isNativeTripperBle()
+                ? "Bluetooth is unavailable. Enable Bluetooth and grant BLE permissions, then retry."
+                : "Web Bluetooth is not available in this browser. Use Chrome on Android/desktop, or the Quicker Pod Android app (Capacitor) for full Tripper pairing (GATT server)."}
+            </p>
+          </Card>
+        )}
+
+        {bluetoothSupported && isNativeTripperBle() && showInitialConnect && (
+          <Card className="border-accent/20">
+            <p className="text-sm text-gray-400">
+              Native Android BLE: phone runs a GATT server so Tripper can send AUTH. Connect scans for{" "}
+              <span className="font-mono text-accent">RE_</span> devices — PIN should appear on the pod.
             </p>
           </Card>
         )}
