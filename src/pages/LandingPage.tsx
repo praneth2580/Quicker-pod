@@ -49,7 +49,7 @@ const FAQ = [
   {
     question: "How do new APKs get published?",
     answer:
-      "Push a version tag (for example v0.1.0) or run the release-apk GitHub Action. The workflow builds the Android APK and attaches quicker-pod.apk to the GitHub Release.",
+      "Maintainers run npm run release (optionally -- minor|major|X.Y.Z). That bumps versions, builds the APK, uploads it to a GitHub Release, and refreshes this landing page download link.",
   },
 ] as const;
 

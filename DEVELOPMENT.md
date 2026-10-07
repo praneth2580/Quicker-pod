@@ -49,15 +49,12 @@ Open [http://localhost:5173](http://localhost:5173). The default route `/` is th
 |---------|-------------|
 | `npm run dev` | Start Vite dev server (landing page at `/`) |
 | `npm run build` | Generate PWA assets, typecheck, and production web (GitHub Pages) build |
-| `npm run build:cap` | Build plugin + Vite with `CAPACITOR=1` (base `/` for Android WebView) |
-| `npm run build:plugin` | Compile `plugins/tripper-ble` TypeScript |
+| `npm run build:apk` | Capacitor sync + Gradle release APK → `dist-apk/quicker-pod.apk` |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
-| `npm run generate-pwa-assets` | Regenerate icons and screenshots from `public/icon.svg` |
 | `npm run deploy` | Build and push `dist/` to the `gh-pages` branch (landing site) |
-| `npm run cap:sync` | `build:cap` then `npx cap sync android` |
-| `npm run cap:open:android` | Open the Android project in Android Studio |
-| `npm run cap:run:android` | Sync and run on a connected Android device |
+| `npm run cap:sync` | Build plugin + Capacitor web assets, sync into `android/` |
+| `npm run android:run` | Sync → emulator if needed → install debug APK → launch |
 ---
 
 ## Build
@@ -92,32 +89,46 @@ Live URL: [https://praneth2580.github.io/Quicker-pod/](https://praneth2580.githu
 
 ## Android APK releases
 
-The marketing site downloads the APK from **GitHub Releases** (asset name `quicker-pod.apk`).
+### One command: build, publish, update landing page
 
-### Local APK
+Requires a clean git tree, JDK/Android SDK, and `GITHUB_TOKEN` (repo scope).
 
-Requires JDK 17+, Android SDK, and the `android/` Capacitor project.
+```bash
+export GITHUB_TOKEN=ghp_...   # or GH_TOKEN / `gh auth login`
+npm run release               # patch bump (0.1.0 → 0.1.1)
+npm run release -- minor
+npm run release -- major
+npm run release -- 1.2.0      # exact version
+DRY_RUN=1 npm run release     # print plan only
+SKIP_DEPLOY=1 npm run release # skip gh-pages deploy
+```
+
+What it does:
+
+1. Bumps `package.json` version, Android `versionName` / `versionCode`
+2. Writes `public/apk-latest.json` (landing Download CTA)
+3. Builds `dist-apk/quicker-pod.apk`
+4. Commits, tags `vX.Y.Z`, creates a GitHub Release with the APK
+5. Deploys the static site to `gh-pages`
+
+Landing prefers `apk-latest.json`, then falls back to the GitHub Releases API.
+
+### Local APK only
 
 ```bash
 npm run build:apk
 # → dist-apk/quicker-pod.apk
 ```
 
-### CI / GitHub Release
+### CI alternative
 
-1. Push a version tag: `git tag v0.1.0 && git push origin v0.1.0`
-2. Workflow [`.github/workflows/release-apk.yml`](./.github/workflows/release-apk.yml) builds and uploads `quicker-pod.apk`
-3. Landing **Download APK** resolves via `GET https://api.github.com/repos/praneth2580/Quicker-pod/releases/latest`
-
-Manual run: GitHub → **Actions** → **Release APK** → **Run workflow**.
-
-Stable URL pattern:
+Push a `v*` tag or run Actions → **Release APK**. Stable URL:
 
 ```text
 https://github.com/praneth2580/Quicker-pod/releases/latest/download/quicker-pod.apk
 ```
 
-CI release APKs are signed with the Android **debug** keystore for sideloading. Use a real release keystore before Play Store distribution.
+Release APKs are signed with the Android **debug** keystore for sideloading.
 ---
 
 ## PWA assets

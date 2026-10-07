@@ -16,9 +16,7 @@ if [[ ! -x android/gradlew ]]; then
 fi
 
 echo "==> Building tripper-ble plugin + Capacitor web assets"
-npm run build:plugin
-npm run build:cap
-npx cap sync android
+npm run cap:sync
 
 echo "==> Assembling Android release APK"
 (

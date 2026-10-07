@@ -6,19 +6,16 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run generate-pwa-assets && tsc -b && vite build",
-    "build:cap": "npm run build:plugin && CAPACITOR=1 npm run generate-pwa-assets && CAPACITOR=1 tsc -b && CAPACITOR=1 vite build",
-    "build:plugin": "npm run build --prefix plugins/tripper-ble",
     "build:apk": "bash scripts/build-apk.sh",
-    "android:apk": "npm run build:apk",
-    "release:apk": "npm run build:apk && echo \"Upload dist-apk/quicker-pod.apk to a GitHub Release, or push a v* tag / run the Release APK workflow.\"",
+    "build:plugin": "npm run build --prefix plugins/tripper-ble",
     "generate-pwa-assets": "pwa-assets-generator && node scripts/generate-screenshots.mjs",
     "postbuild": "cp dist/index.html dist/404.html",
     "preview": "vite preview",
     "lint": "eslint .",
     "deploy": "npm run build && gh-pages -d dist -b gh-pages",
-    "cap:sync": "npm run build:cap && npx cap sync android",
-    "cap:open:android": "npx cap open android",
-    "cap:run:android": "npm run cap:sync && npx cap run android"
+    "release": "bash scripts/release.sh",
+    "cap:sync": "npm run build:plugin && CAPACITOR=1 npm run generate-pwa-assets && CAPACITOR=1 tsc -b && CAPACITOR=1 vite build && npx cap sync android",
+    "android:run": "bash scripts/run-android-emulator.sh"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.9",

@@ -15,18 +15,8 @@ Quicker-pod uses **Capacitor 7** plus a local plugin `plugins/tripper-ble` that 
 
 ```bash
 npm install
-npm run build:plugin          # compiles plugins/tripper-ble TypeScript
-npm run build:cap             # Vite build with CAPACITOR=1 (base "/")
 npx cap add android           # if android/ is missing
-npx cap sync android
-npx cap open android
-```
-
-Or use the combined script after `android/` exists:
-
-```bash
-npm run cap:sync              # build:cap + cap sync android
-npm run cap:open:android
+npm run android:run           # sync → emulator if needed → installDebug → launch
 ```
 
 ## Permissions (Android 12+)
@@ -66,7 +56,8 @@ Events: `connected`, `readyForPin`, `rx`, `auth`, `disconnected`, `log` (forward
 
 ```bash
 npm run cap:sync              # rebuild web + sync native
-npm run cap:open:android      # Android Studio
+npm run android:run           # sync → emulator if needed → install + launch
+SKIP_SYNC=1 npm run android:run   # install/launch without rebuilding web
 adb logcat -s TripperBle:* Capacitor:*
 ```
 
@@ -74,7 +65,9 @@ adb logcat -s TripperBle:* Capacitor:*
 
 | Symptom | Check |
 |---------|--------|
+| No device / AVD | `emulator -list-avds`; set `ANDROID_AVD=Pixel_3a_API_34_extension_level_7_x86_64` |
 | No PIN on pod | Confirm TX SHOW PIN in BLE log; GATT server must start *before* connect |
 | Scan finds nothing | Ignition on; location/BLE permissions granted; device name starts with `RE_` |
 | AUTH never verified | AUTH is server-side — watch `auth` events, not client notifications |
 | Blank WebView | Rebuild with `CAPACITOR=1` so Vite `base` is `/`, then `cap sync` |
+| Emulator + BLE | Emulator is fine for UI/smoke tests; **physical phone** needed for real Tripper BLE |
