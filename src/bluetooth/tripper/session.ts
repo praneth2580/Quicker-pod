@@ -13,8 +13,8 @@ import {
 } from "./constants";
 import { bleDebugLogger, sleep, withBleErrorLogging } from "../bleDebugLogger";
 import {
-  assertServerConnected,
   dumpGattServices,
+  requireGattConnected,
   startNotificationsWithSettle,
 } from "../bleGattHelpers";
 import { useBleDebugStore } from "@/store/bleDebugStore";
@@ -25,7 +25,6 @@ import {
   logWriteCharacteristic,
 } from "./handshakeLog";
 import {
-  buildLoadingScreen,
   buildPinPacket,
   buildSetTimeNowPacket,
   PKT_CLOSE,
@@ -73,8 +72,9 @@ export function resetTripperWriteQueue(): void {
   tripperCharRef = null;
 }
 
-async function assertConnected(server: GattServer): Promise<GattServer> {
-  return assertServerConnected(server);
+/** Never auto-reconnect during Tripper session work — fail so UI can retry cleanly. */
+function assertConnected(server: GattServer): GattServer {
+  return requireGattConnected(server);
 }
 
 async function getTripperCharacteristic(
@@ -84,7 +84,7 @@ async function getTripperCharacteristic(
 ): Promise<GattCharacteristic> {
   if (tripperCharRef) return tripperCharRef;
 
-  const activeServer = await assertConnected(server);
+  const activeServer = assertConnected(server);
   bleDebugLogger.log("Discovering characteristic", { serviceUuid, charUuid });
   const service = await withBleErrorLogging("getPrimaryService (Tripper)", () =>
     activeServer.getPrimaryService(serviceUuid),
@@ -113,10 +113,10 @@ async function writeTripperPacketImmediate(
   serviceUuid = TRIPPER_SERVICE_UUID,
   charUuid = TRIPPER_CHAR_UUID,
 ): Promise<void> {
+  const activeServer = assertConnected(server);
   logEnqueuePacket(label, packet);
   bleDebugLogger.logTx(packet, label);
 
-  const activeServer = await assertConnected(server);
   const char = await getTripperCharacteristic(activeServer, serviceUuid, charUuid);
 
   if (char.properties.writeWithoutResponse) {
@@ -159,61 +159,75 @@ export async function writeTripperPacket(
   await task;
 }
 
+/**
+ * Mirror Android setCharacteristicNotification + CCCD write when the stack allows it.
+ * Tripper often reports props=0x04 only; startNotifications then fails — that is OK.
+ */
 async function enableTripperNotificationsIfSupported(
   char: GattCharacteristic,
 ): Promise<boolean> {
-  if (!char.properties.notify && !char.properties.indicate) {
-    logHandshake("notifications skipped — char has no notify/indicate", {
+  try {
+    await startNotificationsWithSettle(char);
+    logHandshake("notifications enabled (Web Bluetooth writes CCCD 0x0100)", {
       properties: char.properties,
-      note: "Tripper hardware often props=0x04 only; CCCD absent on pod char",
+    });
+    return true;
+  } catch (error) {
+    logHandshake("notifications skipped — CCCD/notify not available", {
+      properties: char.properties,
+      note: "Tripper hardware often props=0x04 only; continue without settle",
+      error: error instanceof Error ? error.message : String(error),
     });
     bleDebugLogger.warn("Notifications skipped — characteristic has no notify/indicate", {
       properties: char.properties,
     });
     return false;
   }
-
-  await startNotificationsWithSettle(char);
-  logHandshake("notifications enabled (Web Bluetooth writes CCCD 0x0100)", {
-    properties: char.properties,
-  });
-  return true;
 }
 
 /**
- * Service discovery → notifications → settle BEFORE any Tripper packets.
- * Mirrors onServicesDiscovered → setCharacteristicNotification → postDelayed(200ms).
+ * Service discovery → optional CCCD → short settle only when notifications worked.
+ * Then caller sends SHOW PIN / CLOSE immediately (no loading screen).
  */
 export async function prepareTripperChannel(
   server: GattServer,
   serviceUuid = TRIPPER_SERVICE_UUID,
   charUuid = TRIPPER_CHAR_UUID,
 ): Promise<GattCharacteristic> {
-  const activeServer = await assertConnected(server);
+  const activeServer = assertConnected(server);
   await dumpGattServices(activeServer);
+  assertConnected(activeServer);
   logHandshake("services discovered", {
     count: useBleDebugStore.getState().services.length,
   });
 
   const char = await getTripperCharacteristic(activeServer, serviceUuid, charUuid);
+  assertConnected(activeServer);
   const notificationsEnabled = await enableTripperNotificationsIfSupported(char);
+  assertConnected(activeServer);
 
-  logHandshake(`pre-handshake settle ${DELAY_PRE_HANDSHAKE_MS}ms`, {
-    notificationsEnabled,
-    postNotificationsMs: DELAY_POST_NOTIFICATIONS_MS,
-    beforeStartHandshake: true,
-  });
-  await delay(DELAY_PRE_HANDSHAKE_MS);
+  if (notificationsEnabled) {
+    logHandshake(`pre-handshake settle ${DELAY_PRE_HANDSHAKE_MS}ms`, {
+      notificationsEnabled,
+      postNotificationsMs: DELAY_POST_NOTIFICATIONS_MS,
+      beforeStartHandshake: true,
+    });
+    await delay(DELAY_PRE_HANDSHAKE_MS);
+    assertConnected(activeServer);
+  } else {
+    logHandshake("pre-handshake settle skipped — send handshake immediately", {
+      notificationsEnabled: false,
+    });
+  }
 
   return char;
 }
 
 /**
- * Connect setup: discover services + enable notifications BEFORE sending any packets.
+ * Discover services + optional notifications. First protocol packet is SHOW PIN / CLOSE.
  */
 export async function runTripperConnectSetup(server: GattServer): Promise<void> {
   await prepareTripperChannel(server);
-  await writeTripperPacket(server, buildLoadingScreen(), "LOADING SCREEN");
 }
 
 /**
@@ -237,13 +251,16 @@ export async function startHandshake(
   });
 
   await runTripperConnectSetup(server);
+  assertConnected(server);
 
   if (knownDevice) {
     await writeTripperPacket(server, PKT_CLOSE, "CLOSE/RESUME");
     await delay(DELAY_CLOSE_TO_TIME_MS);
+    assertConnected(server);
     bleDebugLogger.setHandshakeStage("set_time");
     await writeTripperPacket(server, buildSetTimeNowPacket(), "SET TIME");
     await delay(DELAY_TIME_TO_PING_MS);
+    assertConnected(server);
     bleDebugLogger.setHandshakeStage("ping_fw");
     await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");
     await writeTripperPacket(server, PKT_PING_FW, "PING FW (0x03)");

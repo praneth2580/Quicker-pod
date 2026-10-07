@@ -91,6 +91,17 @@ export async function ensureGattConnected(device: BluetoothDevice): Promise<Gatt
   return device.gatt;
 }
 
+/**
+ * Fail immediately if GATT is down. Use during handshake/writes so a mid-setup
+ * drop does not trigger a silent reconnect race.
+ */
+export function requireGattConnected(server: GattServer): GattServer {
+  if (!server.connected) {
+    throw new Error("GATT disconnected — aborting (reconnect from UI)");
+  }
+  return server;
+}
+
 /** Reconnect if the given server reference is stale/disconnected. */
 export async function assertServerConnected(server: GattServer): Promise<GattServer> {
   if (server.connected) return server;

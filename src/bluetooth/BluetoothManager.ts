@@ -9,7 +9,6 @@ import { bytesToHex } from "@/utils";
 import { bleDebugLogger, withBleErrorLogging } from "./bleDebugLogger";
 import {
   connectGattWithSettle,
-  dumpGattServices,
   ensureGattConnected,
   setBleActiveDevice,
 } from "./bleGattHelpers";
@@ -287,7 +286,6 @@ class BluetoothManager {
     try {
       this.server = await connectGattWithSettle(this.device);
       this.lastNavPacket = PKT_NAV_IDLE;
-      await dumpGattServices(this.server);
       return this.server;
     } catch (error) {
       bleDebugLogger.error("connectGatt failed", error);
