@@ -17,6 +17,7 @@ import { FuzzerPage } from "@/features/fuzzer/pages/FuzzerPage";
 import { BleDebugPage } from "@/pages/BleDebugPage";
 import { startMapsNavBridge } from "@/navigation/mapsNavBridge";
 import { useRideLaunch } from "@/hooks/useRideLaunch";
+import { useApkUpdateInit } from "@/hooks/useApkUpdateInit";
 import { useConnectionStore } from "@/store/connectionStore";
 
 function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
@@ -40,6 +41,7 @@ export default function App() {
   usePwaInstallInit();
   useDbInit();
   useRideLaunch();
+  useApkUpdateInit();
   useEffect(() => {
     void startMapsNavBridge();
   }, []);

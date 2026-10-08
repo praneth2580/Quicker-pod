@@ -8,8 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useSettingsStore } from "@/store/settingsStore";
-import { usePwaUpdateStore } from "@/store/pwaUpdateStore";
-import { usePwaInstall } from "@/hooks/usePwaInstall";
+import { useApkUpdateStore } from "@/store/apkUpdateStore";
 import { useMapsNavListener } from "@/hooks/useMapsNavListener";
 import { NotificationAccessGuide } from "@/components/maps/NotificationAccessGuide";
 import { RideLaunch } from "ride-launch";
@@ -45,16 +44,16 @@ const DEV_LINKS = [
   },
 ] as const;
 
-function statusColor(status: ReturnType<typeof usePwaUpdateStore.getState>["status"]): string {
-  switch (status) {
+function apkPhaseColor(phase: ReturnType<typeof useApkUpdateStore.getState>["phase"]): string {
+  switch (phase) {
     case "upToDate":
       return "text-success";
-    case "error":
-    case "unavailable":
-      return "text-warning";
-    case "checking":
-    case "reloading":
+    case "available":
+    case "downloading":
+    case "installing":
       return "text-accent";
+    case "error":
+      return "text-danger";
     default:
       return "text-ink-muted";
   }
@@ -77,9 +76,19 @@ export function SettingsPage() {
     setPairingUuids,
     setPinEncoding,
   } = useSettingsStore();
-  const { installed } = usePwaInstall();
-  const { status, statusMessage, forceUpdate, clearStatus } = usePwaUpdateStore();
-  const isUpdating = status === "checking" || status === "reloading";
+  const {
+    phase: apkPhase,
+    message: apkMessage,
+    remote,
+    installedVersion,
+    progress,
+    needsInstallPermission,
+    checkForUpdate,
+    startUpdate,
+    openInstallSettings,
+  } = useApkUpdateStore();
+  const apkBusy =
+    apkPhase === "checking" || apkPhase === "downloading" || apkPhase === "installing";
   const {
     isAndroid,
     listenerEnabled,
@@ -278,20 +287,69 @@ export function SettingsPage() {
           )}
         </Card>
 
-        <Card title="Updates">
-          <Button
-            fullWidth
-            variant="secondary"
-            disabled={isUpdating}
-            onClick={() => {
-              clearStatus();
-              void forceUpdate();
-            }}
-          >
-            {isUpdating ? "Checking…" : installed ? "Check for update" : "Force update"}
-          </Button>
-          {statusMessage && (
-            <p className={`mt-3 text-sm ${statusColor(status)}`}>{statusMessage}</p>
+        <Card title="Updates" subtitle="Sideload the latest APK from GitHub Releases">
+          {installedVersion && (
+            <p className="mb-3 text-sm text-ink-muted">
+              Installed:{" "}
+              <span className="font-medium text-ink">v{installedVersion}</span>
+              {remote?.version ? (
+                <>
+                  {" "}
+                  · Latest:{" "}
+                  <span className="font-medium text-ink">v{remote.version}</span>
+                </>
+              ) : null}
+            </p>
+          )}
+
+          {apkPhase === "downloading" && (
+            <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-canvas-sunk">
+              <div
+                className="h-full rounded-full bg-accent transition-[width] duration-200"
+                style={{ width: `${Math.round(progress * 100)}%` }}
+              />
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            {needsInstallPermission && (
+              <Button
+                fullWidth
+                variant="primary"
+                disabled={apkBusy}
+                onClick={() => void openInstallSettings()}
+              >
+                Allow install permission
+              </Button>
+            )}
+            {apkPhase === "available" ||
+            apkPhase === "downloading" ||
+            apkPhase === "installing" ? (
+              <Button
+                fullWidth
+                variant={needsInstallPermission ? "secondary" : "primary"}
+                disabled={apkBusy || needsInstallPermission}
+                onClick={() => void startUpdate()}
+              >
+                {apkPhase === "downloading"
+                  ? `Downloading… ${Math.round(progress * 100)}%`
+                  : apkPhase === "installing"
+                    ? "Opening installer…"
+                    : `Update to v${remote?.version ?? ""}`}
+              </Button>
+            ) : (
+              <Button
+                fullWidth
+                variant="secondary"
+                disabled={apkBusy}
+                onClick={() => void checkForUpdate()}
+              >
+                {apkPhase === "checking" ? "Checking…" : "Check for update"}
+              </Button>
+            )}
+          </div>
+          {apkMessage && (
+            <p className={`mt-3 text-sm ${apkPhaseColor(apkPhase)}`}>{apkMessage}</p>
           )}
         </Card>
 

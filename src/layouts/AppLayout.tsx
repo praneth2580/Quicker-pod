@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallIconButton, InstallPrompt } from "@/components/layout/InstallPrompt";
+import { UpdateBanner } from "@/components/layout/UpdateBanner";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useConnectionStore } from "@/store/connectionStore";
 import { useTheme } from "@/hooks/useTheme";
@@ -81,6 +82,7 @@ export function AppLayout({
         </main>
 
         <InstallPrompt />
+        <UpdateBanner />
         {!gate && <BottomNav />}
       </div>
     </div>

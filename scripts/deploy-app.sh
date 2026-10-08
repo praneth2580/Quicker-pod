@@ -204,7 +204,7 @@ pkg.version = "${NEW_VERSION}";
 fs.writeFileSync("package.json", JSON.stringify(pkg, null, 2) + "\n");
 EOF
 
-for plugin_pkg in plugins/tripper-ble/package.json plugins/nav-notifications/package.json; do
+for plugin_pkg in plugins/tripper-ble/package.json plugins/nav-notifications/package.json plugins/apk-updater/package.json; do
   if [[ -f "$plugin_pkg" ]]; then
     node <<EOF
 const fs = require("fs");
@@ -260,7 +260,7 @@ fi
 
 echo "==> Committing version bump + landing download metadata"
 git add package.json android/app/build.gradle public/apk-latest.json
-git add plugins/tripper-ble/package.json plugins/nav-notifications/package.json 2>/dev/null || true
+git add plugins/tripper-ble/package.json plugins/nav-notifications/package.json plugins/apk-updater/package.json 2>/dev/null || true
 git commit -m "$(cat <<EOF
 release: ${TAG}
 

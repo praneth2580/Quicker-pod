@@ -10,6 +10,7 @@ android {
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
     implementation project(':capacitor-app')
+    implementation project(':apk-updater')
     implementation project(':nav-notifications')
     implementation project(':ride-launch')
     implementation project(':tripper-ble')

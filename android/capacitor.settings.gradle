@@ -5,6 +5,9 @@ project(':capacitor-android').projectDir = new File('../node_modules/@capacitor/
 include ':capacitor-app'
 project(':capacitor-app').projectDir = new File('../node_modules/@capacitor/app/android')
 
+include ':apk-updater'
+project(':apk-updater').projectDir = new File('../plugins/apk-updater/android')
+
 include ':nav-notifications'
 project(':nav-notifications').projectDir = new File('../plugins/nav-notifications/android')
 

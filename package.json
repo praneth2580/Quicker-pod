@@ -15,6 +15,7 @@
     "@capacitor/android": "^7.6.9",
     "@capacitor/app": "^7.1.2",
     "@capacitor/core": "^7.6.9",
+    "apk-updater": "file:plugins/apk-updater",
     "dexie": "^4.4.4",
     "nav-notifications": "file:plugins/nav-notifications",
     "react": "^19.1.0",
