@@ -14,7 +14,6 @@ cd "$ROOT"
 
 OWNER="${GITHUB_OWNER:-praneth2580}"
 REPO="${GITHUB_REPO:-Quicker-pod}"
-ASSET_NAME="quicker-pod.apk"
 DRY_RUN="${DRY_RUN:-0}"
 SKIP_WEB_DEPLOY="${SKIP_WEB_DEPLOY:-0}"
 
@@ -136,6 +135,7 @@ case "$BUMP" in
 esac
 
 TAG="v${NEW_VERSION}"
+ASSET_NAME="quicker-pod-${NEW_VERSION}.apk"
 CURRENT_CODE="$(grep -E '^\s*versionCode\s+[0-9]+' android/app/build.gradle | head -1 | grep -oE '[0-9]+$' || true)"
 if [[ -z "$CURRENT_CODE" ]]; then
   CURRENT_CODE=1
@@ -247,8 +247,8 @@ cat > public/apk-latest.json <<EOF
 }
 EOF
 
-echo "==> Building release APK"
-bash scripts/build-apk.sh
+echo "==> Building release APK (${ASSET_NAME})"
+APK_VERSION="${NEW_VERSION}" bash scripts/build-apk.sh "${NEW_VERSION}"
 
 APK_PATH="dist-apk/${ASSET_NAME}"
 if [[ ! -f "$APK_PATH" ]]; then

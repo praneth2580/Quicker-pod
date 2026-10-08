@@ -122,8 +122,8 @@ What it does:
 
 1. Asks **major** or **minor**, bumps `package.json` + Android `versionName` / `versionCode`
 2. Writes `public/apk-latest.json` (landing download CTA)
-3. Builds `dist-apk/quicker-pod.apk` (via `scripts/android-env.sh` → JDK 21)
-4. Commits, tags `vX.Y.Z`, creates/updates a GitHub Release with asset `quicker-pod.apk`
+3. Builds `dist-apk/quicker-pod-X.Y.Z.apk` (via `scripts/android-env.sh` → JDK 21)
+4. Commits, tags `vX.Y.Z`, creates/updates a GitHub Release with asset `quicker-pod-X.Y.Z.apk`
 5. Runs `deploy:web` so the landing page points at the new APK URL
 
 Clients prefer `apk-latest.json`, then fall back to the GitHub Releases API
@@ -133,19 +133,15 @@ Clients prefer `apk-latest.json`, then fall back to the GitHub Releases API
 
 ```bash
 bash scripts/build-apk.sh
-# → dist-apk/quicker-pod.apk
+# → dist-apk/quicker-pod-<package.json version>.apk
 ```
 
 ### CI alternative
 
 Push a `v*` tag (or run Actions → **Release APK**). The workflow builds the APK,
-uploads `quicker-pod.apk`, refreshes `apk-latest.json`, and deploys `gh-pages`.
+uploads `quicker-pod-X.Y.Z.apk`, refreshes `apk-latest.json`, and deploys `gh-pages`.
 
-Stable URL:
-
-```text
-https://github.com/praneth2580/Quicker-pod/releases/latest/download/quicker-pod.apk
-```
+Landing download URL comes from `apk-latest.json` (exact versioned asset).
 
 Release APKs are signed with the Android **debug** keystore for sideloading.
 ---

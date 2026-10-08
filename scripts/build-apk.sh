@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Build a release APK via Capacitor + Gradle and copy it to dist-apk/quicker-pod.apk
+# Build a release APK via Capacitor + Gradle and copy it to
+# dist-apk/quicker-pod-<version>.apk
+#
+# Version: APK_VERSION env, first arg, or package.json
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,6 +10,19 @@ cd "$ROOT"
 # shellcheck source=android-env.sh
 source "$(dirname "$0")/android-env.sh"
 echo "==> Using JAVA_HOME=$JAVA_HOME"
+
+VERSION="${APK_VERSION:-${1:-}}"
+if [[ -z "$VERSION" ]]; then
+  VERSION="$(node -p "require('./package.json').version")"
+fi
+VERSION="${VERSION#v}"
+if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+  echo "error: invalid APK version '${VERSION}' (expected semver X.Y.Z)" >&2
+  exit 1
+fi
+# Keep only X.Y.Z (drop any -prerelease suffix for the filename)
+VERSION="$(echo "$VERSION" | grep -oE '^[0-9]+\.[0-9]+\.[0-9]+')"
+ASSET_NAME="quicker-pod-${VERSION}.apk"
 
 if [[ ! -d android ]]; then
   echo "error: android/ is missing. Run: npx cap add android && npm run build:app" >&2
@@ -38,6 +54,8 @@ if [[ -z "${APK_SRC}" || ! -f "$APK_SRC" ]]; then
 fi
 
 mkdir -p dist-apk
-cp -f "$APK_SRC" dist-apk/quicker-pod.apk
-echo "==> Wrote dist-apk/quicker-pod.apk"
-ls -lh dist-apk/quicker-pod.apk
+# Drop any previous versioned builds so CI can glob a single file
+rm -f dist-apk/quicker-pod-*.apk
+cp -f "$APK_SRC" "dist-apk/${ASSET_NAME}"
+echo "==> Wrote dist-apk/${ASSET_NAME}"
+ls -lh "dist-apk/${ASSET_NAME}"

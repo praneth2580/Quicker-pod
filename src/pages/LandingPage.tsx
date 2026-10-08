@@ -35,7 +35,7 @@ const INSTALL_STEPS = [
   {
     n: "01",
     title: "Download the APK",
-    body: "Use Download APK above, or grab quicker-pod.apk from the latest GitHub Release.",
+    body: "Use Download APK above, or grab quicker-pod-<version>.apk from the latest GitHub Release.",
   },
   {
     n: "02",
@@ -382,7 +382,8 @@ function ClosingCta({ apk }: { apk: ReturnType<typeof useLatestApkRelease> }) {
           Get the APK. Pair your Pod. Ride.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-[#b7c4ce]">
-          Latest builds live on GitHub Releases as <code className="text-[#e8f5f3]">quicker-pod.apk</code>.
+          Latest builds live on GitHub Releases as{" "}
+          <code className="text-[#e8f5f3]">quicker-pod-&lt;version&gt;.apk</code>.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a

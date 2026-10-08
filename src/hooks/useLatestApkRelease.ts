@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import {
-  APK_ASSET_NAME,
   APK_LATEST_DOWNLOAD_URL,
   GITHUB_RELEASES_API_URL,
   GITHUB_RELEASES_PAGE_URL,
+  apkAssetName,
+  isQuickerPodApkAsset,
 } from "@/config/site";
 
 export type ApkReleaseStatus = "loading" | "ready" | "missing" | "error";
@@ -38,9 +39,17 @@ interface GithubRelease {
   assets: GithubReleaseAsset[];
 }
 
-function pickApkAsset(assets: GithubReleaseAsset[]): GithubReleaseAsset | undefined {
-  const exact = assets.find((asset) => asset.name === APK_ASSET_NAME);
-  if (exact) return exact;
+function pickApkAsset(
+  assets: GithubReleaseAsset[],
+  tagName?: string | null,
+): GithubReleaseAsset | undefined {
+  if (tagName) {
+    const named = apkAssetName(tagName);
+    const exact = assets.find((asset) => asset.name === named);
+    if (exact) return exact;
+  }
+  const versioned = assets.find((asset) => isQuickerPodApkAsset(asset.name));
+  if (versioned) return versioned;
   return assets.find((asset) => asset.name.toLowerCase().endsWith(".apk"));
 }
 
@@ -96,7 +105,7 @@ export function useLatestApkRelease(): ApkReleaseInfo {
       }
 
       const release = (await response.json()) as GithubRelease;
-      const apk = pickApkAsset(release.assets ?? []);
+      const apk = pickApkAsset(release.assets ?? [], release.tag_name);
 
       if (!apk) {
         return {

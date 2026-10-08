@@ -34,13 +34,13 @@ For setup, development, build, and deployment instructions, see **[DEVELOPMENT.m
 ## Download the APK
 
 1. Open the [landing page](https://praneth2580.github.io/Quicker-pod/) and tap **Download APK**, or go to [latest release](https://github.com/praneth2580/Quicker-pod/releases/latest).
-2. Install `quicker-pod.apk` (enable install from that source on Android).
+2. Install `quicker-pod-<version>.apk` (enable install from that source on Android).
 3. Open **Quicker Pod** and connect your Tripper.
 
-**Stable download URL** (once a release with that asset exists):
+**Releases page** (landing Download button uses the versioned asset from `apk-latest.json`):
 
 ```text
-https://github.com/praneth2580/Quicker-pod/releases/latest/download/quicker-pod.apk
+https://github.com/praneth2580/Quicker-pod/releases/latest
 ```
 
 The landing page also calls the GitHub Releases API (`/repos/praneth2580/Quicker-pod/releases/latest`) and links the APK asset when present.
@@ -55,7 +55,7 @@ npm run deploy:app      # asks major|minor → APK Release → update landing UR
 
 See **[DEVELOPMENT.md](./DEVELOPMENT.md)** for `DRY_RUN` and JDK 21 notes.
 
-Tag-only alternative: push a `v*` tag (or Actions → **Release APK**) — CI uploads `quicker-pod.apk` and refreshes download metadata on `gh-pages`.
+Tag-only alternative: push a `v*` tag (or Actions → **Release APK**) — CI uploads `quicker-pod-<version>.apk` and refreshes download metadata on `gh-pages`.
 
 ---
 
