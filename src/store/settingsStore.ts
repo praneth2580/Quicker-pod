@@ -7,6 +7,8 @@ interface SettingsState {
   debugMode: boolean;
   experimentalMode: boolean;
   iosInstallHintOpen: boolean;
+  /** When true, try reconnecting the saved Tripper when the app opens/resumes. */
+  autoReconnectOnOpen: boolean;
   pairingServiceUuid: string;
   pairingWriteUuid: string;
   pairingNotifyUuid: string;
@@ -16,6 +18,7 @@ interface SettingsState {
   setDebugMode: (enabled: boolean) => void;
   setExperimentalMode: (enabled: boolean) => void;
   setIosInstallHintOpen: (open: boolean) => void;
+  setAutoReconnectOnOpen: (enabled: boolean) => void;
   setPairingUuids: (serviceUuid: string, writeUuid: string, notifyUuid: string) => void;
   setPinEncoding: (encoding: PinEncoding) => void;
 }
@@ -27,6 +30,7 @@ export const useSettingsStore = create<SettingsState>()(
       debugMode: false,
       experimentalMode: false,
       iosInstallHintOpen: false,
+      autoReconnectOnOpen: true,
       pairingServiceUuid: "",
       pairingWriteUuid: "",
       pairingNotifyUuid: "",
@@ -42,6 +46,7 @@ export const useSettingsStore = create<SettingsState>()(
       setDebugMode: (enabled) => set({ debugMode: enabled }),
       setExperimentalMode: (enabled) => set({ experimentalMode: enabled }),
       setIosInstallHintOpen: (open) => set({ iosInstallHintOpen: open }),
+      setAutoReconnectOnOpen: (enabled) => set({ autoReconnectOnOpen: enabled }),
       setPairingUuids: (serviceUuid, writeUuid, notifyUuid) =>
         set({ pairingServiceUuid: serviceUuid, pairingWriteUuid: writeUuid, pairingNotifyUuid: notifyUuid }),
       setPinEncoding: (encoding) => set({ pinEncoding: encoding }),
@@ -52,6 +57,7 @@ export const useSettingsStore = create<SettingsState>()(
         darkMode: state.darkMode,
         debugMode: state.debugMode,
         experimentalMode: state.experimentalMode,
+        autoReconnectOnOpen: state.autoReconnectOnOpen,
         pairingServiceUuid: state.pairingServiceUuid,
         pairingWriteUuid: state.pairingWriteUuid,
         pairingNotifyUuid: state.pairingNotifyUuid,

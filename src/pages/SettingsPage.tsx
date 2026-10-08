@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Capacitor } from "@capacitor/core";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Card } from "@/components/ui/Card";
 import { Toggle } from "@/components/ui/Toggle";
@@ -9,6 +11,10 @@ import { usePwaUpdateStore } from "@/store/pwaUpdateStore";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useMapsNavListener } from "@/hooks/useMapsNavListener";
 import { NotificationAccessGuide } from "@/components/maps/NotificationAccessGuide";
+import { RideLaunch } from "ride-launch";
+import { RIDE_DEEP_LINK } from "@/ride/constants";
+import { requestRideReconnect } from "@/ride/rideReconnect";
+import { useConnectionStore } from "@/store/connectionStore";
 
 const DEV_LINKS = [
   {
@@ -53,6 +59,7 @@ export function SettingsPage() {
     darkMode,
     debugMode,
     experimentalMode,
+    autoReconnectOnOpen,
     pairingServiceUuid,
     pairingWriteUuid,
     pairingNotifyUuid,
@@ -60,6 +67,7 @@ export function SettingsPage() {
     toggleDarkMode,
     setDebugMode,
     setExperimentalMode,
+    setAutoReconnectOnOpen,
     setPairingUuids,
     setPinEncoding,
   } = useSettingsStore();
@@ -74,6 +82,56 @@ export function SettingsPage() {
     setMirroringEnabled,
   } = useMapsNavListener();
 
+  const isNative = Capacitor.isNativePlatform();
+  const [nfcSupported, setNfcSupported] = useState(false);
+  const [nfcEnabled, setNfcEnabled] = useState(false);
+  const [nfcBusy, setNfcBusy] = useState(false);
+  const [nfcMessage, setNfcMessage] = useState<string | null>(null);
+  const [rideTestMsg, setRideTestMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isNative) return;
+    void RideLaunch.getNfcStatus()
+      .then((s) => {
+        setNfcSupported(s.supported);
+        setNfcEnabled(s.enabled);
+      })
+      .catch(() => {
+        setNfcSupported(false);
+        setNfcEnabled(false);
+      });
+  }, [isNative]);
+
+  const writeNfcTag = async () => {
+    setNfcMessage(null);
+    setNfcBusy(true);
+    try {
+      const result = await RideLaunch.writeRideNfcTag();
+      setNfcMessage(
+        result.written
+          ? `Tag written (${result.uri}). Tap it with this phone to open Quicker Pod and reconnect.`
+          : "Write finished without confirmation.",
+      );
+    } catch (err) {
+      setNfcMessage(err instanceof Error ? err.message : String(err));
+    } finally {
+      setNfcBusy(false);
+      void RideLaunch.getNfcStatus()
+        .then((s) => {
+          setNfcSupported(s.supported);
+          setNfcEnabled(s.enabled);
+        })
+        .catch(() => undefined);
+    }
+  };
+
+  const cancelNfc = () => {
+    void RideLaunch.cancelNfcWrite().finally(() => {
+      setNfcBusy(false);
+      setNfcMessage("NFC write cancelled.");
+    });
+  };
+
   return (
     <AppLayout title="Settings" subtitle="Companion preferences">
       <div className="space-y-4 animate-nav-rise">
@@ -84,6 +142,81 @@ export function SettingsPage() {
             checked={darkMode}
             onChange={() => toggleDarkMode()}
           />
+        </Card>
+
+        <Card
+          title="Start a ride"
+          subtitle="No background scanning — connect only when you choose"
+        >
+          <div className="space-y-4">
+            <Toggle
+              label="Auto-reconnect when I open the app"
+              description="If a PIN-paired Tripper is saved, retry connect for ~45s after launch/resume (turn ignition on)."
+              checked={autoReconnectOnOpen}
+              onChange={setAutoReconnectOnOpen}
+            />
+
+            <div className="rounded-2xl border border-line/60 bg-canvas-sunk/40 p-4 text-sm text-ink-muted">
+              <p className="font-medium text-ink">Home screen widget</p>
+              <p className="mt-1">
+                Long-press the home screen → Widgets → <strong>Quicker Pod</strong> → add{" "}
+                <strong>Connect Tripper</strong>. Tap it to open the app and reconnect. Nothing runs
+                until you tap.
+              </p>
+            </div>
+
+            {isNative && (
+              <div className="rounded-2xl border border-line/60 bg-canvas-sunk/40 p-4 text-sm text-ink-muted">
+                <p className="font-medium text-ink">NFC tag</p>
+                <p className="mt-1">
+                  Write {RIDE_DEEP_LINK} to a blank tag and stick it on the bike. Tap with your phone
+                  to open Quicker Pod and reconnect.
+                </p>
+                {!nfcSupported ? (
+                  <p className="mt-2 text-warning">This device has no NFC hardware.</p>
+                ) : !nfcEnabled ? (
+                  <p className="mt-2 text-warning">NFC is off — enable it in system settings.</p>
+                ) : (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Button
+                      variant="primary"
+                      disabled={nfcBusy}
+                      onClick={() => void writeNfcTag()}
+                    >
+                      {nfcBusy ? "Hold tag to phone…" : "Write NFC tag"}
+                    </Button>
+                    {nfcBusy && (
+                      <Button variant="ghost" onClick={cancelNfc}>
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                )}
+                {nfcMessage && <p className="mt-2 text-ink">{nfcMessage}</p>}
+              </div>
+            )}
+
+            <Button
+              variant="secondary"
+              fullWidth
+              onClick={() => {
+                setRideTestMsg(null);
+                void requestRideReconnect("manual").then((r) => {
+                  if (r.ok) {
+                    setRideTestMsg("Connected (or already connected).");
+                  } else {
+                    setRideTestMsg(r.message ?? r.reason);
+                    if (r.message) {
+                      useConnectionStore.setState({ lastError: r.message });
+                    }
+                  }
+                });
+              }}
+            >
+              Test reconnect now
+            </Button>
+            {rideTestMsg && <p className="text-sm text-ink-muted">{rideTestMsg}</p>}
+          </div>
         </Card>
 
         <Card

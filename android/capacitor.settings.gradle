@@ -2,8 +2,14 @@
 include ':capacitor-android'
 project(':capacitor-android').projectDir = new File('../node_modules/@capacitor/android/capacitor')
 
+include ':capacitor-app'
+project(':capacitor-app').projectDir = new File('../node_modules/@capacitor/app/android')
+
 include ':nav-notifications'
 project(':nav-notifications').projectDir = new File('../plugins/nav-notifications/android')
+
+include ':ride-launch'
+project(':ride-launch').projectDir = new File('../plugins/ride-launch/android')
 
 include ':tripper-ble'
 project(':tripper-ble').projectDir = new File('../plugins/tripper-ble/android')

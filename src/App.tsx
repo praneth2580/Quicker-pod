@@ -15,6 +15,7 @@ import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
 import { FuzzerPage } from "@/features/fuzzer/pages/FuzzerPage";
 import { BleDebugPage } from "@/pages/BleDebugPage";
 import { startMapsNavBridge } from "@/navigation/mapsNavBridge";
+import { useRideLaunch } from "@/hooks/useRideLaunch";
 
 function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
   const tab = LEGACY_ROUTE_TABS[legacyPath] ?? "explorer";
@@ -27,6 +28,7 @@ export default function App() {
   useProtocolLabBle();
   usePwaInstallInit();
   useDbInit();
+  useRideLaunch();
   useEffect(() => {
     void startMapsNavBridge();
   }, []);

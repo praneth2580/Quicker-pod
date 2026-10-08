@@ -8,6 +8,7 @@ cd "$ROOT"
 echo "==> Building Capacitor plugins"
 npm run build --prefix plugins/tripper-ble
 npm run build --prefix plugins/nav-notifications
+npm run build --prefix plugins/ride-launch
 
 echo "==> Generating PWA assets + typecheck + Vite app bundle"
 pwa-assets-generator
