@@ -59,7 +59,6 @@ export function NavigatePage() {
     mirroringEnabled,
     setMirroringEnabled,
     isAndroid,
-    listenerAvailable,
     listenerEnabled,
     listenerConnected,
   } = useMapsNavListener();
@@ -179,22 +178,14 @@ export function NavigatePage() {
               label={
                 !isAndroid
                   ? "Android only"
-                  : !listenerAvailable
-                    ? "Core build"
-                    : listenerConnected
-                      ? "Listening"
-                      : listenerEnabled
-                        ? "Enabled"
-                        : "Off"
+                  : listenerConnected
+                    ? "Listening"
+                    : listenerEnabled
+                      ? "Enabled"
+                      : "Off"
               }
               active={listenerConnected}
-              variant={
-                !isAndroid || !listenerAvailable
-                  ? "neutral"
-                  : listenerEnabled
-                    ? "success"
-                    : "warning"
-              }
+              variant={!isAndroid ? "neutral" : listenerEnabled ? "success" : "warning"}
             />
           </div>
 
@@ -203,14 +194,6 @@ export function NavigatePage() {
               Notification access is available in the Quicker Pod Android APK. On web, use manual
               guidance below to test packets.
             </p>
-          ) : !listenerAvailable ? (
-            <div className="mt-4 space-y-3">
-              <p className="text-sm text-ink-muted">
-                You have the installable <strong>core</strong> build (Play Protect safe). Automatic
-                Maps mirroring needs the optional <code className="text-ink">-maps</code> APK from
-                GitHub Releases, or use Manual guidance below.
-              </p>
-            </div>
           ) : (
             <div className="mt-4 space-y-3">
               <Toggle
@@ -224,7 +207,8 @@ export function NavigatePage() {
                 <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4">
                   <p className="text-sm text-ink">
                     Enable <strong>Notification access</strong> for Quicker Pod so it can read Maps
-                    turn banners (distance + instruction). Android does not grant this silently.
+                    turn banners. After a sideload, you may need App info → ⋮ →{" "}
+                    <strong>Allow restricted settings</strong> first.
                   </p>
                   <Button className="mt-3" fullWidth variant="primary" onClick={() => void openAccess()}>
                     Open notification access

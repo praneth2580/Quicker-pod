@@ -91,10 +91,10 @@ fi
 start_emulator_if_needed
 wait_for_boot
 
-echo "==> Building + installing core debug APK"
+echo "==> Building + installing debug APK"
 (
   cd android
-  ./gradlew installCoreDebug --no-daemon
+  ./gradlew installDebug --no-daemon
 )
 
 echo "==> Launching $APP_ID"

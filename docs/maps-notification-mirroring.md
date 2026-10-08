@@ -30,24 +30,28 @@ Tripper BLE write + keepalive (unchanged pairing/GATT server)
 
 Web builds expose a stub: status is `supported: false` and settings show **Android only**.
 
-## Two APK flavors
+## One APK
 
-| Flavor | Asset name | Play Protect (browser install) | Maps auto-mirror |
-|--------|------------|--------------------------------|------------------|
-| **core** (default download) | `quicker-pod-X.Y.Z.apk` | Installs cleanly | No — use Manual guidance |
-| **maps** | `quicker-pod-X.Y.Z-maps.apk` | May block (“sensitive data”) — use `adb install` or Install anyway | Yes — NotificationListener |
+There is a single release APK (`quicker-pod-X.Y.Z.apk`) with BLE pairing and Maps notification mirroring.
 
-Google Play Protect blocks internet-sideloaded apps that declare `NotificationListenerService`. The default **core** APK omits that service so Download APK works; the optional **maps** build re-adds it.
+Play Protect may block **browser** installs because the app declares a Notification Listener (“sensitive data”). Prefer:
+
+```bash
+adb install quicker-pod-X.Y.Z.apk
+```
+
+or tap **Install anyway** if shown. After install on Android 13+, you may also need **App info → ⋮ → Allow restricted settings** before enabling Notification access.
 
 ## Enable notification access (device)
 
-1. Install the **maps** APK (`quicker-pod-*-maps.apk`), preferably via `adb install`.
-2. Open **Navigate** or **Settings → Maps notification access**.
-3. Tap **Open notification access** (or: Settings → Apps → Special app access → Notification access).
-4. Enable **Quicker Pod**.
-5. Return to the app and tap **Refresh** if the status still says Disabled.
-6. Pair / reconnect your Tripper on **Connect**.
-7. Leave **Forward to Tripper** on (Navigate / Settings).
+1. Install / run the Quicker Pod **Android APK** (Capacitor).
+2. If needed: Settings → Apps → Quicker Pod → ⋮ → **Allow restricted settings**.
+3. Open **Navigate** or **Settings → Maps notification access**.
+4. Tap **Open notification access** (or: Settings → Apps → Special app access → Notification access).
+5. Enable **Quicker Pod**.
+6. Return to the app and tap **Refresh** if the status still says Disabled.
+7. Pair / reconnect your Tripper on **Connect**.
+8. Leave **Forward to Tripper** on (Navigate / Settings).
 
 ## Test with Google Maps
 

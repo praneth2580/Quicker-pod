@@ -3,10 +3,7 @@ import type { PluginListenerHandle } from "@capacitor/core";
 export interface NavListenerStatus {
   /** True when running on Android Capacitor. */
   supported: boolean;
-  /**
-   * True when this APK includes the NotificationListenerService (`maps` flavor).
-   * The default `core` sideload APK omits it so Play Protect will install the app.
-   */
+  /** True when the NotificationListenerService is registered in this APK. */
   listenerAvailable: boolean;
   /** True when the user has granted notification listener access to this app. */
   enabled: boolean;

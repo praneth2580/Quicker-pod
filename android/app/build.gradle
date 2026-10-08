@@ -10,23 +10,10 @@ android {
         versionCode 3
         versionName "1.1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        // Capacitor / single-dimension builds default to the installable core channel.
-        missingDimensionStrategy "channel", "core"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
-        }
-    }
-    flavorDimensions "channel"
-    productFlavors {
-        // Installable from browser / Files — no NotificationListener (Play Protect safe).
-        core {
-            dimension "channel"
-        }
-        // Includes Maps NotificationListener — may be blocked by Play Protect on sideload; use adb or Install anyway.
-        maps {
-            dimension "channel"
         }
     }
     buildTypes {

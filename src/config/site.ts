@@ -18,7 +18,7 @@ export function isQuickerPodApkAsset(name: string): boolean {
   const lower = name.toLowerCase();
   return (
     lower === "quicker-pod.apk" ||
-    /^quicker-pod-\d+\.\d+\.\d+(?:-maps)?\.apk$/.test(lower)
+    /^quicker-pod-\d+\.\d+\.\d+\.apk$/.test(lower)
   );
 }
 

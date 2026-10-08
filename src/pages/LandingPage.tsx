@@ -22,7 +22,7 @@ const WHY = [
   {
     title: "Maps turns on the pod",
     description:
-      "Optional maps APK mirrors Google Maps notifications into Tripper turn packets — or send turns manually from Navigate.",
+      "Mirror Google Maps navigation notifications into Tripper turn packets — keep your eyes on the road.",
   },
   {
     title: "Open and free",
@@ -35,17 +35,17 @@ const INSTALL_STEPS = [
   {
     n: "01",
     title: "Download the APK",
-    body: "Use Download APK above for the core build (quicker-pod-<version>.apk). It installs without the Play Protect “sensitive data” block.",
+    body: "Use Download APK above, or grab quicker-pod-<version>.apk from the latest GitHub Release.",
   },
   {
     n: "02",
-    title: "Allow install",
-    body: "Enable install from this source on Android, then open the file to install Quicker Pod.",
+    title: "Install",
+    body: "Open the file on Android. If Play Protect blocks with “sensitive data”, use adb install or tap Install anyway — one APK includes pairing and Maps mirroring.",
   },
   {
     n: "03",
     title: "Pair & navigate",
-    body: "Connect your Tripper. Use Manual guidance, or install the optional -maps APK from the same Release for automatic Maps mirroring.",
+    body: "Connect your Tripper, allow Notification access (and Restricted settings if prompted), then start Maps turn-by-turn.",
   },
 ] as const;
 
@@ -53,17 +53,17 @@ const FAQ = [
   {
     question: "Why download an APK instead of using the website?",
     answer:
-      "Full Tripper pairing needs the phone to act as a BLE GATT server. Browsers cannot do that. The Android APK can.",
+      "Full Tripper pairing and Maps mirroring need the phone to act as a BLE GATT server and read navigation notifications. Browsers cannot do that. The Android APK can.",
   },
   {
     question: "Play Protect says the app can access sensitive data — what do I do?",
     answer:
-      "Download the core APK from this page (not the -maps file). Core omits notification access so Play Protect allows browser installs. Pairing and manual nav work. The optional -maps APK adds Maps mirroring and may need adb install or Install anyway.",
+      "That warning appears because Quicker Pod reads Maps notifications to drive the pod. Install with: adb install quicker-pod-<version>.apk — or choose Install anyway. After install, open App info → Allow restricted settings, then enable Notification access.",
   },
   {
     question: "Does it work with Google Maps?",
     answer:
-      "Yes. Install the optional quicker-pod-<version>-maps.apk from GitHub Releases, enable notification access, connect your Tripper, then start Maps turn-by-turn. Or use Manual guidance on the core APK.",
+      "Yes. Enable notification access for Quicker Pod, connect your Tripper, then start Maps turn-by-turn. Turns and distance are mirrored to the pod.",
   },
   {
     question: "Is the APK signed for Play Store?",

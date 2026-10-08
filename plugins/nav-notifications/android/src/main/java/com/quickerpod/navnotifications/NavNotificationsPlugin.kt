@@ -80,7 +80,6 @@ class NavNotificationsPlugin : Plugin(), MapsNavBridge.Listener {
         return obj
     }
 
-    /** False on the Play Protect–safe `core` flavor (service not in the merged manifest). */
     private fun isListenerBundled(): Boolean {
         return try {
             val flags =
