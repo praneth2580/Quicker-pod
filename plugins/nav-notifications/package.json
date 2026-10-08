@@ -1,6 +1,6 @@
 {
   "name": "nav-notifications",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Capacitor plugin: Android NotificationListener for Maps turn-by-turn mirroring",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
