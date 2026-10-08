@@ -65,7 +65,7 @@ function fromStatic(data: StaticApkLatest): ApkReleaseInfo | null {
 
 /**
  * Resolves the latest APK for the landing Download CTA.
- * Prefers baked `public/apk-latest.json` (updated by `npm run release`),
+ * Prefers baked `public/apk-latest.json` (updated by `npm run deploy:app`),
  * then falls back to the GitHub Releases API.
  */
 export function useLatestApkRelease(): ApkReleaseInfo {
@@ -87,7 +87,7 @@ export function useLatestApkRelease(): ApkReleaseInfo {
           downloadUrl: null,
           version: null,
           releasesPageUrl: GITHUB_RELEASES_PAGE_URL,
-          errorMessage: "No GitHub release published yet. Run npm run release.",
+          errorMessage: "No GitHub release published yet. Run npm run deploy:app.",
         };
       }
 

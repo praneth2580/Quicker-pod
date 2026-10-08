@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useLatestApkRelease } from "@/hooks/useLatestApkRelease";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
@@ -69,7 +68,7 @@ const FAQ = [
   {
     question: "How do new APKs get published?",
     answer:
-      "Maintainers run npm run release. That bumps versions, builds the APK, uploads it to a GitHub Release, and refreshes the landing download link.",
+      "Maintainers run npm run deploy:app. That asks major/minor, builds the APK, uploads it to a GitHub Release, and refreshes the landing download link.",
   },
 ] as const;
 
@@ -79,7 +78,7 @@ const structuredData = {
     {
       "@type": "WebSite",
       name: SITE_NAME,
-      url: `${SITE_URL}download`,
+      url: SITE_URL,
       description: SITE_DESCRIPTION,
       publisher: { "@type": "Organization", name: "Quicker-pod Contributors", url: GITHUB_URL },
     },
@@ -90,7 +89,7 @@ const structuredData = {
       operatingSystem: "Android",
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description: SITE_DESCRIPTION,
-      url: `${SITE_URL}download`,
+      url: SITE_URL,
       downloadUrl: APK_LATEST_DOWNLOAD_URL,
       installUrl: APK_LATEST_DOWNLOAD_URL,
       screenshot: [SITE_OG_IMAGE, `${SITE_URL}screenshots/mobile-narrow.png`],
@@ -197,12 +196,14 @@ function DownloadCta({
         )}
         <span className="relative">{label}</span>
       </a>
-      <Link
-        to="/navigate"
+      <a
+        href={GITHUB_URL}
+        target="_blank"
+        rel="noopener noreferrer"
         className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#1c242c]/15 bg-white/50 px-7 text-sm font-semibold text-[#1c242c] backdrop-blur-sm transition-colors hover:border-[#0f766e]/40 hover:text-[#0f766e]"
       >
-        Open navigate
-      </Link>
+        View source
+      </a>
       {(status === "missing" || status === "error") && (
         <p className="text-sm text-[#5a6876] sm:max-w-xs">
           {errorMessage ?? "No APK on the latest release yet."}{" "}
@@ -424,9 +425,9 @@ function LandingFooter() {
           <a href={GITHUB_RELEASES_PAGE_URL} className="hover:text-[#0f766e]">
             Releases
           </a>
-          <Link to="/navigate" className="hover:text-[#0f766e]">
-            Open app
-          </Link>
+          <a href="#download" className="hover:text-[#0f766e]">
+            Download
+          </a>
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#0f766e]">
             GitHub
           </a>
@@ -445,7 +446,7 @@ export function LandingPage() {
   usePageMeta({
     title: `${SITE_NAME} — Free Tripper Pod Navigation APK`,
     description: SITE_DESCRIPTION,
-    path: "download",
+    path: "",
     keywords: SEO_KEYWORDS,
     image: SITE_OG_IMAGE,
     imageAlt: "Quicker-pod navigation companion on Android",

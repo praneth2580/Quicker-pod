@@ -10,11 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://praneth2580.github.io/Quicker-pod/download"><strong>Download page</strong></a>
+  <a href="https://praneth2580.github.io/Quicker-pod/"><strong>Landing page</strong></a>
   ·
   <a href="https://github.com/praneth2580/Quicker-pod/releases/latest"><strong>Download APK</strong></a>
-  ·
-  <a href="https://praneth2580.github.io/Quicker-pod/connect">Open app</a>
   ·
   <a href="https://github.com/praneth2580/Quicker-pod">GitHub</a>
 </p>
@@ -25,9 +23,9 @@
   </a>
 </p>
 
-> **Prefer the Android APK for real Tripper pairing.** Full PIN + AUTH needs the phone GATT server role, which browsers cannot host. The app opens on **Connect** (not the marketing page). APK download / promo lives at [`/download`](https://praneth2580.github.io/Quicker-pod/download) for `gh-pages` only — it is not in the in-app nav.
+> **Two surfaces, one repo:** [GitHub Pages](https://praneth2580.github.io/Quicker-pod/) is the **landing / SEO / Download APK** site. The **Android APK** is the functional companion (pairing, Maps mirroring, navigate). Prefer the APK for real Tripper use — browsers cannot host the phone GATT server.
 
-**Quicker-pod** is an open-source companion for the Royal Enfield **Tripper Pod**. Version 1 focuses on **protocol exploration and BLE diagnostics**, with a Capacitor Android build for the full pairing path.
+**Quicker-pod** is an open-source navigation companion for the Royal Enfield **Tripper Pod**.
 
 For setup, development, build, and deployment instructions, see **[DEVELOPMENT.md](./DEVELOPMENT.md)**.
 
@@ -35,7 +33,7 @@ For setup, development, build, and deployment instructions, see **[DEVELOPMENT.m
 
 ## Download the APK
 
-1. Open the [download page](https://praneth2580.github.io/Quicker-pod/download) and tap **Download APK**, or go to [latest release](https://github.com/praneth2580/Quicker-pod/releases/latest).
+1. Open the [landing page](https://praneth2580.github.io/Quicker-pod/) and tap **Download APK**, or go to [latest release](https://github.com/praneth2580/Quicker-pod/releases/latest).
 2. Install `quicker-pod.apk` (enable install from that source on Android).
 3. Open **Quicker Pod** and connect your Tripper.
 
@@ -52,10 +50,10 @@ The landing page also calls the GitHub Releases API (`/repos/praneth2580/Quicker
 ```bash
 export GITHUB_TOKEN=…   # repo scope; or: gh auth login
 # clean working tree, then:
-npm run release         # bump → build APK → GitHub Release → apk-latest.json → gh-pages
+npm run deploy:app      # asks major|minor → APK Release → update landing URL → deploy:web
 ```
 
-See **[DEVELOPMENT.md](./DEVELOPMENT.md)** for bump modes, `DRY_RUN`, and JDK 21 notes.
+See **[DEVELOPMENT.md](./DEVELOPMENT.md)** for `DRY_RUN` and JDK 21 notes.
 
 Tag-only alternative: push a `v*` tag (or Actions → **Release APK**) — CI uploads `quicker-pod.apk` and refreshes download metadata on `gh-pages`.
 
@@ -65,9 +63,8 @@ Tag-only alternative: push a `v*` tag (or Actions → **Release APK**) — CI up
 
 | Area | What it does |
 |------|----------------|
-| **Android APK** | Full companion with native BLE / GATT server for Tripper pairing |
-| **App** (`/`) | Connect → Navigate → Home / Settings; Dev tools under **Dev** |
-| **Download page** (`/download`) | Marketing / APK download for GitHub Pages only (not in app nav) |
+| **Landing (GitHub Pages)** | Product story, SEO, Download APK — no in-app chrome |
+| **Android APK** | Full companion: pairing, Maps → Tripper, Navigate / Connect / Settings |
 
 ---
 
@@ -81,11 +78,21 @@ Tag-only alternative: push a `v*` tag (or Actions → **Release APK**) — CI up
 
 See [docs/capacitor-tripper-ble.md](./docs/capacitor-tripper-ble.md) for native BLE details.
 
-### Web / Chrome (diagnostics)
+### Landing site
 
-1. Open the site root (redirects to **Connect**) or `/connect`
-2. Use **Connect** with Web Bluetooth (`RE_DISP` / `RE_*`) where supported
-3. Send nav idle / guidance from **Navigate**; open **Dev** for Protocol Lab / Fuzzer / BLE Debug
+```bash
+npm run dev:web      # http://localhost:5173 — landing only
+npm run build:web
+npm run deploy:web   # build dist-site/ → gh-pages
+```
+
+### App (local web preview of the companion UI)
+
+```bash
+npm run dev:app      # open /app.html — Connect / Navigate / Settings
+npm run build:app    # plugins + Vite + cap sync android
+npm run deploy:app   # major/minor bump → APK → landing URL → deploy:web
+```
 
 > **Full Tripper pairing (PIN on pod + AUTH)** needs the phone GATT server role — use the **Android APK**, not Web Bluetooth alone.
 
@@ -100,9 +107,8 @@ See [docs/capacitor-tripper-ble.md](./docs/capacitor-tripper-ble.md) for native 
 | Connect | `/connect` | Tripper pairing / reconnect |
 | Settings | `/settings` | Appearance, Maps notification access, developer tools |
 | Dev hub | `/dev` | Protocol Lab / Fuzzer / BLE Debug (via Settings, not bottom nav) |
-| Download (site only) | `/download` | APK promo page for `gh-pages` — not in app chrome |
 
-Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to Protocol Lab tabs.
+Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to Protocol Lab tabs. App routes exist only in the Capacitor/`dev:app` bundle — not on GitHub Pages.
 
 **Maps → Tripper:** on Android, enable notification access and start Google Maps navigation. See [`docs/maps-notification-mirroring.md`](./docs/maps-notification-mirroring.md).
 
@@ -114,7 +120,7 @@ Legacy routes (`/explorer`, `/console`, `/transmit`, `/simulator`) redirect to P
 |---------|-------------|--------------------------|------------------|
 | Full Tripper pairing (GATT server) | ✅ | ❌ | ❌ |
 | Web Bluetooth client | — | ✅ | ❌ |
-| APK download page (`/download`) | ✅ (site) | ✅ | ✅ |
+| Landing / APK download (GitHub Pages) | ✅ (site) | ✅ | ✅ |
 
 ---
 

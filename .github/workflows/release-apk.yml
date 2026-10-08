@@ -110,15 +110,15 @@ jobs:
           console.log("Wrote public/apk-latest.json for", tag);
           NODE
 
-      - name: Build static site
+      - name: Build landing site
         if: startsWith(steps.meta.outputs.tag, 'v')
-        run: npm run build
+        run: npm run build:web
 
-      - name: Deploy site with download metadata
+      - name: Deploy landing site with download metadata
         if: startsWith(steps.meta.outputs.tag, 'v')
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
+          publish_dir: ./dist-site
           publish_branch: gh-pages
           force_orphan: false

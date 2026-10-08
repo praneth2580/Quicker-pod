@@ -36,10 +36,19 @@ For Android Tripper pairing (SHOW PIN / AUTH), see **[docs/capacitor-tripper-ble
 
 ```bash
 npm install
-npm run dev
+npm run dev:web
 ```
 
-Open [http://localhost:5173](http://localhost:5173). The default route `/` is the **landing / download page**. The web BLE lab is at [`/app`](http://localhost:5173/app) (aliases `/dashboard`).
+Open [http://localhost:5173](http://localhost:5173) for the **marketing landing** (GitHub Pages surface).
+
+For the **functional companion** in the browser: `npm run dev:app` → open `/app.html`.
+
+### Two surfaces (same repo)
+
+| Surface | Entry | Output | Deploy |
+|---------|-------|--------|--------|
+| Landing (SEO / Download APK) | `index.html` → `src/site/main.tsx` | `dist-site/` | `npm run deploy:web` |
+| App (Connect / Navigate / …) | `app.html` → `src/app/main.tsx` | `dist/` | `npm run deploy:app` (APK + landing URL) |
 
 ---
 
@@ -47,30 +56,27 @@ Open [http://localhost:5173](http://localhost:5173). The default route `/` is th
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Vite dev server (landing page at `/`) |
-| `npm run build` | Generate PWA assets, typecheck, and production web (GitHub Pages) build |
-| `npm run build:apk` | Capacitor sync + Gradle release APK → `dist-apk/quicker-pod.apk` |
-| `npm run preview` | Preview the production build locally |
-| `npm run lint` | Run ESLint |
-| `npm run deploy` | Build and push `dist/` to the `gh-pages` branch (static site + `apk-latest.json`) |
-| `npm run release` | Bump version → build APK → GitHub Release → update metadata → deploy |
-| `npm run cap:sync` | Build plugin + Capacitor web assets, sync into `android/` |
-| `npm run android:emulator` | Start an AVD if none is online (`scripts/start-emulator.sh`) |
-| `npm run android:run` | Sync → emulator if needed → install debug APK → launch |
+| `npm run dev:web` | Landing page only (site entry) |
+| `npm run build:web` | Marketing site → `dist-site/` |
+| `npm run deploy:web` | Build site + push `dist-site/` to `gh-pages` |
+| `npm run dev:app` | Functional app entry (`/app.html`) |
+| `npm run build:app` | Plugins + Capacitor web bundle + `cap sync android` |
+| `npm run deploy:app` | Ask major/minor → APK Release → update landing URL → `deploy:web` |
 
-Android/Gradle scripts source `scripts/android-env.sh` (JDK **21** + `ANDROID_HOME`).
+Helper scripts (not npm aliases): `scripts/build-apk.sh`, `scripts/start-emulator.sh`, `scripts/run-android-emulator.sh`. They source `scripts/android-env.sh` (JDK **21** + `ANDROID_HOME`).
+
 ---
 
 ## Build
 
 ```bash
-npm run build
-npm run preview   # optional: test production build at http://localhost:4173
+npm run build:web     # landing → dist-site/
+npm run build:app     # companion → dist/ + android sync
 ```
 
-The build:
+Site build:
 
-1. Runs `generate-pwa-assets` (icons + screenshots)
+1. Runs PWA asset generation (icons + screenshots)
 2. Typechecks with `tsc -b`
 3. Bundles with Vite
 4. Copies `index.html` → `404.html` for GitHub Pages SPA routing
@@ -82,7 +88,7 @@ Production base path is `/Quicker-pod/` (GitHub Pages). Local dev uses `/`.
 ## Deploy to GitHub Pages
 
 ```bash
-npm run deploy
+npm run deploy:web
 ```
 
 **One-time GitHub setup:** Repo → **Settings** → **Pages** → Source: branch `gh-pages`, folder `/ (root)`.
@@ -93,7 +99,7 @@ Live URL: [https://praneth2580.github.io/Quicker-pod/](https://praneth2580.githu
 
 ## Android APK releases
 
-### One command: build, publish, update download metadata
+### One command: bump, publish, update landing download URL
 
 Requires a **clean git tree**, JDK 21 / Android SDK, and GitHub credentials for the Releases API.
 
@@ -105,21 +111,20 @@ export GITHUB_TOKEN=…          # classic PAT with repo scope
 # If origin still embeds a token, clean it after exporting GITHUB_TOKEN:
 #   git remote set-url origin https://github.com/praneth2580/Quicker-pod.git
 
-DRY_RUN=1 npm run release      # print plan only (safe)
-npm run release                # patch bump (0.1.0 → 0.1.1)
-npm run release -- minor
-npm run release -- major
-npm run release -- 1.2.0       # exact version
-SKIP_DEPLOY=1 npm run release  # skip gh-pages (CI can still deploy metadata)
+DRY_RUN=1 npm run deploy:app           # print plan only (safe)
+npm run deploy:app                     # interactive: asks major or minor
+npm run deploy:app -- minor
+npm run deploy:app -- major
+SKIP_WEB_DEPLOY=1 npm run deploy:app   # APK Release only (skip gh-pages)
 ```
 
 What it does:
 
-1. Bumps `package.json` version, Android `versionName` / `versionCode`
-2. Writes `public/apk-latest.json` (download CTA / Releases fallback helper)
+1. Asks **major** or **minor**, bumps `package.json` + Android `versionName` / `versionCode`
+2. Writes `public/apk-latest.json` (landing download CTA)
 3. Builds `dist-apk/quicker-pod.apk` (via `scripts/android-env.sh` → JDK 21)
 4. Commits, tags `vX.Y.Z`, creates/updates a GitHub Release with asset `quicker-pod.apk`
-5. Deploys the static site to `gh-pages` (non-fatal if Pages fails; Release still published)
+5. Runs `deploy:web` so the landing page points at the new APK URL
 
 Clients prefer `apk-latest.json`, then fall back to the GitHub Releases API
 (`src/hooks/useLatestApkRelease.ts`).
@@ -127,7 +132,7 @@ Clients prefer `apk-latest.json`, then fall back to the GitHub Releases API
 ### Local APK only
 
 ```bash
-npm run build:apk
+bash scripts/build-apk.sh
 # → dist-apk/quicker-pod.apk
 ```
 
@@ -213,16 +218,20 @@ Protocol fuzzing and differential reverse-engineering (Python CLI, dry-run by de
 
 ### Routing
 
+**Landing (`src/site`):** `/` only (product + Download APK + SEO).
+
+**App (`src/app`):**
+
 | Route | Page |
 |-------|------|
-| `/` | Redirects to Connect (app entry) |
+| `/` | Redirects to Home (`/dashboard`) |
 | `/connect` | Connect / pairing |
-| `/navigate` | Tripper nav packets + keepalive |
+| `/navigate` | Maps mirroring + Tripper nav |
 | `/dashboard` | Home summary |
-| `/dev` | Developer tools hub |
-| `/protocol-lab`, `/fuzzer`, `/ble-debug` | Dev tools (also linked from `/dev`) |
+| `/dev` | Developer tools hub (also under Settings) |
+| `/protocol-lab`, `/fuzzer`, `/ble-debug` | Dev tools |
 | `/settings` | Settings |
-| `/download` | Marketing / APK download (gh-pages; not in app nav) |
+
 Legacy routes redirect to Protocol Lab tabs with `?tab=`.
 
 ### State management

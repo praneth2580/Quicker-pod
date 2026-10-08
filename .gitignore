@@ -4,6 +4,7 @@ node_modules/
 
 # Builds / bundlers
 dist/
+dist-site/
 dist-ssr/
 dist-apk/
 *.local

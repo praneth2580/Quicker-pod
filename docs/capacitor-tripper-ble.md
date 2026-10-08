@@ -15,8 +15,9 @@ Quicker-pod uses **Capacitor 7** plus a local plugin `plugins/tripper-ble` that 
 
 ```bash
 npm install
-npx cap add android           # if android/ is missing
-npm run android:run           # sync → emulator if needed → installDebug → launch
+npx cap add android                      # if android/ is missing
+npm run build:app                        # plugins + web + cap sync
+bash scripts/run-android-emulator.sh     # emulator → installDebug → launch
 ```
 
 ## Permissions (Android 12+)
@@ -55,9 +56,9 @@ Events: `connected`, `readyForPin`, `rx`, `auth`, `disconnected`, `log` (forward
 ## Useful commands
 
 ```bash
-npm run cap:sync              # rebuild web + sync native
-npm run android:run           # sync → emulator if needed → install + launch
-SKIP_SYNC=1 npm run android:run   # install/launch without rebuilding web
+npm run build:app                              # rebuild web + sync native
+bash scripts/run-android-emulator.sh           # build → emulator → install + launch
+SKIP_SYNC=1 bash scripts/run-android-emulator.sh   # install/launch without rebuilding
 adb logcat -s TripperBle:* Capacitor:*
 ```
 

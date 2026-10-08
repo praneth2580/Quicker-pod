@@ -5,7 +5,6 @@ import { useDbInit } from "@/hooks/useDbInit";
 import { usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
 import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
-import { LandingPage } from "@/pages/LandingPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ConnectPage } from "@/pages/ConnectPage";
 import { NavigatePage } from "@/pages/NavigatePage";
@@ -21,6 +20,7 @@ function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
   return <Navigate to={`/protocol-lab?tab=${tab}`} replace />;
 }
 
+/** Functional companion shell (Capacitor / APK). Landing is a separate Vite entry. */
 export default function App() {
   useBluetooth();
   useProtocolLabBle();
@@ -32,10 +32,9 @@ export default function App() {
 
   return (
     <Routes>
-      {/* App entry: Home. Marketing landing is /download only (not in bottom nav). */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/download" element={<LandingPage />} />
       <Route path="/app" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/download" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/connect" element={<ConnectPage />} />
       <Route path="/navigate" element={<NavigatePage />} />
@@ -49,7 +48,6 @@ export default function App() {
       <Route path="/ble-debug" element={<BleDebugPage />} />
       <Route path="/settings" element={<SettingsPage />} />
 
-      {/* Legacy routes → Protocol Lab tabs */}
       <Route path="/explorer" element={<LegacyProtocolLabRedirect legacyPath="explorer" />} />
       <Route path="/console" element={<LegacyProtocolLabRedirect legacyPath="console" />} />
       <Route path="/transmit" element={<LegacyProtocolLabRedirect legacyPath="transmit" />} />

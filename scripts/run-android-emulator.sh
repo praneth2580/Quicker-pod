@@ -23,7 +23,7 @@ if [[ ! -x "$ADB" ]]; then
 fi
 
 if [[ ! -d android || ! -x android/gradlew ]]; then
-  echo "error: android/ project missing. Run npm run cap:sync once first." >&2
+  echo "error: android/ project missing. Run npm run build:app once first." >&2
   exit 1
 fi
 
@@ -82,10 +82,10 @@ start_emulator_if_needed() {
 }
 
 if [[ "$SKIP_SYNC" != "1" ]]; then
-  echo "==> Capacitor sync (web + native)"
-  npm run cap:sync
+  echo "==> Building app + Capacitor sync"
+  bash scripts/build-app.sh
 else
-  echo "==> SKIP_SYNC=1 — skipping cap:sync"
+  echo "==> SKIP_SYNC=1 — skipping build:app"
 fi
 
 start_emulator_if_needed

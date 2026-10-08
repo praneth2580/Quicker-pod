@@ -4,19 +4,12 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "npm run generate-pwa-assets && tsc -b && vite build",
-    "build:apk": "bash scripts/build-apk.sh",
-    "build:plugin": "npm run build --prefix plugins/tripper-ble && npm run build --prefix plugins/nav-notifications",
-    "generate-pwa-assets": "pwa-assets-generator && node scripts/generate-screenshots.mjs",
-    "postbuild": "cp dist/index.html dist/404.html",
-    "preview": "vite preview",
-    "lint": "eslint .",
-    "deploy": "npm run build && gh-pages -d dist -b gh-pages",
-    "release": "bash scripts/release.sh",
-    "cap:sync": "npm run build:plugin && CAPACITOR=1 npm run generate-pwa-assets && CAPACITOR=1 tsc -b && CAPACITOR=1 vite build && npx cap sync android",
-    "android:emulator": "bash scripts/start-emulator.sh",
-    "android:run": "bash scripts/run-android-emulator.sh"
+    "dev:web": "vite",
+    "build:web": "bash scripts/build-web.sh",
+    "deploy:web": "npm run build:web && gh-pages -d dist-site -b gh-pages",
+    "dev:app": "CAPACITOR=1 vite --open /app.html",
+    "build:app": "bash scripts/build-app.sh",
+    "deploy:app": "bash scripts/deploy-app.sh"
   },
   "dependencies": {
     "@capacitor/android": "^7.6.9",
