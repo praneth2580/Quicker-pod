@@ -162,7 +162,9 @@ if [[ "$DRY_RUN" == "1" ]]; then
   exit 0
 fi
 
-if [[ -r /dev/tty ]]; then
+if [[ "${CONFIRM:-}" =~ ^([yY]|[yY][eE][sS])$ ]]; then
+  echo "==> CONFIRM=${CONFIRM} — continuing"
+elif [[ -r /dev/tty ]]; then
   read -r -p "Continue? [y/N] " CONFIRM </dev/tty
   case "$CONFIRM" in
     y|Y|yes|YES) ;;
@@ -284,7 +286,22 @@ else
       tag_name: '${TAG}',
       target_commitish: '${COMMIT_SHA}',
       name: 'Quicker-pod ${TAG}',
-      body: 'Android APK ${NEW_VERSION} (versionCode ${NEW_CODE}) — pairing + Maps notification mirroring.\\n\\nDownload: ${DOWNLOAD_URL}\\n\\nIf Play Protect blocks browser install (\"sensitive data\"), use:\\n  adb install ${ASSET_NAME}\\nor tap Install anyway / Allow restricted settings, then enable Notification access.',
+      body: [
+        "Android APK ${NEW_VERSION} (versionCode ${NEW_CODE}) — pairing + Maps notification mirroring.",
+        "",
+        "### Whats new",
+        "- Notification Listener works with a normal (manually installed) APK — no ADB or Play Store required",
+        "- Settings → Notification Access: Status Enabled / Not Enabled; Enable Notification Access opens system settings",
+        "- isEnabled() / openSettings() Capacitor APIs; status re-checks when you return from Settings",
+        "- Service correctly declared in the release APK (BIND_NOTIFICATION_LISTENER_SERVICE + NotificationListenerService intent)",
+        "",
+        "### Install / enable access",
+        "Download: ${DOWNLOAD_URL}",
+        "",
+        "If Play Protect blocks browser install (\\"sensitive data\\"), tap Install anyway.",
+        "On Android 13+ after sideload: App info → ⋮ → Allow restricted settings, then enable Quicker Pod under Notification access.",
+        "The app never grants this silently — you toggle it in Android Settings.",
+      ].join("\\n"),
       draft: false,
       prerelease: false
     })")")"; then
