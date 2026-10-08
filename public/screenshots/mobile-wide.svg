@@ -1,26 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
-  <rect width="1280" height="720" fill="#111827"/>
-  <text x="80" y="100" fill="#22d3ee" font-family="sans-serif" font-size="48" font-weight="700">Quicker</text>
-  <text x="260" y="100" fill="#ffffff" font-family="sans-serif" font-size="48" font-weight="700">-pod</text>
-  <text x="80" y="150" fill="#9ca3af" font-family="sans-serif" font-size="22">BLE protocol explorer for Tripper Pod</text>
-  <rect x="80" y="200" width="520" height="420" rx="24" fill="#1f2937" stroke="#ffffff" opacity="0.15"/>
-  <text x="110" y="250" fill="#ffffff" font-family="sans-serif" font-size="24" font-weight="600">Protocol Lab</text>
-  <rect x="110" y="280" width="90" height="36" rx="12" fill="#22d3ee"/>
-  <text x="126" y="304" fill="#111827" font-family="sans-serif" font-size="14" font-weight="600">Explorer</text>
-  <rect x="210" y="280" width="90" height="36" rx="12" fill="#1f2937"/>
-  <text x="226" y="304" fill="#9ca3af" font-family="sans-serif" font-size="14">Monitor</text>
-  <rect x="310" y="280" width="90" height="36" rx="12" fill="#1f2937"/>
-  <text x="332" y="304" fill="#9ca3af" font-family="sans-serif" font-size="14">Sender</text>
-  <rect x="110" y="340" width="460" height="240" rx="18" fill="#111827"/>
-  <text x="130" y="380" fill="#6b7280" font-family="monospace" font-size="16">12:15:01 RX</text>
-  <text x="130" y="420" fill="#22d3ee" font-family="monospace" font-size="28">20 01 00 64</text>
-  <text x="130" y="470" fill="#6b7280" font-family="monospace" font-size="16">12:15:02 TX</text>
-  <text x="130" y="510" fill="#22c55e" font-family="monospace" font-size="28">01 FF 20</text>
-  <rect x="660" y="200" width="540" height="200" rx="24" fill="#1f2937" stroke="#ffffff" opacity="0.15"/>
-  <text x="690" y="250" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="600">Mutation Lab</text>
-  <text x="690" y="290" fill="#9ca3af" font-family="sans-serif" font-size="16">Lock bytes, guided fuzzing, rate limited</text>
-  <text x="690" y="340" fill="#22d3ee" font-family="monospace" font-size="20">20 01 00 64</text>
-  <rect x="660" y="430" width="540" height="190" rx="24" fill="#1f2937" stroke="#ffffff" opacity="0.15"/>
-  <text x="690" y="480" fill="#ffffff" font-family="sans-serif" font-size="22" font-weight="600">Installable PWA</text>
-  <text x="690" y="520" fill="#9ca3af" font-family="sans-serif" font-size="16">Offline shell and standalone mode</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1280" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#d7e4ec"/>
+      <stop offset="0.55" stop-color="#eef3f6"/>
+      <stop offset="1" stop-color="#c9d8e2"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="80" y1="80" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#99F6E4"/>
+      <stop offset="0.45" stop-color="#2DD4BF"/>
+      <stop offset="1" stop-color="#0F766E"/>
+    </linearGradient>
+    <linearGradient id="tile" x1="0" y1="0" x2="120" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1714"/>
+      <stop offset="1" stop-color="#143028"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)"/>
+  <circle cx="980" cy="160" r="220" fill="#0f766e" opacity="0.12"/>
+  <circle cx="200" cy="560" r="180" fill="#f59e0b" opacity="0.08"/>
+
+  <!-- Logo mark -->
+  <rect x="80" y="72" width="88" height="88" rx="24" fill="url(#tile)"/>
+  <path fill="url(#mark)" d="M120 90c-16.6 0-30 13.4-30 30s13.4 30 30 30c5.8 0 11.1-1.6 15.6-4.4l-6.5-6.5A21.4 21.4 0 0 1 120 141c-11.6 0-21-9.4-21-21s9.4-21 21-21 21 9.4 21 21c0 3.4-.8 6.6-2.2 9.4l7.1 7.1C149.9 131.1 152 124.9 152 120c0-16.6-13.4-30-30-30z"/>
+  <path fill="#5EEAD4" d="M128 114c0-2.2 1.8-4 4-4h4c2.2 0 4 1.8 4 4v14h9.2c2.5 0 3.7 3 1.9 4.7l-13.2 13.6c-1.1 1.1-2.9 1.1-4 0l-13.2-13.6c-1.8-1.7-.6-4.7 1.9-4.7H128v-14z"/>
+
+  <text x="192" y="118" fill="#1c242c" font-family="Syne, Figtree, system-ui, sans-serif" font-size="48" font-weight="800">Quicker</text>
+  <text x="392" y="118" fill="#0f766e" font-family="Syne, Figtree, system-ui, sans-serif" font-size="48" font-weight="800">-pod</text>
+  <text x="192" y="158" fill="#5a6876" font-family="Figtree, system-ui, sans-serif" font-size="22">Open navigation companion for Tripper Pod</text>
+
+  <!-- Feature panels -->
+  <rect x="80" y="220" width="520" height="400" rx="28" fill="#0B1714"/>
+  <circle cx="480" cy="300" r="120" fill="#0f766e" opacity="0.2"/>
+  <text x="120" y="290" fill="#2DD4BF" font-family="Syne, Figtree, system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="3">NAVIGATE</text>
+  <text x="120" y="350" fill="#e8f5f3" font-family="Syne, Figtree, system-ui, sans-serif" font-size="36" font-weight="800">Maps turns</text>
+  <text x="120" y="396" fill="#e8f5f3" font-family="Syne, Figtree, system-ui, sans-serif" font-size="36" font-weight="800">on the pod</text>
+  <text x="120" y="450" fill="#9cb0a8" font-family="Figtree, system-ui, sans-serif" font-size="18">BLE pair · PIN auth · live guidance</text>
+  <rect x="120" y="500" width="160" height="44" rx="14" fill="#0f766e"/>
+  <text x="148" y="528" fill="#e8f5f3" font-family="Figtree, system-ui, sans-serif" font-size="16" font-weight="600">Download APK</text>
+
+  <rect x="640" y="220" width="540" height="180" rx="28" fill="#ffffff" stroke="#1c242c15"/>
+  <text x="680" y="280" fill="#1c242c" font-family="Syne, Figtree, system-ui, sans-serif" font-size="24" font-weight="700">Pair like the official app</text>
+  <text x="680" y="320" fill="#5a6876" font-family="Figtree, system-ui, sans-serif" font-size="16">Android GATT server for real Tripper hardware</text>
+  <text x="680" y="360" fill="#0f766e" font-family="JetBrains Mono, monospace" font-size="15">20 01 00 64 · handshake ok</text>
+
+  <rect x="640" y="430" width="540" height="190" rx="28" fill="#ffffff" stroke="#1c242c15"/>
+  <text x="680" y="500" fill="#1c242c" font-family="Syne, Figtree, system-ui, sans-serif" font-size="24" font-weight="700">Open and free</text>
+  <text x="680" y="545" fill="#5a6876" font-family="Figtree, system-ui, sans-serif" font-size="16">Every APK ships from GitHub Releases</text>
+  <text x="680" y="585" fill="#0f766e" font-family="Figtree, system-ui, sans-serif" font-size="15" font-weight="600">No account · No store fee</text>
 </svg>

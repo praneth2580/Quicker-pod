@@ -8,10 +8,7 @@ import { useSettingsStore } from "@/store/settingsStore";
 import { usePwaUpdateStore } from "@/store/pwaUpdateStore";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
 import { useMapsNavListener } from "@/hooks/useMapsNavListener";
-import {
-  openMapsNotificationAccessSettings,
-  refreshMapsNavStatus,
-} from "@/navigation/mapsNavBridge";
+import { NotificationAccessGuide } from "@/components/maps/NotificationAccessGuide";
 
 const DEV_LINKS = [
   {
@@ -115,35 +112,10 @@ export function SettingsPage() {
                 onChange={setMirroringEnabled}
                 disabled={!listenerEnabled}
               />
-              {!listenerEnabled ? (
-                <>
-                  <p className="text-sm text-ink-muted">
-                    Tap the button to open Android Notification access. Select{" "}
-                    <strong>Quicker Pod</strong> and turn it on, then return here — status is
-                    re-checked automatically.
-                  </p>
-                  <p className="text-sm text-ink-muted">
-                    On Android 13+, after a manual APK install you may first need App info → ⋮ →{" "}
-                    <strong>Allow restricted settings</strong> before the Notification access
-                    toggle is available (OS policy for sideloaded apps; not required for ADB/Play).
-                  </p>
-                  <Button
-                    variant="primary"
-                    fullWidth
-                    onClick={() => void openMapsNotificationAccessSettings()}
-                  >
-                    Enable Notification Access
-                  </Button>
-                </>
-              ) : (
-                <p className="text-sm text-ink-muted">
-                  Notification Listener access is on. You can disable it anytime in Android
-                  Settings → Notification access.
-                </p>
-              )}
-              <Button variant="secondary" fullWidth onClick={() => void refreshMapsNavStatus()}>
-                Refresh status
-              </Button>
+              <NotificationAccessGuide
+                enabled={listenerEnabled}
+                connected={listenerConnected}
+              />
             </div>
           )}
         </Card>

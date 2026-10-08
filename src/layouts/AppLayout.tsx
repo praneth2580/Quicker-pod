@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { Logo } from "@/components/brand/Logo";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { InstallIconButton, InstallPrompt } from "@/components/layout/InstallPrompt";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -24,14 +25,17 @@ export function AppLayout({ children, title, subtitle, hideTitle = false }: AppL
       <div className="relative z-10">
         <header className="safe-top sticky top-0 z-40 border-b border-line/50 bg-canvas/75 backdrop-blur-glass">
           <div className="mx-auto flex max-w-lg items-center justify-between gap-3 px-4 py-3 sm:py-4">
-            <div className="min-w-0">
-              <p className="font-display text-lg font-extrabold tracking-tight sm:text-xl">
-                <span className="text-accent">Quicker</span>
-                <span className="text-ink"> Pod</span>
-              </p>
-              <p className="truncate text-[0.7rem] text-ink-faint sm:text-xs">
-                {subtitle ?? "Motorcycle navigation companion"}
-              </p>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Logo size={36} className="shrink-0 rounded-[28%] shadow-sm ring-1 ring-accent/25" />
+              <div className="min-w-0">
+                <p className="font-display text-lg font-extrabold tracking-tight sm:text-xl">
+                  <span className="text-accent">Quicker</span>
+                  <span className="text-ink"> Pod</span>
+                </p>
+                <p className="truncate text-[0.7rem] text-ink-faint sm:text-xs">
+                  {subtitle ?? "Motorcycle navigation companion"}
+                </p>
+              </div>
             </div>
             <div className="flex shrink-0 items-center gap-2">
               <InstallIconButton />

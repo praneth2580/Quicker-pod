@@ -48,6 +48,12 @@ export interface NavNotificationsPlugin {
   openSettings(): Promise<void>;
 
   /**
+   * Open Android App info for this package so the user can enable
+   * "Allow restricted settings" (needed on Android 13+ after sideload).
+   */
+  openAppInfo(): Promise<void>;
+
+  /**
    * Ask the listener service to emit the current Maps navigation notification
    * if one is already posted (best-effort; may no-op).
    */

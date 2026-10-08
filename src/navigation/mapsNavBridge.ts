@@ -154,6 +154,17 @@ export async function openMapsNotificationAccessSettings(): Promise<void> {
   }
 }
 
+/** Open Android App info (for Allow restricted settings on sideload). */
+export async function openMapsAppInfoSettings(): Promise<void> {
+  if (!isMapsNavNative()) {
+    throw new Error("Maps notification mirroring is Android-only.");
+  }
+  if (typeof NavNotifications.openAppInfo !== "function") {
+    throw new Error("openAppInfo is not available in this APK build.");
+  }
+  await NavNotifications.openAppInfo();
+}
+
 /** Explicit enabled check (does not assume Settings return = granted). */
 export async function isMapsNotificationAccessEnabled(): Promise<boolean> {
   if (!isMapsNavNative()) return false;

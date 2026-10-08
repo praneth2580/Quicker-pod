@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Logo } from "@/components/brand/Logo";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -29,9 +30,12 @@ export function DashboardPage() {
       <div className="space-y-6 animate-nav-rise">
         <section className="nav-hero-turn">
           <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-accent/15 blur-2xl animate-nav-breathe" />
-          <p className="font-display text-sm font-semibold uppercase tracking-[0.22em] text-accent">
-            Quicker Pod
-          </p>
+          <div className="flex items-center gap-2.5">
+            <Logo size={28} className="rounded-[28%] ring-1 ring-accent/30" />
+            <p className="font-display text-sm font-semibold uppercase tracking-[0.22em] text-accent">
+              Quicker Pod
+            </p>
+          </div>
           <h1 className="mt-3 max-w-[14ch] font-display text-3xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-4xl">
             {connected ? "Ready for the next turn." : "Pair your Tripper to ride."}
           </h1>

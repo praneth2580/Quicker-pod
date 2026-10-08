@@ -61,6 +61,20 @@ class NavNotificationsPlugin : Plugin(), MapsNavBridge.Listener {
         openSettingsInternal(call)
     }
 
+    /**
+     * Open this app's system App info screen so the user can enable
+     * "Allow restricted settings" (Android 13+ sideload) before Notification access.
+     */
+    @PluginMethod
+    fun openAppInfo(call: PluginCall) {
+        try {
+            context.startActivity(buildAppInfoIntent())
+            call.resolve()
+        } catch (e: Exception) {
+            call.reject("Unable to open app info: ${e.message}")
+        }
+    }
+
     @PluginMethod
     fun requestCurrent(call: PluginCall) {
         val found = MapsNotificationListener.requestCurrentFromService()
@@ -131,11 +145,14 @@ class NavNotificationsPlugin : Plugin(), MapsNavBridge.Listener {
         }
 
         // Safe fallback: app info (user can reach Special app access from there on most OEMs).
-        return Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+        return buildAppInfoIntent()
+    }
+
+    private fun buildAppInfoIntent(): Intent =
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
             data = Uri.fromParts("package", context.packageName, null)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
-    }
 
     private fun statusObject(): JSObject {
         val bundled = isListenerBundled()

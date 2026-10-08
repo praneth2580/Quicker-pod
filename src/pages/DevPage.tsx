@@ -4,6 +4,12 @@ import { Card } from "@/components/ui/Card";
 
 const DEV_TOOLS = [
   {
+    path: "/nav-lab",
+    title: "Nav Lab",
+    description:
+      "Cycle every Google → Tripper maneuver and compare the pod icon to expected bytes.",
+  },
+  {
     path: "/protocol-lab",
     title: "Protocol Lab",
     description: "GATT explorer, packet monitor, sender, mutation runner, and export.",

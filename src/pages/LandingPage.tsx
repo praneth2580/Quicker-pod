@@ -1,3 +1,4 @@
+import { Logo } from "@/components/brand/Logo";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useLatestApkRelease } from "@/hooks/useLatestApkRelease";
 import { useScrollReveal } from "@/hooks/useScrollReveal";
@@ -134,13 +135,7 @@ function LandingHeader() {
           href="#top"
           className="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight text-[#1c242c] sm:text-xl"
         >
-          <img
-            src={`${import.meta.env.BASE_URL}icon.svg`}
-            alt=""
-            width={36}
-            height={36}
-            className="h-9 w-9 rounded-xl shadow-sm ring-1 ring-[#0f766e]/25"
-          />
+          <Logo size={36} className="rounded-[28%] shadow-sm ring-1 ring-[#0f766e]/25" />
           <span>
             Quicker<span className="text-[#0f766e]">-pod</span>
           </span>
@@ -256,6 +251,13 @@ function HeroSection({
 
       <div className="relative mx-auto grid min-h-[100dvh] max-w-6xl items-end gap-10 px-5 pb-10 pt-28 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:pb-16 lg:pt-24">
         <div className="max-w-xl">
+          <div className="animate-landing-rise mb-6">
+            <Logo
+              size={88}
+              className="rounded-[28%] shadow-[0_16px_40px_-18px_rgba(15,118,110,0.55)] ring-1 ring-[#0f766e]/30"
+              title="Quicker-pod"
+            />
+          </div>
           <p className="animate-landing-rise font-display text-5xl font-extrabold leading-[0.95] tracking-tight text-[#1c242c] sm:text-6xl lg:text-7xl">
             Quicker
             <span className="text-[#0f766e]">-pod</span>
@@ -435,13 +437,7 @@ function LandingFooter() {
       <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="flex items-center gap-2 font-display font-bold text-[#1c242c]">
-            <img
-              src={`${import.meta.env.BASE_URL}icon.svg`}
-              alt=""
-              width={28}
-              height={28}
-              className="h-7 w-7 rounded-lg"
-            />
+            <Logo size={28} className="rounded-[28%]" />
             <span>
               Quicker<span className="text-[#0f766e]">-pod</span>
             </span>

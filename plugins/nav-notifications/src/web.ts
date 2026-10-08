@@ -18,6 +18,10 @@ export class NavNotificationsWeb extends WebPlugin implements NavNotificationsPl
     return this.openNotificationAccessSettings();
   }
 
+  async openAppInfo(): Promise<void> {
+    throw this.unavailable("Maps notification mirroring is Android-only.");
+  }
+
   async requestCurrent(): Promise<{ found: boolean }> {
     return { found: false };
   }

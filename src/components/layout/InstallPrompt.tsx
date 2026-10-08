@@ -1,3 +1,4 @@
+import { Logo } from "@/components/brand/Logo";
 import { useSettingsStore } from "@/store/settingsStore";
 import { Button } from "@/components/ui/Button";
 import { usePwaInstall } from "@/store/pwaInstallStore";
@@ -92,6 +93,7 @@ export function InstallPrompt() {
     <>
       <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-40 px-4">
         <div className="mx-auto flex max-w-lg items-center gap-3 rounded-2xl border border-accent/30 bg-surface-raised/95 p-4 shadow-glow backdrop-blur-glass">
+          <Logo size={40} className="shrink-0 rounded-[28%] ring-1 ring-accent/30" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-white">Install Quicker-pod</p>
             <p className="text-xs text-gray-400">

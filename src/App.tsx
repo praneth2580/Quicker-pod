@@ -8,6 +8,7 @@ import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ConnectPage } from "@/pages/ConnectPage";
 import { NavigatePage } from "@/pages/NavigatePage";
+import { NavLabPage } from "@/pages/NavLabPage";
 import { DevPage } from "@/pages/DevPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
@@ -38,7 +39,9 @@ export default function App() {
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/connect" element={<ConnectPage />} />
       <Route path="/navigate" element={<NavigatePage />} />
+      <Route path="/nav-lab" element={<NavLabPage />} />
       <Route path="/dev" element={<DevPage />} />
+
       <Route path="/scanner" element={<Navigate to="/connect" replace />} />
       <Route path="/lab" element={<Navigate to="/protocol-lab" replace />} />
       <Route path="/monitor" element={<Navigate to="/protocol-lab?tab=notifications" replace />} />

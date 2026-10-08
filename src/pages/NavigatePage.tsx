@@ -8,10 +8,7 @@ import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useConnectionStore } from "@/store/connectionStore";
 import { useTripperNav } from "@/hooks/useTripperNav";
 import { useMapsNavListener } from "@/hooks/useMapsNavListener";
-import {
-  openMapsNotificationAccessSettings,
-  refreshMapsNavStatus,
-} from "@/navigation/mapsNavBridge";
+import { NotificationAccessGuide } from "@/components/maps/NotificationAccessGuide";
 import { GOOGLE_MANEUVERS } from "@/bluetooth/tripper/maneuvers";
 
 const QUICK_MANEUVERS = [
@@ -54,7 +51,6 @@ export function NavigatePage() {
     setCallIconActive,
   } = useTripperNav();
   const {
-    status,
     lastUpdate,
     mirroringEnabled,
     setMirroringEnabled,
@@ -94,15 +90,6 @@ export function NavigatePage() {
       : null;
   const liveDistance = lastUpdate && !lastUpdate.stopped ? lastUpdate.distanceM : null;
   const liveEta = lastUpdate && !lastUpdate.stopped ? lastUpdate.etaSeconds : null;
-
-  const openAccess = async () => {
-    try {
-      // Status is re-checked on app resume (native + visibility) — do not assume grant.
-      await openMapsNotificationAccessSettings();
-    } catch (error) {
-      setStatusMsg(error instanceof Error ? error.message : String(error));
-    }
-  };
 
   return (
     <AppLayout title="Navigate" subtitle="Turn-by-turn" hideTitle>
@@ -210,29 +197,17 @@ export function NavigatePage() {
                 </span>
               </p>
 
-              {!listenerEnabled ? (
-                <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4">
-                  <p className="text-sm text-ink">
-                    Enable Notification access for Quicker Pod so it can read Maps turn banners.
-                    On Android 13+ after a manual APK install, you may need App info → ⋮ →{" "}
-                    <strong>Allow restricted settings</strong> before the toggle works.
-                  </p>
-                  <Button className="mt-3" fullWidth variant="primary" onClick={() => void openAccess()}>
-                    Enable Notification Access
-                  </Button>
-                  <Button
-                    className="mt-2"
-                    fullWidth
-                    variant="ghost"
-                    onClick={() => void refreshMapsNavStatus()}
-                  >
-                    Refresh status
-                  </Button>
-                </div>
-              ) : (
+              <NotificationAccessGuide
+                enabled={listenerEnabled}
+                connected={listenerConnected}
+                compact
+                onError={setStatusMsg}
+              />
+
+              {listenerEnabled && !lastUpdate && (
                 <p className="text-sm text-ink-muted">
-                  Listener {listenerConnected ? "connected" : "granted — waiting for service"}. Start
-                  navigation in Google Maps; turns appear above and stream to the pod when linked.
+                  Start turn-by-turn in Google Maps; turns appear above and stream to the pod when
+                  linked.
                 </p>
               )}
 
@@ -247,12 +222,6 @@ export function NavigatePage() {
                     <p className="mt-1 text-ink">{lastUpdate.turnText}</p>
                   )}
                 </div>
-              )}
-
-              {status.supported && (
-                <p className="text-[0.7rem] text-ink-faint">
-                  Settings → Apps → Special app access → Notification access → Quicker Pod
-                </p>
               )}
             </div>
           )}
@@ -297,6 +266,21 @@ export function NavigatePage() {
             </div>
           </div>
         </section>
+
+        <Link
+          to="/nav-lab"
+          className="block rounded-[1.5rem] border border-line/70 bg-canvas-raised/80 p-5 transition-colors hover:border-accent/40"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-display text-lg font-bold text-ink">Nav Lab</h2>
+              <p className="mt-1 text-sm text-ink-muted">
+                Auto-cycle all maneuvers and verify icons on the pod
+              </p>
+            </div>
+            <span className="text-ink-faint">›</span>
+          </div>
+        </Link>
 
         {/* Manual guidance (secondary) */}
         <section className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/80 p-5">
