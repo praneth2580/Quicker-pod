@@ -1,0 +1,1 @@
+import{W as e}from"./index-vr2znnB4.js";class s extends e{async getStatus(){return{supported:!1,enabled:!1,connected:!1}}async openNotificationAccessSettings(){throw this.unavailable("Maps notification mirroring is Android-only.")}async requestCurrent(){return{found:!1}}}export{s as NavNotificationsWeb};
