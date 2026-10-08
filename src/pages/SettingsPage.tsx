@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/Card";
 import { Toggle } from "@/components/ui/Toggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useSettingsStore } from "@/store/settingsStore";
 import { usePwaUpdateStore } from "@/store/pwaUpdateStore";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
@@ -20,22 +21,27 @@ const DEV_LINKS = [
   {
     path: "/protocol-lab",
     title: "Protocol Lab",
-    description: "GATT explorer, packet monitor, sender, mutations",
+    description: "GATT explorer, packet monitor, sender",
   },
   {
     path: "/fuzzer",
     title: "Fuzzer",
-    description: "Structured fuzz sessions against Tripper frames",
+    description: "Structured fuzz sessions",
   },
   {
     path: "/ble-debug",
     title: "BLE Debug",
-    description: "Handshake stages and TX/RX log console",
+    description: "Handshake and TX/RX console",
+  },
+  {
+    path: "/nav-lab",
+    title: "Nav Lab",
+    description: "Cycle maneuvers on the pod",
   },
   {
     path: "/dev",
     title: "Dev hub",
-    description: "All developer tools in one place",
+    description: "All developer tools",
   },
 ] as const;
 
@@ -81,6 +87,7 @@ export function SettingsPage() {
     mirroringEnabled,
     setMirroringEnabled,
   } = useMapsNavListener();
+  const { device, disconnect, forgetDevice } = useConnectionStore();
 
   const isNative = Capacitor.isNativePlatform();
   const [nfcSupported, setNfcSupported] = useState(false);
@@ -88,6 +95,7 @@ export function SettingsPage() {
   const [nfcBusy, setNfcBusy] = useState(false);
   const [nfcMessage, setNfcMessage] = useState<string | null>(null);
   const [rideTestMsg, setRideTestMsg] = useState<string | null>(null);
+  const [tapCount, setTapCount] = useState(0);
 
   useEffect(() => {
     if (!isNative) return;
@@ -132,48 +140,69 @@ export function SettingsPage() {
     });
   };
 
+  const revealDevTools = () => {
+    const next = tapCount + 1;
+    setTapCount(next);
+    if (next >= 5) {
+      setDebugMode(true);
+      setTapCount(0);
+    }
+  };
+
   return (
-    <AppLayout title="Settings" subtitle="Companion preferences">
+    <AppLayout title="Settings" subtitle="Preferences" hideTitle>
       <div className="space-y-4 animate-nav-rise">
+        <section className="rounded-[1.5rem] border border-line/60 bg-canvas-raised/90 p-5 shadow-lift">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
+                Device
+              </p>
+              <p className="mt-1 truncate font-display text-xl font-bold text-ink">
+                {device?.name ?? "Tripper"}
+              </p>
+            </div>
+            <StatusBadge label="Linked" active variant="success" />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            <Button variant="secondary" onClick={() => void disconnect()}>
+              Disconnect
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => void forgetDevice()}
+            >
+              Forget
+            </Button>
+          </div>
+        </section>
+
         <Card title="Appearance">
           <Toggle
             label="Night ride mode"
-            description="Optional darker canvas for low light — daylight is the default look"
+            description="Darker canvas for low light"
             checked={darkMode}
             onChange={() => toggleDarkMode()}
           />
         </Card>
 
-        <Card
-          title="Start a ride"
-          subtitle="No background scanning — connect only when you choose"
-        >
+        <Card title="Start a ride" subtitle="Connect only when you choose">
           <div className="space-y-4">
             <Toggle
-              label="Auto-reconnect when I open the app"
-              description="If a PIN-paired Tripper is saved, retry connect for ~45s after launch/resume (turn ignition on)."
+              label="Auto-reconnect on open"
+              description="Retry linking a saved Tripper for ~45s after launch"
               checked={autoReconnectOnOpen}
               onChange={setAutoReconnectOnOpen}
             />
-
-            <div className="rounded-2xl border border-line/60 bg-canvas-sunk/40 p-4 text-sm text-ink-muted">
-              <p className="font-medium text-ink">Home screen widget</p>
-              <p className="mt-1">
-                Long-press the home screen → Widgets → <strong>Quicker Pod</strong> → add{" "}
-                <strong>Connect Tripper</strong>. Tap it to open the app and reconnect. Nothing runs
-                until you tap.
-              </p>
-            </div>
 
             {isNative && (
               <div className="rounded-2xl border border-line/60 bg-canvas-sunk/40 p-4 text-sm text-ink-muted">
                 <p className="font-medium text-ink">NFC tag</p>
                 <p className="mt-1">
-                  Write {RIDE_DEEP_LINK} to a blank tag and stick it on the bike. Tap with your phone
-                  to open Quicker Pod and reconnect.
+                  Write {RIDE_DEEP_LINK} to a blank tag. Tap to open and reconnect.
                 </p>
                 {!nfcSupported ? (
-                  <p className="mt-2 text-warning">This device has no NFC hardware.</p>
+                  <p className="mt-2 text-warning">No NFC hardware on this device.</p>
                 ) : !nfcEnabled ? (
                   <p className="mt-2 text-warning">NFC is off — enable it in system settings.</p>
                 ) : (
@@ -213,19 +242,16 @@ export function SettingsPage() {
                 });
               }}
             >
-              Test reconnect now
+              Test reconnect
             </Button>
             {rideTestMsg && <p className="text-sm text-ink-muted">{rideTestMsg}</p>}
           </div>
         </Card>
 
-        <Card
-          title="Notification Access"
-          subtitle="Required for Google Maps → Tripper mirroring"
-        >
+        <Card title="Maps access" subtitle="Required for Google Maps → Tripper">
           <p className="mb-3 text-sm text-ink">
             Status:{" "}
-            <span className={listenerEnabled ? "text-success font-semibold" : "text-warning font-semibold"}>
+            <span className={listenerEnabled ? "font-semibold text-success" : "font-semibold text-warning"}>
               {!isAndroid ? "Android only" : listenerEnabled ? "Enabled" : "Not Enabled"}
             </span>
             {isAndroid && listenerConnected ? " · Listening" : null}
@@ -233,14 +259,13 @@ export function SettingsPage() {
 
           {!isAndroid ? (
             <p className="text-sm text-ink-muted">
-              Install the Android APK to use NotificationListenerService. You will enable access
-              manually in Android Settings — the app never grants it silently.
+              Install the Android APK to use notification mirroring.
             </p>
           ) : (
             <div className="space-y-3">
               <Toggle
-                label="Forward Maps turns to Tripper"
-                description="Uses applyExternalNavUpdate on the existing nav write path"
+                label="Forward Maps turns"
+                description="Uses the existing nav write path"
                 checked={mirroringEnabled}
                 onChange={setMirroringEnabled}
                 disabled={!listenerEnabled}
@@ -253,12 +278,7 @@ export function SettingsPage() {
           )}
         </Card>
 
-        <Card title="App updates">
-          <p className="mb-4 text-sm text-ink-muted">
-            {installed
-              ? "Check for a newer version of the installed app and reload if one is available."
-              : "Force-check for updates to the service worker and cached app files."}
-          </p>
+        <Card title="Updates">
           <Button
             fullWidth
             variant="secondary"
@@ -268,49 +288,51 @@ export function SettingsPage() {
               void forceUpdate();
             }}
           >
-            {isUpdating ? "Checking…" : "Force update"}
+            {isUpdating ? "Checking…" : installed ? "Check for update" : "Force update"}
           </Button>
           {statusMessage && (
             <p className={`mt-3 text-sm ${statusColor(status)}`}>{statusMessage}</p>
           )}
         </Card>
 
-        <Card title="Developer tools" subtitle="Protocol lab, fuzzer, and BLE diagnostics">
-          <div className="space-y-2">
-            {DEV_LINKS.map((tool) => (
-              <Link
-                key={tool.path}
-                to={tool.path}
-                className="flex items-center justify-between gap-3 rounded-2xl border border-line/60 bg-canvas-sunk/40 px-4 py-3 transition-colors hover:border-accent/40"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-ink">{tool.title}</p>
-                  <p className="text-sm text-ink-muted">{tool.description}</p>
-                </div>
-                <span className="text-ink-faint">›</span>
-              </Link>
-            ))}
-          </div>
-          <div className="mt-4 space-y-3">
-            <Toggle
-              label="Debug mode"
-              description="Verbose logging and extra info"
-              checked={debugMode}
-              onChange={setDebugMode}
-            />
-            <Toggle
-              label="Experimental mode"
-              description="Enable unreleased pairing overrides"
-              checked={experimentalMode}
-              onChange={setExperimentalMode}
-            />
-          </div>
-        </Card>
+        {debugMode && (
+          <Card title="Developer tools" subtitle="Hidden from everyday use">
+            <div className="space-y-2">
+              {DEV_LINKS.map((tool) => (
+                <Link
+                  key={tool.path}
+                  to={tool.path}
+                  className="flex items-center justify-between gap-3 rounded-2xl border border-line/60 bg-canvas-sunk/40 px-4 py-3 transition-colors hover:border-accent/40"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium text-ink">{tool.title}</p>
+                    <p className="text-sm text-ink-muted">{tool.description}</p>
+                  </div>
+                  <span className="text-ink-faint">›</span>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-4 space-y-3">
+              <Toggle
+                label="Debug mode"
+                description="Turn off to hide these tools"
+                checked={debugMode}
+                onChange={setDebugMode}
+              />
+              <Toggle
+                label="Experimental mode"
+                description="Unreleased pairing overrides"
+                checked={experimentalMode}
+                onChange={setExperimentalMode}
+              />
+            </div>
+          </Card>
+        )}
 
         {experimentalMode && (
           <Card title="PIN pairing (experimental)">
             <p className="mb-4 text-sm text-ink-muted">
-              Override auto-discovered pairing UUIDs from Protocol Lab. Leave blank to auto-detect.
+              Override auto-discovered pairing UUIDs. Leave blank to auto-detect.
             </p>
             <div className="space-y-3">
               <Input
@@ -353,18 +375,13 @@ export function SettingsPage() {
           </Card>
         )}
 
-        <Card title="About">
-          <p className="text-sm text-ink-muted">
-            Quicker Pod v0.1.0 — open-source motorcycle navigation companion for the Royal Enfield
-            Tripper Pod. Protocol research tools live under Developer tools above.
-          </p>
-          <Link
-            to="/download"
-            className="mt-3 inline-block text-sm font-semibold text-accent underline-offset-2 hover:underline"
-          >
-            APK download page
-          </Link>
-        </Card>
+        <button
+          type="button"
+          onClick={revealDevTools}
+          className="w-full rounded-2xl px-4 py-4 text-center text-sm text-ink-faint"
+        >
+          Quicker Pod · tap logo area 5× for developer tools
+        </button>
       </div>
     </AppLayout>
   );

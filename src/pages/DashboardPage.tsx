@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Logo } from "@/components/brand/Logo";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
@@ -13,103 +12,98 @@ function formatDistance(m: number | null | undefined): string {
   return `${Math.round(m)} m`;
 }
 
-export function DashboardPage() {
-  const { connected, device } = useConnectionStore();
-  const { keepaliveEnabled, lastLabel } = useTripperNav();
-  const { lastUpdate, listenerEnabled, isAndroid } = useMapsNavListener();
+function formatEta(seconds: number | null | undefined): string {
+  if (seconds == null) return "—";
+  const mins = Math.max(1, Math.round(seconds / 60));
+  return `${mins} min`;
+}
 
-  const turnLabel =
+export function DashboardPage() {
+  const { device, disconnect } = useConnectionStore();
+  const { keepaliveEnabled, lastLabel } = useTripperNav();
+  const { lastUpdate, listenerEnabled, isAndroid, mirroringEnabled } = useMapsNavListener();
+
+  const live =
     lastUpdate && !lastUpdate.stopped
-      ? lastUpdate.turnText ?? lastUpdate.maneuverName ?? lastLabel
+      ? {
+          turn: lastUpdate.turnText ?? lastUpdate.maneuverName ?? lastLabel,
+          distance: lastUpdate.distanceM,
+          eta: lastUpdate.etaSeconds,
+        }
       : lastLabel !== "NAV IDLE"
-        ? lastLabel
+        ? { turn: lastLabel, distance: null as number | null, eta: null as number | null }
         : null;
 
   return (
-    <AppLayout title="Home" subtitle="Ride status" hideTitle>
-      <div className="space-y-6 animate-nav-rise">
+    <AppLayout title="Ride" subtitle={device?.name ?? "Linked"} hideTitle>
+      <div className="space-y-5 animate-nav-rise">
         <section className="nav-hero-turn">
           <div className="pointer-events-none absolute -right-8 -top-10 h-40 w-40 rounded-full bg-accent/15 blur-2xl animate-nav-breathe" />
-          <div className="flex items-center gap-2.5">
-            <Logo size={28} className="rounded-[28%] ring-1 ring-accent/30" />
-            <p className="font-display text-sm font-semibold uppercase tracking-[0.22em] text-accent">
-              Quicker Pod
-            </p>
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute left-1/2 top-[60%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent/20 animate-nav-pulse-ring" />
           </div>
-          <h1 className="mt-3 max-w-[14ch] font-display text-3xl font-extrabold leading-[1.05] tracking-tight text-ink sm:text-4xl">
-            {connected ? "Ready for the next turn." : "Pair your Tripper to ride."}
-          </h1>
-          <p className="mt-3 max-w-sm text-sm leading-relaxed text-ink-muted">
-            Motorcycle navigation companion for the Royal Enfield Tripper Pod — link once, then
-            mirror Maps turns to the display.
-          </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-2">
+          <div className="relative flex flex-wrap items-center gap-2">
+            <StatusBadge label="Linked" active variant="success" />
             <StatusBadge
-              label={connected ? device?.name ?? "Linked" : "Tripper offline"}
-              active={connected}
-              variant={connected ? "success" : "neutral"}
-            />
-            <StatusBadge
-              label={keepaliveEnabled ? "Keepalive" : "Idle"}
+              label={keepaliveEnabled ? "Live" : "Idle"}
               active={keepaliveEnabled}
               variant={keepaliveEnabled ? "success" : "neutral"}
             />
             {isAndroid && (
               <StatusBadge
-                label={listenerEnabled ? "Maps listener" : "Maps off"}
-                active={listenerEnabled}
-                variant={listenerEnabled ? "success" : "warning"}
+                label={mirroringEnabled && listenerEnabled ? "Maps" : "Maps off"}
+                active={Boolean(mirroringEnabled && listenerEnabled)}
+                variant={mirroringEnabled && listenerEnabled ? "success" : "warning"}
               />
             )}
           </div>
-        </section>
 
-        <section className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/80 p-5 shadow-lift">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
-              Next turn
-            </p>
-            <p className="mt-3 font-display text-xl font-bold leading-snug text-ink">
-              {turnLabel ?? "No active guidance"}
-            </p>
-            <p className="mt-2 text-sm text-ink-muted">
-              {lastUpdate && !lastUpdate.stopped
-                ? formatDistance(lastUpdate.distanceM)
-                : "Start Navigate or enable Maps mirroring"}
-            </p>
-          </div>
-          <div className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/80 p-5 shadow-lift">
-            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
-              ETA / keepalive
-            </p>
-            <p className="mt-3 font-display text-xl font-bold text-ink">
-              {lastUpdate?.etaSeconds != null && !lastUpdate.stopped
-                ? `${Math.max(1, Math.round(lastUpdate.etaSeconds / 60))} min`
-                : keepaliveEnabled
-                  ? "Streaming"
-                  : "Paused"}
-            </p>
-            <p className="mt-2 text-sm text-ink-muted">
-              {connected
-                ? "Tripper write path ready"
-                : "Connect your pod to send packets"}
-            </p>
+          <p className="relative mt-6 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-ink-faint">
+            Next turn
+          </p>
+          <h1 className="relative mt-2 font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-ink sm:text-4xl">
+            {live?.turn ?? "Ready when you are"}
+          </h1>
+          <p className="relative mt-3 text-sm text-ink-muted">
+            {live
+              ? "Guidance is streaming to your Tripper."
+              : "Open Navigate to mirror Maps or send a turn."}
+          </p>
+
+          <div className="relative mt-6 grid grid-cols-2 gap-4">
+            <div className="rounded-2xl bg-canvas-sunk/50 px-4 py-3 transition-transform active:scale-[0.98]">
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
+                Distance
+              </p>
+              <p className="mt-1 font-display text-2xl font-bold text-accent">
+                {formatDistance(live?.distance)}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-canvas-sunk/50 px-4 py-3 transition-transform active:scale-[0.98]">
+              <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
+                ETA
+              </p>
+              <p className="mt-1 font-display text-2xl font-bold text-ink">
+                {live?.eta != null ? formatEta(live.eta) : keepaliveEnabled ? "Live" : "—"}
+              </p>
+            </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-2 gap-3">
-          <Link to="/navigate">
-            <Button fullWidth variant="primary">
-              Navigate
-            </Button>
-          </Link>
-          <Link to="/connect">
-            <Button fullWidth variant="secondary">
-              {connected ? "Device" : "Connect"}
-            </Button>
-          </Link>
-        </div>
+        <Link to="/navigate" className="block">
+          <Button fullWidth className="!min-h-14 text-base shadow-glow">
+            Open Navigate
+          </Button>
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => void disconnect()}
+          className="w-full rounded-2xl px-4 py-3 text-sm font-medium text-ink-faint transition-colors hover:bg-canvas-sunk/60 hover:text-ink-muted active:scale-[0.98]"
+        >
+          Disconnect Tripper
+        </button>
       </div>
     </AppLayout>
   );

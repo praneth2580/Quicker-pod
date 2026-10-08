@@ -1,28 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_ride_background"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="6dp">
 
     <TextView
         android:id="@+id/widget_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/widget_ride_title"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:maxLines="2"
+        android:text="@string/widget_ride_compact"
         android:textColor="#E8F5F3"
-        android:textSize="14sp"
+        android:textSize="11sp"
         android:textStyle="bold" />
 
+    <!-- Kept for RemoteViews compatibility; unused in 1x1 layout -->
     <TextView
         android:id="@+id/widget_subtitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="@string/widget_ride_subtitle"
-        android:textColor="#5EEAD4"
-        android:textSize="12sp" />
-</LinearLayout>
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:text="@string/widget_ride_subtitle" />
+</FrameLayout>

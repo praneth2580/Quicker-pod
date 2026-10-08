@@ -7,7 +7,7 @@
     "dev:web": "vite",
     "build:web": "bash scripts/build-web.sh",
     "deploy:web": "npm run build:web && gh-pages -d dist-site -b gh-pages",
-    "dev:app": "CAPACITOR=1 vite --open /app.html",
+    "dev:app": "bash scripts/run-android-emulator.sh",
     "build:app": "bash scripts/build-app.sh",
     "deploy:app": "bash scripts/deploy-app.sh"
   },

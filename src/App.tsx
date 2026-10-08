@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useBluetooth } from "@/hooks/useBluetooth";
 import { useDbInit } from "@/hooks/useDbInit";
 import { usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
 import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
+import { RequireConnection } from "@/components/connect/RequireConnection";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ConnectPage } from "@/pages/ConnectPage";
 import { NavigatePage } from "@/pages/NavigatePage";
@@ -16,10 +17,20 @@ import { FuzzerPage } from "@/features/fuzzer/pages/FuzzerPage";
 import { BleDebugPage } from "@/pages/BleDebugPage";
 import { startMapsNavBridge } from "@/navigation/mapsNavBridge";
 import { useRideLaunch } from "@/hooks/useRideLaunch";
+import { useConnectionStore } from "@/store/connectionStore";
 
 function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
   const tab = LEGACY_ROUTE_TABS[legacyPath] ?? "explorer";
   return <Navigate to={`/protocol-lab?tab=${tab}`} replace />;
+}
+
+function HomeRedirect() {
+  const connected = useConnectionStore((s) => s.connected);
+  return <Navigate to={connected ? "/dashboard" : "/connect"} replace />;
+}
+
+function Guarded({ children }: { children: ReactNode }) {
+  return <RequireConnection>{children}</RequireConnection>;
 }
 
 /** Functional companion shell (Capacitor / APK). Landing is a separate Vite entry. */
@@ -35,23 +46,80 @@ export default function App() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/app" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/download" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<DashboardPage />} />
+      <Route path="/" element={<HomeRedirect />} />
+      <Route path="/app" element={<HomeRedirect />} />
+      <Route path="/download" element={<HomeRedirect />} />
       <Route path="/connect" element={<ConnectPage />} />
-      <Route path="/navigate" element={<NavigatePage />} />
-      <Route path="/nav-lab" element={<NavLabPage />} />
-      <Route path="/dev" element={<DevPage />} />
-
       <Route path="/scanner" element={<Navigate to="/connect" replace />} />
+
+      <Route
+        path="/dashboard"
+        element={
+          <Guarded>
+            <DashboardPage />
+          </Guarded>
+        }
+      />
+      <Route
+        path="/navigate"
+        element={
+          <Guarded>
+            <NavigatePage />
+          </Guarded>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <Guarded>
+            <SettingsPage />
+          </Guarded>
+        }
+      />
+
+      <Route
+        path="/nav-lab"
+        element={
+          <Guarded>
+            <NavLabPage />
+          </Guarded>
+        }
+      />
+      <Route
+        path="/dev"
+        element={
+          <Guarded>
+            <DevPage />
+          </Guarded>
+        }
+      />
       <Route path="/lab" element={<Navigate to="/protocol-lab" replace />} />
       <Route path="/monitor" element={<Navigate to="/protocol-lab?tab=notifications" replace />} />
       <Route path="/send" element={<Navigate to="/protocol-lab?tab=sender" replace />} />
-      <Route path="/protocol-lab" element={<ProtocolLabPage />} />
-      <Route path="/fuzzer" element={<FuzzerPage />} />
-      <Route path="/ble-debug" element={<BleDebugPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
+      <Route
+        path="/protocol-lab"
+        element={
+          <Guarded>
+            <ProtocolLabPage />
+          </Guarded>
+        }
+      />
+      <Route
+        path="/fuzzer"
+        element={
+          <Guarded>
+            <FuzzerPage />
+          </Guarded>
+        }
+      />
+      <Route
+        path="/ble-debug"
+        element={
+          <Guarded>
+            <BleDebugPage />
+          </Guarded>
+        }
+      />
 
       <Route path="/explorer" element={<LegacyProtocolLabRedirect legacyPath="explorer" />} />
       <Route path="/console" element={<LegacyProtocolLabRedirect legacyPath="console" />} />

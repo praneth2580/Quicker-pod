@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Toggle } from "@/components/ui/Toggle";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { useConnectionStore } from "@/store/connectionStore";
 import { useTripperNav } from "@/hooks/useTripperNav";
 import { useMapsNavListener } from "@/hooks/useMapsNavListener";
 import { NotificationAccessGuide } from "@/components/maps/NotificationAccessGuide";
@@ -36,12 +34,10 @@ function formatEta(seconds: number | null | undefined): string {
 }
 
 export function NavigatePage() {
-  const connected = useConnectionStore((s) => s.connected);
   const {
     keepaliveEnabled,
     callIconActive,
     lastLabel,
-    lastPacketHex,
     sending,
     lastError,
     setKeepaliveEnabled,
@@ -67,10 +63,6 @@ export function NavigatePage() {
   const [showManual, setShowManual] = useState(false);
 
   const run = async (label: string, action: () => Promise<void>) => {
-    if (!connected) {
-      setStatusMsg("Connect and pair a Tripper first.");
-      return;
-    }
     setBusy(true);
     setStatusMsg(null);
     try {
@@ -83,7 +75,7 @@ export function NavigatePage() {
     }
   };
 
-  const disabled = !connected || busy || sending;
+  const disabled = busy || sending;
   const liveTurn =
     lastUpdate && !lastUpdate.stopped
       ? lastUpdate.turnText ?? lastUpdate.maneuverName ?? null
@@ -94,19 +86,15 @@ export function NavigatePage() {
   return (
     <AppLayout title="Navigate" subtitle="Turn-by-turn" hideTitle>
       <div className="space-y-5 animate-nav-rise">
-        {/* Primary guidance surface */}
         <section className="nav-hero-turn">
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute left-1/2 top-1/2 h-48 w-48 -translate-x-1/2 -translate-y-1/2 rounded-full border border-accent/25 animate-nav-pulse-ring" />
           </div>
 
           <div className="relative flex flex-wrap items-center gap-2">
+            <StatusBadge label="Tripper linked" active />
             <StatusBadge
-              label={connected ? "Tripper linked" : "Tripper offline"}
-              active={connected}
-            />
-            <StatusBadge
-              label={keepaliveEnabled ? "Keepalive on" : "Keepalive off"}
+              label={keepaliveEnabled ? "Keepalive" : "Paused"}
               active={keepaliveEnabled}
             />
           </div>
@@ -132,33 +120,19 @@ export function NavigatePage() {
                 ETA
               </p>
               <p className="mt-1 font-display text-2xl font-bold text-ink">
-                {liveEta != null
-                  ? formatEta(liveEta)
-                  : keepaliveEnabled
-                    ? "Live"
-                    : "—"}
+                {liveEta != null ? formatEta(liveEta) : keepaliveEnabled ? "Live" : "—"}
               </p>
             </div>
           </div>
-
-          {!connected && (
-            <p className="relative mt-5 text-sm text-ink-muted">
-              Pair on{" "}
-              <Link to="/connect" className="font-semibold text-accent underline-offset-2 hover:underline">
-                Connect
-              </Link>{" "}
-              before sending turns to the pod.
-            </p>
-          )}
         </section>
 
-        {/* Maps notification mirror */}
-        <section className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/90 p-5 shadow-lift">
+        {/* Maps — primary path */}
+        <section className="rounded-[1.5rem] border border-line/60 bg-canvas-raised/90 p-5 shadow-lift">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h2 className="font-display text-lg font-bold text-ink">Maps mirroring</h2>
               <p className="mt-1 text-sm text-ink-muted">
-                Read Google Maps navigation notifications and forward turns to Tripper.
+                Forward Google Maps turns to Tripper.
               </p>
             </div>
             <StatusBadge
@@ -178,68 +152,44 @@ export function NavigatePage() {
 
           {!isAndroid ? (
             <p className="mt-4 text-sm text-ink-muted">
-              Notification access is available in the Quicker Pod Android APK. On web, use manual
-              guidance below to test packets.
+              Use the Android app for Maps mirroring, or test turns with Manual below.
             </p>
           ) : (
             <div className="mt-4 space-y-3">
               <Toggle
                 label="Forward to Tripper"
-                description="When on, Maps turns call applyExternalNavUpdate and enable keepalive"
+                description="Maps turns stream to the pod while linked"
                 checked={mirroringEnabled}
                 onChange={setMirroringEnabled}
               />
-
-              <p className="text-sm text-ink">
-                Status:{" "}
-                <span className={listenerEnabled ? "font-semibold text-success" : "font-semibold text-warning"}>
-                  {listenerEnabled ? "Enabled" : "Not Enabled"}
-                </span>
-              </p>
-
               <NotificationAccessGuide
                 enabled={listenerEnabled}
                 connected={listenerConnected}
                 compact
                 onError={setStatusMsg}
               />
-
               {listenerEnabled && !lastUpdate && (
                 <p className="text-sm text-ink-muted">
-                  Start turn-by-turn in Google Maps; turns appear above and stream to the pod when
-                  linked.
+                  Start turn-by-turn in Google Maps — guidance appears above.
                 </p>
-              )}
-
-              {lastUpdate && (
-                <div className="rounded-2xl bg-canvas-sunk/60 p-3 text-xs text-ink-muted">
-                  <p className="font-mono">
-                    {lastUpdate.stopped
-                      ? "Navigation ended"
-                      : `${lastUpdate.packageName} · ${lastUpdate.maneuverName ?? "?"} · ${formatDistance(lastUpdate.distanceM)}`}
-                  </p>
-                  {lastUpdate.turnText && (
-                    <p className="mt-1 text-ink">{lastUpdate.turnText}</p>
-                  )}
-                </div>
               )}
             </div>
           )}
         </section>
 
-        {/* Session controls */}
-        <section className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/85 p-5 shadow-lift">
+        {/* Session — minimal */}
+        <section className="rounded-[1.5rem] border border-line/60 bg-canvas-raised/85 p-5 shadow-lift">
           <h2 className="font-display text-lg font-bold text-ink">Session</h2>
           <div className="mt-3 space-y-3">
             <Toggle
               label="Keepalive"
-              description="Re-send last nav frame every 1s while connected"
+              description="Re-send the last nav frame every second"
               checked={keepaliveEnabled}
               onChange={setKeepaliveEnabled}
             />
             <Toggle
               label="Call icon"
-              description="While keepalive runs, send call-icon instead of last nav"
+              description="Show call icon instead of last turn while keepalive runs"
               checked={callIconActive}
               onChange={setCallIconActive}
             />
@@ -254,50 +204,39 @@ export function NavigatePage() {
                   })
                 }
               >
-                Idle + keepalive
+                Idle
               </Button>
               <Button
                 variant="danger"
                 disabled={disabled}
                 onClick={() => void run("STOP NAV", () => sendStopNav())}
               >
-                Stop nav
+                Stop
               </Button>
             </div>
           </div>
         </section>
 
-        <Link
-          to="/nav-lab"
-          className="block rounded-[1.5rem] border border-line/70 bg-canvas-raised/80 p-5 transition-colors hover:border-accent/40"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="font-display text-lg font-bold text-ink">Nav Lab</h2>
-              <p className="mt-1 text-sm text-ink-muted">
-                Auto-cycle all maneuvers and verify icons on the pod
-              </p>
-            </div>
-            <span className="text-ink-faint">›</span>
-          </div>
-        </Link>
-
-        {/* Manual guidance (secondary) */}
-        <section className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/80 p-5">
+        {/* Manual — collapsed */}
+        <section className="rounded-[1.5rem] border border-line/60 bg-canvas-raised/80 p-5">
           <button
             type="button"
             className="flex w-full items-center justify-between text-left"
             onClick={() => setShowManual((v) => !v)}
           >
             <div>
-              <h2 className="font-display text-lg font-bold text-ink">Manual guidance</h2>
-              <p className="mt-1 text-sm text-ink-muted">Test turns without Maps</p>
+              <h2 className="font-display text-lg font-bold text-ink">Manual test</h2>
+              <p className="mt-1 text-sm text-ink-muted">Send turns without Maps</p>
             </div>
-            <span className="text-ink-faint">{showManual ? "▾" : "▸"}</span>
+            <span
+              className={`text-ink-faint transition-transform duration-300 ${showManual ? "rotate-90" : ""}`}
+            >
+              ›
+            </span>
           </button>
 
           {showManual && (
-            <div className="mt-4 space-y-3">
+            <div className="mt-4 space-y-3 animate-nav-rise">
               <div className="grid grid-cols-2 gap-3">
                 <Input
                   label="Distance (m)"
@@ -365,20 +304,10 @@ export function NavigatePage() {
           )}
         </section>
 
-        {(lastPacketHex || statusMsg || lastError) && (
-          <section className="rounded-2xl border border-line/60 bg-canvas-sunk/50 p-4">
-            <p className="mb-1 text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
-              {lastLabel}
-            </p>
-            {lastPacketHex && (
-              <pre className="packet-viewer break-all text-xs">{lastPacketHex}</pre>
-            )}
-            {(statusMsg || lastError) && (
-              <p className={`mt-3 text-sm ${lastError ? "text-danger" : "text-ink-muted"}`}>
-                {lastError ?? statusMsg}
-              </p>
-            )}
-          </section>
+        {(statusMsg || lastError) && (
+          <p className={`text-sm ${lastError ? "text-danger" : "text-ink-muted"}`}>
+            {lastError ?? statusMsg}
+          </p>
         )}
       </div>
     </AppLayout>
