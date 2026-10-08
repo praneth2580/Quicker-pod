@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { AppLayout } from "@/layouts/AppLayout";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { PinInput } from "@/components/connect/PinInput";
-import { BleLogConsole } from "@/components/ble/BleLogConsole";
 import { useBluetoothConnect } from "@/hooks/useBluetoothConnect";
 import { ROYAL_ENFIELD_NAME_PREFIX } from "@/bluetooth/filters";
 import { validateTripperPin } from "@/bluetooth/pairingConfig";
@@ -66,18 +66,30 @@ export function ConnectPage() {
   };
 
   return (
-    <AppLayout title="QUICKER-POD" subtitle="Royal Enfield BLE">
-      <div className="space-y-4">
+    <AppLayout title="Connect" subtitle="Tripper link" hideTitle>
+      <div className="space-y-5 animate-nav-rise">
+        <section className="relative overflow-hidden rounded-[1.75rem] border border-line/60 bg-canvas-raised/90 p-6 shadow-panel">
+          <div className="pointer-events-none absolute -left-6 bottom-0 h-28 w-28 rounded-full bg-accent/10 blur-2xl animate-nav-breathe" />
+          <p className="font-display text-sm font-semibold uppercase tracking-[0.2em] text-accent">
+            Quicker Pod
+          </p>
+          <h1 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-ink">
+            Connect
+          </h1>
+          <p className="mt-2 max-w-sm text-sm text-ink-muted">
+            Ignition on, Tripper awake — then pair over Bluetooth. Once linked, Navigate and Maps
+            mirroring can drive the display.
+          </p>
+        </section>
+
         {showInitialConnect && (
-          <Card className="text-center">
-            <p className="text-lg text-gray-300">Connect your motorcycle</p>
-            <p className="mt-2 text-sm text-gray-500">
-              Turn ignition on, then select a device starting with{" "}
+          <div className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/85 p-6 text-center shadow-lift">
+            <p className="font-display text-xl font-bold text-ink">Find your motorcycle</p>
+            <p className="mt-2 text-sm text-ink-muted">
+              Select a device starting with{" "}
               <span className="font-mono text-accent">{ROYAL_ENFIELD_NAME_PREFIX}</span> or{" "}
-              <span className="font-mono text-accent">RE_DISP</span>.
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              After selection, enter the 6-digit PIN shown on your Tripper display.
+              <span className="font-mono text-accent">RE_DISP</span>, then enter the 6-digit PIN on
+              the pod.
             </p>
             <Button
               className="mt-6"
@@ -85,20 +97,20 @@ export function ConnectPage() {
               disabled={!bluetoothSupported || connecting}
               onClick={handleStartPairing}
             >
-              {connecting ? "Selecting device…" : "Connect"}
+              {connecting ? "Selecting device…" : "Connect Tripper"}
             </Button>
-          </Card>
+          </div>
         )}
 
         {awaitingPin && (
           <Card title="Enter Tripper PIN">
             <div className="space-y-4 text-center">
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-ink-muted">
                 Enter the 6-digit code shown on your Tripper pod
                 {activeDeviceName ? (
                   <>
                     {" "}
-                    for <span className="font-medium text-white">{activeDeviceName}</span>
+                    for <span className="font-medium text-ink">{activeDeviceName}</span>
                   </>
                 ) : null}
                 .
@@ -138,67 +150,63 @@ export function ConnectPage() {
         )}
 
         {!bluetoothSupported && (
-          <Card className="border-warning/30">
-            <p className="text-sm text-warning">
-              {isNativeTripperBle()
-                ? "Bluetooth is unavailable. Enable Bluetooth and grant BLE permissions, then retry."
-                : "Web Bluetooth is not available in this browser. Use Chrome on Android/desktop, or the Quicker Pod Android app (Capacitor) for full Tripper pairing (GATT server)."}
-            </p>
-          </Card>
+          <div className="rounded-2xl border border-warning/35 bg-warning/10 p-4 text-sm text-warning">
+            {isNativeTripperBle()
+              ? "Bluetooth is unavailable. Enable Bluetooth and grant BLE permissions, then retry."
+              : "Web Bluetooth is not available here. Use Chrome, or the Quicker Pod Android app for full Tripper pairing."}
+          </div>
         )}
 
         {bluetoothSupported && isNativeTripperBle() && showInitialConnect && (
-          <Card className="border-accent/20">
-            <p className="text-sm text-gray-400">
-              Native Android BLE: phone runs a GATT server so Tripper can send AUTH. Connect scans for{" "}
-              <span className="font-mono text-accent">RE_</span> devices — PIN should appear on the pod.
-            </p>
-          </Card>
+          <p className="text-sm text-ink-muted">
+            Native Android BLE hosts a GATT server so Tripper can send AUTH. Scan finds{" "}
+            <span className="font-mono text-accent">RE_</span> devices — the PIN appears on the pod.
+          </p>
         )}
 
         {lastError && (
-          <Card className="border-danger/30">
-            <p className="text-sm text-danger">{lastError}</p>
-          </Card>
+          <div className="rounded-2xl border border-danger/35 bg-danger/10 p-4 text-sm text-danger">
+            {lastError}
+          </div>
         )}
 
         {pairingMessage && (
-          <Card className="border-success/30">
-            <p className="text-sm text-success">{pairingMessage}</p>
-          </Card>
+          <div className="rounded-2xl border border-success/35 bg-success/10 p-4 text-sm text-success">
+            {pairingMessage}
+          </div>
         )}
 
         {currentDevice && !awaitingPin && (
-          <Card title="🏍️ Connected Device">
-            <div className="space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-xs uppercase tracking-wider text-gray-500">Name</p>
-                  <p className="truncate font-semibold text-white">{currentDevice.name}</p>
-                </div>
-                <StatusBadge
-                  label={connected ? "Connected" : currentDevice.pinPaired ? "PIN Paired" : "Saved"}
-                  active={connected}
-                  variant={connected ? "success" : "neutral"}
-                />
+          <div className="rounded-[1.5rem] border border-line/70 bg-canvas-raised/90 p-5 shadow-lift">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-ink-faint">
+                  Linked device
+                </p>
+                <p className="mt-1 truncate font-display text-xl font-bold text-ink">
+                  {currentDevice.name}
+                </p>
+                <p className="mt-1 font-mono text-xs text-ink-faint">{currentDevice.id}</p>
+              </div>
+              <StatusBadge
+                label={connected ? "Connected" : currentDevice.pinPaired ? "Paired" : "Saved"}
+                active={connected}
+                variant={connected ? "success" : "neutral"}
+              />
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <p className="text-xs text-ink-faint">First paired</p>
+                <p className="text-ink-muted">{formatTimestamp(currentDevice.firstPaired)}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-wider text-gray-500">ID</p>
-                <p className="font-mono text-sm text-gray-300">{currentDevice.id}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-gray-500">First paired</p>
-                  <p className="text-gray-400">{formatTimestamp(currentDevice.firstPaired)}</p>
-                </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-gray-500">Last connected</p>
-                  <p className="text-gray-400">{formatTimestamp(currentDevice.lastConnected)}</p>
-                </div>
+                <p className="text-xs text-ink-faint">Last connected</p>
+                <p className="text-ink-muted">{formatTimestamp(currentDevice.lastConnected)}</p>
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="mt-5 grid grid-cols-2 gap-2">
               <Button
                 variant="secondary"
                 disabled={connecting || connected}
@@ -214,16 +222,23 @@ export function ConnectPage() {
                 disabled={connecting || submittingPin}
                 onClick={() => void forgetDevice()}
               >
-                Forget Device
+                Forget
               </Button>
             </div>
 
             {connected && (
-              <Button className="mt-2" variant="ghost" fullWidth onClick={() => void disconnect()}>
-                Disconnect
-              </Button>
+              <div className="mt-3 grid gap-2">
+                <Link to="/navigate">
+                  <Button fullWidth variant="primary">
+                    Start Navigate
+                  </Button>
+                </Link>
+                <Button variant="ghost" fullWidth onClick={() => void disconnect()}>
+                  Disconnect
+                </Button>
+              </div>
             )}
-          </Card>
+          </div>
         )}
 
         {hasPairedDevice && !awaitingPin && (
@@ -239,18 +254,19 @@ export function ConnectPage() {
 
         {otherDevices.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-sm font-medium uppercase tracking-wide text-gray-500">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-faint">
               Other saved devices
             </h2>
             {otherDevices.map((d) => (
-              <Card key={d.id}>
-                <div className="min-w-0">
-                  <h3 className="truncate font-semibold">{d.name}</h3>
-                  <p className="mt-1 font-mono text-xs text-gray-500">{d.id}</p>
-                  <p className="mt-2 text-sm text-gray-400">
-                    Last connected: {formatTimestamp(d.lastConnected)}
-                  </p>
-                </div>
+              <div
+                key={d.id}
+                className="rounded-2xl border border-line/70 bg-canvas-raised/80 p-4 shadow-lift"
+              >
+                <h3 className="truncate font-display font-semibold text-ink">{d.name}</h3>
+                <p className="mt-1 font-mono text-xs text-ink-faint">{d.id}</p>
+                <p className="mt-2 text-sm text-ink-muted">
+                  Last connected: {formatTimestamp(d.lastConnected)}
+                </p>
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <Button
                     variant="secondary"
@@ -266,12 +282,10 @@ export function ConnectPage() {
                     Forget
                   </Button>
                 </div>
-              </Card>
+              </div>
             ))}
           </div>
         )}
-
-        <BleLogConsole compact title="Live BLE log" />
       </div>
     </AppLayout>
   );

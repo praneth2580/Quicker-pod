@@ -1,24 +1,80 @@
-node_modules
-dist
-dist-ssr
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Builds / bundlers
+dist/
+dist-ssr/
+dist-apk/
 *.local
-.DS_Store
+
+# Logs & OS
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# Python
 __pycache__/
+*.py[cod]
+.Python
+.venv/
+venv/
 
 # Protocol-fuzzing experiment store (tripper-sdk/tripper.py)
 tripper-experiments/
 
-# Capacitor / Android
+# IDE / editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.jks
+*.keystore
+!debug.keystore
+
+# Capacitor / Android (app)
 android/.gradle/
 android/app/build/
 android/build/
 android/captures/
 android/local.properties
-dist-apk/
+android/.idea/
+android/*.iml
+android/app/*.iml
+
+# Capacitor plugins — build outputs & caches (all local plugins)
+plugins/*/dist/
+plugins/*/node_modules/
+plugins/*/android/.gradle/
+plugins/*/android/build/
+plugins/*/android/local.properties
+plugins/*/android/.idea/
+plugins/*/android/*.iml
+
+# Nested Android intermediates anywhere under plugins
+plugins/**/build/
+plugins/**/.gradle/
+
+# Generated APKs / bundles
 *.apk
 *.aab
-*.keystore
-!debug.keystore
-plugins/tripper-ble/dist/
-plugins/tripper-ble/node_modules/
+*.ap_
+*.dex
+
+# Misc tooling
+.turbo/
+.cache/
+coverage/
+*.tsbuildinfo
+.eslintcache

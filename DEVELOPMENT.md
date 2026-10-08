@@ -52,9 +52,13 @@ Open [http://localhost:5173](http://localhost:5173). The default route `/` is th
 | `npm run build:apk` | Capacitor sync + Gradle release APK → `dist-apk/quicker-pod.apk` |
 | `npm run preview` | Preview the production build locally |
 | `npm run lint` | Run ESLint |
-| `npm run deploy` | Build and push `dist/` to the `gh-pages` branch (landing site) |
+| `npm run deploy` | Build and push `dist/` to the `gh-pages` branch (static site + `apk-latest.json`) |
+| `npm run release` | Bump version → build APK → GitHub Release → update metadata → deploy |
 | `npm run cap:sync` | Build plugin + Capacitor web assets, sync into `android/` |
+| `npm run android:emulator` | Start an AVD if none is online (`scripts/start-emulator.sh`) |
 | `npm run android:run` | Sync → emulator if needed → install debug APK → launch |
+
+Android/Gradle scripts source `scripts/android-env.sh` (JDK **21** + `ANDROID_HOME`).
 ---
 
 ## Build
@@ -89,29 +93,36 @@ Live URL: [https://praneth2580.github.io/Quicker-pod/](https://praneth2580.githu
 
 ## Android APK releases
 
-### One command: build, publish, update landing page
+### One command: build, publish, update download metadata
 
-Requires a clean git tree, JDK/Android SDK, and `GITHUB_TOKEN` (repo scope).
+Requires a **clean git tree**, JDK 21 / Android SDK, and GitHub credentials for the Releases API.
 
 ```bash
-export GITHUB_TOKEN=ghp_...   # or GH_TOKEN / `gh auth login`
-npm run release               # patch bump (0.1.0 → 0.1.1)
+# Preferred auth (do not put PATs in the git remote URL):
+export GITHUB_TOKEN=…          # classic PAT with repo scope
+# or: gh auth login
+
+# If origin still embeds a token, clean it after exporting GITHUB_TOKEN:
+#   git remote set-url origin https://github.com/praneth2580/Quicker-pod.git
+
+DRY_RUN=1 npm run release      # print plan only (safe)
+npm run release                # patch bump (0.1.0 → 0.1.1)
 npm run release -- minor
 npm run release -- major
-npm run release -- 1.2.0      # exact version
-DRY_RUN=1 npm run release     # print plan only
-SKIP_DEPLOY=1 npm run release # skip gh-pages deploy
+npm run release -- 1.2.0       # exact version
+SKIP_DEPLOY=1 npm run release  # skip gh-pages (CI can still deploy metadata)
 ```
 
 What it does:
 
 1. Bumps `package.json` version, Android `versionName` / `versionCode`
-2. Writes `public/apk-latest.json` (landing Download CTA)
-3. Builds `dist-apk/quicker-pod.apk`
-4. Commits, tags `vX.Y.Z`, creates a GitHub Release with the APK
-5. Deploys the static site to `gh-pages`
+2. Writes `public/apk-latest.json` (download CTA / Releases fallback helper)
+3. Builds `dist-apk/quicker-pod.apk` (via `scripts/android-env.sh` → JDK 21)
+4. Commits, tags `vX.Y.Z`, creates/updates a GitHub Release with asset `quicker-pod.apk`
+5. Deploys the static site to `gh-pages` (non-fatal if Pages fails; Release still published)
 
-Landing prefers `apk-latest.json`, then falls back to the GitHub Releases API.
+Clients prefer `apk-latest.json`, then fall back to the GitHub Releases API
+(`src/hooks/useLatestApkRelease.ts`).
 
 ### Local APK only
 
@@ -122,7 +133,10 @@ npm run build:apk
 
 ### CI alternative
 
-Push a `v*` tag or run Actions → **Release APK**. Stable URL:
+Push a `v*` tag (or run Actions → **Release APK**). The workflow builds the APK,
+uploads `quicker-pod.apk`, refreshes `apk-latest.json`, and deploys `gh-pages`.
+
+Stable URL:
 
 ```text
 https://github.com/praneth2580/Quicker-pod/releases/latest/download/quicker-pod.apk
@@ -201,12 +215,14 @@ Protocol fuzzing and differential reverse-engineering (Python CLI, dry-run by de
 
 | Route | Page |
 |-------|------|
-| `/` | Landing (download / promo) |
-| `/app` | Redirects to Dashboard (web lab) |
-| `/dashboard` | Web lab home |
-| `/connect` | Connect (BLE scanner) |
-| `/protocol-lab` | Protocol Lab |
+| `/` | Redirects to Connect (app entry) |
+| `/connect` | Connect / pairing |
+| `/navigate` | Tripper nav packets + keepalive |
+| `/dashboard` | Home summary |
+| `/dev` | Developer tools hub |
+| `/protocol-lab`, `/fuzzer`, `/ble-debug` | Dev tools (also linked from `/dev`) |
 | `/settings` | Settings |
+| `/download` | Marketing / APK download (gh-pages; not in app nav) |
 Legacy routes redirect to Protocol Lab tabs with `?tab=`.
 
 ### State management
@@ -230,10 +246,11 @@ Legacy routes redirect to Protocol Lab tabs with `?tab=`.
 
 ## UI conventions
 
-- Dark theme by default (`#111827` surface, `#22d3ee` accent)
+- Light-first “road tour” theme (teal accent, atmospheric canvas); optional night-ride dark mode in Settings
 - Mobile-first with safe-area padding and large touch targets
 - Monospace packet viewers with horizontal scroll
-- Four-item bottom navigation: Home, Connect, Lab, Settings
+- Four-item bottom navigation: **Home · Navigate · Connect · Settings** (dev tools under Settings)
+- Maps notification mirroring: Capacitor plugin `plugins/nav-notifications` — see `docs/maps-notification-mirroring.md`
 
 ---
 

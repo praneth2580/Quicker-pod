@@ -71,3 +71,6 @@ export const DELAY_PING_TO_READY_MS = 300;
 export const DELAY_POST_PIN_TO_PING_MS = 200;
 export const DELAY_POST_PIN_WP_GAP_MS = 100;
 export const DELAY_INTER_WRITE_MS = 80;
+
+/** Official app re-sends last nav packet on this interval (Super Tripper / q12). */
+export const KEEPALIVE_INTERVAL_MS = 1000;

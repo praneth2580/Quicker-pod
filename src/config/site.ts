@@ -1,8 +1,9 @@
 export const SITE_URL = "https://praneth2580.github.io/Quicker-pod/";
 export const SITE_NAME = "Quicker-pod";
-export const SITE_TAGLINE = "Free & open Tripper Pod companion";
+export const SITE_TAGLINE = "Open navigation companion for Royal Enfield Tripper Pod";
 export const SITE_DESCRIPTION =
-  "Quicker-pod is a free, open-source companion for the Royal Enfield Tripper Pod. Download the Android APK for full BLE pairing (GATT server), or explore the protocol lab on the web — no account, no fees.";
+  "Quicker-pod is a free, open-source Android companion for the Royal Enfield Tripper Pod. Sideload the APK for full BLE pairing, Google Maps turn mirroring, and live navigation on your pod — no account, no store fees.";
+export const SITE_OG_IMAGE = `${SITE_URL}screenshots/mobile-wide.png`;
 export const GITHUB_OWNER = "praneth2580";
 export const GITHUB_REPO = "Quicker-pod";
 export const GITHUB_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}`;
@@ -16,12 +17,14 @@ export const GITHUB_RELEASES_PAGE_URL = `${GITHUB_URL}/releases/latest`;
 export const SEO_KEYWORDS = [
   "Royal Enfield Tripper Pod",
   "Tripper Pod app alternative",
-  "free Tripper Pod app",
+  "free Tripper Pod APK",
+  "Tripper Pod navigation app",
+  "Google Maps Tripper Pod",
   "Tripper Pod Bluetooth",
-  "Tripper Pod APK",
+  "RE_DISP BLE companion",
+  "motorcycle HUD Android",
+  "open source Tripper companion",
   "Royal Enfield navigation pod",
-  "BLE protocol explorer",
-  "open source motorcycle navigation",
-  "Tripper Pod reverse engineering",
-  "Android Tripper companion",
+  "Android Tripper pairing",
+  "Maps turn-by-turn Tripper",
 ].join(", ");

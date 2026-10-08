@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useLatestApkRelease } from "@/hooks/useLatestApkRelease";
+import { useScrollReveal } from "@/hooks/useScrollReveal";
 import {
   GITHUB_URL,
   SITE_DESCRIPTION,
@@ -8,25 +9,44 @@ import {
   SITE_NAME,
   SITE_TAGLINE,
   SITE_URL,
+  SITE_OG_IMAGE,
   APK_LATEST_DOWNLOAD_URL,
   GITHUB_RELEASES_PAGE_URL,
 } from "@/config/site";
 
 const WHY = [
   {
-    title: "Full Tripper pairing",
+    title: "Pair like the official app",
     description:
-      "The Android build hosts the phone-side GATT server so PIN auth and handshake work like the official companion.",
+      "Android hosts the phone-side GATT server so PIN auth and handshake work with real Tripper hardware.",
   },
   {
-    title: "Protocol Lab on the side",
+    title: "Maps turns on the pod",
     description:
-      "Need diagnostics without installing? The web lab still explores GATT, traffic, and packets in Chrome.",
+      "Mirror Google Maps navigation notifications into Tripper turn packets — keep your eyes on the road.",
   },
   {
     title: "Open and free",
     description:
-      "No account wall, no store fee. Releases ship from GitHub so you can verify the build and the source together.",
+      "No account wall, no store fee. Every APK ships from GitHub Releases so you can verify build and source together.",
+  },
+] as const;
+
+const INSTALL_STEPS = [
+  {
+    n: "01",
+    title: "Download the APK",
+    body: "Use Download APK above, or grab quicker-pod.apk from the latest GitHub Release.",
+  },
+  {
+    n: "02",
+    title: "Allow install",
+    body: "Enable install from this source on Android, then open the file to install Quicker Pod.",
+  },
+  {
+    n: "03",
+    title: "Pair & navigate",
+    body: "Connect your Tripper, enable notification access, and start Maps turn-by-turn guidance.",
   },
 ] as const;
 
@@ -34,22 +54,22 @@ const FAQ = [
   {
     question: "Why download an APK instead of using the website?",
     answer:
-      "Full Tripper pairing needs the phone to act as a BLE GATT server. Browsers cannot host that role. The Android APK (Capacitor + TripperBle) can — that is the real companion experience.",
+      "Full Tripper pairing and Maps mirroring need the phone to act as a BLE GATT server and read navigation notifications. Browsers cannot do that. The Android APK can.",
+  },
+  {
+    question: "Does it work with Google Maps?",
+    answer:
+      "Yes on Android. Enable notification access for Quicker Pod, connect your Tripper, then start Maps turn-by-turn. Turns and distance are mirrored to the pod.",
   },
   {
     question: "Is the APK signed for Play Store?",
     answer:
-      "Community CI builds are signed for sideloading from GitHub Releases. Install from unknown sources must be enabled on your device. You can always build from source.",
-  },
-  {
-    question: "Can I still use the web app?",
-    answer:
-      "Yes. Open the web lab from this site for Chrome Web Bluetooth exploration. Pairing that requires the GATT server still needs the APK.",
+      "Community builds are signed for sideloading from GitHub Releases. Enable install from unknown sources. You can always build from source.",
   },
   {
     question: "How do new APKs get published?",
     answer:
-      "Maintainers run npm run release (optionally -- minor|major|X.Y.Z). That bumps versions, builds the APK, uploads it to a GitHub Release, and refreshes this landing page download link.",
+      "Maintainers run npm run release. That bumps versions, builds the APK, uploads it to a GitHub Release, and refreshes the landing download link.",
   },
 ] as const;
 
@@ -59,20 +79,37 @@ const structuredData = {
     {
       "@type": "WebSite",
       name: SITE_NAME,
-      url: SITE_URL,
+      url: `${SITE_URL}download`,
       description: SITE_DESCRIPTION,
+      publisher: { "@type": "Organization", name: "Quicker-pod Contributors", url: GITHUB_URL },
     },
     {
       "@type": "SoftwareApplication",
       name: SITE_NAME,
-      applicationCategory: "UtilitiesApplication",
+      applicationCategory: "NavigationApplication",
       operatingSystem: "Android",
       offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
       description: SITE_DESCRIPTION,
-      url: SITE_URL,
+      url: `${SITE_URL}download`,
       downloadUrl: APK_LATEST_DOWNLOAD_URL,
-      screenshot: `${SITE_URL}screenshots/mobile-narrow.png`,
+      installUrl: APK_LATEST_DOWNLOAD_URL,
+      screenshot: [SITE_OG_IMAGE, `${SITE_URL}screenshots/mobile-narrow.png`],
+      image: SITE_OG_IMAGE,
       author: { "@type": "Organization", name: "Quicker-pod Contributors", url: GITHUB_URL },
+      isAccessibleForFree: true,
+      keywords: SEO_KEYWORDS,
+    },
+    {
+      "@type": "HowTo",
+      name: "Install Quicker-pod on Android",
+      description: "Sideload the Tripper Pod companion APK and pair your motorcycle display.",
+      totalTime: "PT5M",
+      step: INSTALL_STEPS.map((step, index) => ({
+        "@type": "HowToStep",
+        position: index + 1,
+        name: step.title,
+        text: step.body,
+      })),
     },
     {
       "@type": "FAQPage",
@@ -87,7 +124,7 @@ const structuredData = {
 
 function LandingHeader() {
   return (
-    <header className="safe-top absolute inset-x-0 top-0 z-40">
+    <header className="safe-top absolute inset-x-0 top-0 z-40 animate-landing-rise">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
         <a href="#top" className="font-display text-lg font-bold tracking-tight text-[#1c242c] sm:text-xl">
           Quicker<span className="text-[#0f766e]">-pod</span>
@@ -95,6 +132,9 @@ function LandingHeader() {
         <nav aria-label="Landing navigation" className="flex items-center gap-4 text-sm font-medium text-[#3d4a57]">
           <a href="#download" className="hidden transition-colors hover:text-[#0f766e] sm:inline">
             Download
+          </a>
+          <a href="#faq" className="hidden transition-colors hover:text-[#0f766e] sm:inline">
+            FAQ
           </a>
           <a
             href={GITHUB_URL}
@@ -143,19 +183,25 @@ function DownloadCta({
         onClick={(e) => {
           if (disabled) e.preventDefault();
         }}
-        className={`inline-flex min-h-12 items-center justify-center rounded-xl px-7 text-sm font-semibold transition-transform ${
+        className={`group relative inline-flex min-h-12 overflow-hidden items-center justify-center rounded-xl px-7 text-sm font-semibold transition-transform ${
           disabled
             ? "cursor-wait bg-[#1c242c]/45 text-white"
             : "bg-[#1c242c] text-[#f3f7f9] hover:bg-[#0f766e] active:scale-[0.98]"
         }`}
       >
-        {label}
+        {!disabled && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-landing-sheen"
+          />
+        )}
+        <span className="relative">{label}</span>
       </a>
       <Link
-        to="/app"
+        to="/navigate"
         className="inline-flex min-h-12 items-center justify-center rounded-xl border border-[#1c242c]/15 bg-white/50 px-7 text-sm font-semibold text-[#1c242c] backdrop-blur-sm transition-colors hover:border-[#0f766e]/40 hover:text-[#0f766e]"
       >
-        Open web lab
+        Open navigate
       </Link>
       {(status === "missing" || status === "error") && (
         <p className="text-sm text-[#5a6876] sm:max-w-xs">
@@ -176,16 +222,16 @@ function HeroSection({
 }) {
   return (
     <section className="relative min-h-[100dvh] overflow-hidden">
-      {/* Atmospheric full-bleed plane */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
         <div className="absolute inset-0 bg-[linear-gradient(160deg,#d7e4ec_0%,#eef3f6_42%,#c9d8e2_78%,#a8bdc9_100%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_10%,rgba(15,118,110,0.18),transparent_50%)]" />
         <div className="landing-mesh absolute -left-[20%] top-[10%] h-[70vmin] w-[70vmin] animate-landing-drift rounded-full bg-[radial-gradient(circle,rgba(245,158,11,0.22),transparent_70%)] blur-2xl" />
+        <div className="absolute -right-[15%] bottom-[5%] h-[55vmin] w-[55vmin] animate-landing-drift-alt rounded-full bg-[radial-gradient(circle,rgba(15,118,110,0.2),transparent_70%)] blur-2xl" />
         <div
-          className="absolute inset-0 opacity-[0.35]"
+          className="absolute inset-0 opacity-[0.28] animate-landing-hatch"
           style={{
             backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%231c242c' stroke-opacity='0.06' stroke-width='1'%3E%3Cpath d='M0 30h60M30 0v60'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+              "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke='%231c242c' stroke-opacity='0.07' stroke-width='1'%3E%3Cpath d='M0 30h60M30 0v60'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
           }}
         />
       </div>
@@ -200,14 +246,14 @@ function HeroSection({
             className="animate-landing-rise mt-5 max-w-lg font-display text-2xl font-semibold leading-snug tracking-tight text-[#24303a] sm:text-3xl"
             style={{ animationDelay: "120ms" }}
           >
-            The open Tripper companion you can actually sideload.
+            Navigation for your Tripper — open, sideloadable, free.
           </h1>
           <p
             className="animate-landing-rise mt-4 max-w-md text-base leading-relaxed text-[#4a5866] sm:text-lg"
             style={{ animationDelay: "220ms" }}
           >
-            {SITE_TAGLINE}. Download the Android APK for full BLE pairing, or open the web lab when you
-            only need diagnostics.
+            {SITE_TAGLINE}. Download the Android APK for BLE pairing and Maps turn mirroring on the
+            pod.
           </p>
           <div className="animate-landing-rise mt-8" style={{ animationDelay: "320ms" }}>
             <DownloadCta {...apk} />
@@ -218,10 +264,11 @@ function HeroSection({
           className="animate-landing-rise relative mx-auto w-full max-w-sm lg:max-w-none"
           style={{ animationDelay: "200ms" }}
         >
-          <div className="animate-landing-float">
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#0f766e]/25 animate-nav-pulse-ring" />
+          <div className="animate-landing-float relative">
             <img
               src={`${import.meta.env.BASE_URL}screenshots/mobile-narrow.png`}
-              alt="Quicker-pod Protocol Lab on a phone"
+              alt="Quicker-pod navigation companion on a phone"
               width={390}
               height={844}
               className="mx-auto max-h-[min(62vh,640px)] w-auto rounded-[1.75rem] border border-[#1c242c]/10 object-cover object-top shadow-[0_28px_60px_-28px_rgba(28,36,44,0.55)]"
@@ -234,16 +281,20 @@ function HeroSection({
 }
 
 function WhySection() {
+  const ref = useScrollReveal<HTMLElement>();
   return (
-    <section className="border-t border-[#1c242c]/10 bg-[#f3f7f9] px-5 py-20 sm:px-8">
+    <section
+      ref={ref}
+      className="landing-reveal border-t border-[#1c242c]/10 bg-[#f3f7f9] px-5 py-20 sm:px-8"
+    >
       <div className="mx-auto max-w-6xl">
         <h2 className="font-display text-3xl font-bold tracking-tight text-[#1c242c] sm:text-4xl">
-          Built for real Tripper hardware
+          Built for the ride
         </h2>
         <p className="mt-3 max-w-2xl text-[#5a6876]">
-          One job per surface: Android for pairing, web for exploration, GitHub for every release.
+          Android for pairing and live guidance. GitHub for every release you can trust.
         </p>
-        <ul className="mt-12 grid gap-10 sm:grid-cols-3">
+        <ul className="landing-reveal-stagger mt-12 grid gap-10 sm:grid-cols-3">
           {WHY.map((item) => (
             <li key={item.title}>
               <h3 className="font-display text-xl font-semibold text-[#1c242c]">{item.title}</h3>
@@ -257,33 +308,21 @@ function WhySection() {
 }
 
 function StepsSection() {
+  const ref = useScrollReveal<HTMLElement>();
   return (
-    <section className="border-t border-[#1c242c]/10 bg-[#e8eef2] px-5 py-20 sm:px-8">
+    <section
+      ref={ref}
+      className="landing-reveal border-t border-[#1c242c]/10 bg-[#e8eef2] px-5 py-20 sm:px-8"
+    >
       <div className="mx-auto max-w-6xl">
         <h2 className="font-display text-3xl font-bold tracking-tight text-[#1c242c] sm:text-4xl">
           Install in three moves
         </h2>
         <p className="mt-3 max-w-xl text-[#5a6876]">
-          Sideload from GitHub Releases — the same APK the landing page Download button targets.
+          Sideload from GitHub Releases — the same APK the Download button targets.
         </p>
-        <ol className="mt-12 grid gap-8 sm:grid-cols-3">
-          {[
-            {
-              n: "01",
-              title: "Download the APK",
-              body: "Use Download APK above, or grab quicker-pod.apk from the latest GitHub Release.",
-            },
-            {
-              n: "02",
-              title: "Allow install",
-              body: "Enable install from this source on Android, then open the file to install Quicker Pod.",
-            },
-            {
-              n: "03",
-              title: "Pair your Tripper",
-              body: "Open the app, connect, and complete PIN auth with the native GATT server path.",
-            },
-          ].map((step) => (
+        <ol className="landing-reveal-stagger mt-12 grid gap-8 sm:grid-cols-3">
+          {INSTALL_STEPS.map((step) => (
             <li key={step.n}>
               <p className="font-display text-sm font-bold tracking-[0.2em] text-[#0f766e]">{step.n}</p>
               <h3 className="mt-3 font-display text-xl font-semibold text-[#1c242c]">{step.title}</h3>
@@ -297,8 +336,13 @@ function StepsSection() {
 }
 
 function FaqSection() {
+  const ref = useScrollReveal<HTMLElement>();
   return (
-    <section id="faq" className="border-t border-[#1c242c]/10 bg-[#f3f7f9] px-5 py-20 sm:px-8">
+    <section
+      id="faq"
+      ref={ref}
+      className="landing-reveal border-t border-[#1c242c]/10 bg-[#f3f7f9] px-5 py-20 sm:px-8"
+    >
       <div className="mx-auto max-w-3xl">
         <h2 className="font-display text-3xl font-bold tracking-tight text-[#1c242c] sm:text-4xl">
           Questions
@@ -317,16 +361,24 @@ function FaqSection() {
 }
 
 function ClosingCta({ apk }: { apk: ReturnType<typeof useLatestApkRelease> }) {
+  const ref = useScrollReveal<HTMLElement>();
   const href = apk.downloadUrl ?? apk.releasesPageUrl;
   return (
-    <section className="relative overflow-hidden border-t border-[#1c242c]/10 px-5 py-24 sm:px-8">
+    <section
+      ref={ref}
+      className="landing-reveal relative overflow-hidden border-t border-[#1c242c]/10 px-5 py-24 sm:px-8"
+    >
       <div
         aria-hidden
         className="absolute inset-0 bg-[linear-gradient(135deg,#1c242c_0%,#24353a_55%,#0f766e_120%)]"
       />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-10 top-0 h-48 w-48 animate-landing-drift rounded-full bg-[radial-gradient(circle,rgba(243,247,249,0.12),transparent_70%)]"
+      />
       <div className="relative mx-auto max-w-3xl text-center">
         <h2 className="font-display text-3xl font-bold tracking-tight text-[#f3f7f9] sm:text-4xl">
-          Get the APK. Pair your Pod.
+          Get the APK. Pair your Pod. Ride.
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-[#b7c4ce]">
           Latest builds live on GitHub Releases as <code className="text-[#e8f5f3]">quicker-pod.apk</code>.
@@ -334,9 +386,15 @@ function ClosingCta({ apk }: { apk: ReturnType<typeof useLatestApkRelease> }) {
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <a
             href={href}
-            className="inline-flex min-h-12 items-center justify-center rounded-xl bg-[#f3f7f9] px-8 text-sm font-semibold text-[#1c242c] transition-colors hover:bg-white"
+            className="group relative inline-flex min-h-12 overflow-hidden items-center justify-center rounded-xl bg-[#f3f7f9] px-8 text-sm font-semibold text-[#1c242c] transition-colors hover:bg-white"
           >
-            {apk.status === "ready" ? "Download APK" : "Open latest release"}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-[#0f766e]/20 to-transparent animate-landing-sheen"
+            />
+            <span className="relative">
+              {apk.status === "ready" ? "Download APK" : "Open latest release"}
+            </span>
           </a>
           <a
             href={GITHUB_URL}
@@ -360,14 +418,14 @@ function LandingFooter() {
           <p className="font-display font-bold text-[#1c242c]">
             Quicker<span className="text-[#0f766e]">-pod</span>
           </p>
-          <p className="mt-1 text-sm text-[#5a6876]">Open-source Tripper Pod companion</p>
+          <p className="mt-1 text-sm text-[#5a6876]">Open navigation companion for Tripper Pod</p>
         </div>
         <nav aria-label="Footer" className="flex flex-wrap gap-5 text-sm text-[#5a6876]">
           <a href={GITHUB_RELEASES_PAGE_URL} className="hover:text-[#0f766e]">
             Releases
           </a>
-          <Link to="/app" className="hover:text-[#0f766e]">
-            Web lab
+          <Link to="/navigate" className="hover:text-[#0f766e]">
+            Open app
           </Link>
           <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className="hover:text-[#0f766e]">
             GitHub
@@ -385,10 +443,12 @@ export function LandingPage() {
   const apk = useLatestApkRelease();
 
   usePageMeta({
-    title: `${SITE_NAME} — Free Tripper Pod Android Companion`,
+    title: `${SITE_NAME} — Free Tripper Pod Navigation APK`,
     description: SITE_DESCRIPTION,
-    path: "",
+    path: "download",
     keywords: SEO_KEYWORDS,
+    image: SITE_OG_IMAGE,
+    imageAlt: "Quicker-pod navigation companion on Android",
   });
 
   return (

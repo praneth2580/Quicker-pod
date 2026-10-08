@@ -23,7 +23,7 @@ interface SettingsState {
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
-      darkMode: true,
+      darkMode: false,
       debugMode: false,
       experimentalMode: false,
       iosInstallHintOpen: false,
@@ -58,9 +58,7 @@ export const useSettingsStore = create<SettingsState>()(
         pinEncoding: state.pinEncoding,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state?.darkMode !== false) {
-          document.documentElement.classList.add("dark");
-        }
+        document.documentElement.classList.toggle("dark", state?.darkMode === true);
       },
     },
   ),

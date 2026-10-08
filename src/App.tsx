@@ -1,28 +1,24 @@
+import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useBluetooth } from "@/hooks/useBluetooth";
 import { useDbInit } from "@/hooks/useDbInit";
-import { usePwaInstall, usePwaInstallInit } from "@/hooks/usePwaInstall";
+import { usePwaInstallInit } from "@/hooks/usePwaInstall";
 import { useProtocolLabBle } from "@/features/protocol-lab/hooks/useProtocolLabBle";
 import { LEGACY_ROUTE_TABS } from "@/features/protocol-lab/utils/tabs";
 import { LandingPage } from "@/pages/LandingPage";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { ConnectPage } from "@/pages/ConnectPage";
+import { NavigatePage } from "@/pages/NavigatePage";
+import { DevPage } from "@/pages/DevPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
 import { FuzzerPage } from "@/features/fuzzer/pages/FuzzerPage";
 import { BleDebugPage } from "@/pages/BleDebugPage";
+import { startMapsNavBridge } from "@/navigation/mapsNavBridge";
 
 function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
   const tab = LEGACY_ROUTE_TABS[legacyPath] ?? "explorer";
   return <Navigate to={`/protocol-lab?tab=${tab}`} replace />;
-}
-
-function RootRoute() {
-  const { installed } = usePwaInstall();
-  if (installed) {
-    return <Navigate to="/dashboard" replace />;
-  }
-  return <LandingPage />;
 }
 
 export default function App() {
@@ -30,14 +26,20 @@ export default function App() {
   useProtocolLabBle();
   usePwaInstallInit();
   useDbInit();
+  useEffect(() => {
+    void startMapsNavBridge();
+  }, []);
 
   return (
     <Routes>
-      <Route path="/" element={<RootRoute />} />
-      {/* Web BLE lab — primary Android experience is the APK from GitHub Releases */}
+      {/* App entry: Home. Marketing landing is /download only (not in bottom nav). */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/download" element={<LandingPage />} />
       <Route path="/app" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<DashboardPage />} />
       <Route path="/connect" element={<ConnectPage />} />
+      <Route path="/navigate" element={<NavigatePage />} />
+      <Route path="/dev" element={<DevPage />} />
       <Route path="/scanner" element={<Navigate to="/connect" replace />} />
       <Route path="/lab" element={<Navigate to="/protocol-lab" replace />} />
       <Route path="/monitor" element={<Navigate to="/protocol-lab?tab=notifications" replace />} />

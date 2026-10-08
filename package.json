@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "npm run generate-pwa-assets && tsc -b && vite build",
     "build:apk": "bash scripts/build-apk.sh",
-    "build:plugin": "npm run build --prefix plugins/tripper-ble",
+    "build:plugin": "npm run build --prefix plugins/tripper-ble && npm run build --prefix plugins/nav-notifications",
     "generate-pwa-assets": "pwa-assets-generator && node scripts/generate-screenshots.mjs",
     "postbuild": "cp dist/index.html dist/404.html",
     "preview": "vite preview",
@@ -15,6 +15,7 @@
     "deploy": "npm run build && gh-pages -d dist -b gh-pages",
     "release": "bash scripts/release.sh",
     "cap:sync": "npm run build:plugin && CAPACITOR=1 npm run generate-pwa-assets && CAPACITOR=1 tsc -b && CAPACITOR=1 vite build && npx cap sync android",
+    "android:emulator": "bash scripts/start-emulator.sh",
     "android:run": "bash scripts/run-android-emulator.sh"
   },
   "dependencies": {
@@ -24,6 +25,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
+    "nav-notifications": "file:plugins/nav-notifications",
     "tripper-ble": "file:plugins/tripper-ble",
     "zustand": "^5.0.5"
   },

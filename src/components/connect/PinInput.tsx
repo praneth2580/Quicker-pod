@@ -53,8 +53,8 @@ export function PinInput({ value, onChange, disabled, error }: PinInputProps) {
             value={digit}
             disabled={disabled}
             aria-label={`PIN digit ${index + 1}`}
-            className={`h-12 w-10 rounded-xl border bg-black/30 text-center text-lg font-semibold text-white outline-none transition-colors ${
-              error ? "border-danger" : "border-white/10 focus:border-accent"
+            className={`h-12 w-10 rounded-xl border bg-canvas-sunk/80 text-center text-lg font-semibold text-ink outline-none transition-colors ${
+              error ? "border-danger" : "border-line/80 focus:border-accent"
             }`}
             onChange={(event) => updateDigit(index, event.target.value)}
             onKeyDown={(event) => handleKeyDown(index, event.key)}

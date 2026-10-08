@@ -10,11 +10,11 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-accent text-surface font-semibold hover:bg-cyan-300 active:scale-[0.98] shadow-glow",
+    "bg-accent text-accent-ink font-semibold hover:brightness-110 active:scale-[0.98] shadow-lift",
   secondary:
-    "bg-surface-raised border border-white/10 text-white hover:border-accent/50",
-  danger: "bg-danger/20 border border-danger/40 text-danger hover:bg-danger/30",
-  ghost: "bg-transparent text-gray-300 hover:bg-white/5",
+    "bg-canvas-raised border border-line text-ink hover:border-accent/50 hover:bg-accent-soft/40",
+  danger: "bg-danger/10 border border-danger/35 text-danger hover:bg-danger/15",
+  ghost: "bg-transparent text-ink-muted hover:bg-canvas-sunk/70 hover:text-ink",
 };
 
 export function Button({
@@ -27,7 +27,7 @@ export function Button({
 }: ButtonProps) {
   return (
     <button
-      className={`touch-target min-h-12 rounded-xl px-5 py-3 text-sm font-medium transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 ${variants[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
+      className={`touch-target min-h-12 rounded-2xl px-5 py-3 text-sm font-medium transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 disabled:active:scale-100 ${variants[variant]} ${fullWidth ? "w-full" : ""} ${className}`}
       disabled={disabled}
       {...props}
     >

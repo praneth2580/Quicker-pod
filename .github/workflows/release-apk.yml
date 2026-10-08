@@ -53,12 +53,19 @@ jobs:
         id: meta
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ inputs.tag }}" ]]; then
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            TAG="${{ inputs.tag }}"
           elif [[ "${{ github.ref_type }}" == "tag" ]]; then
-            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            TAG="${{ github.ref_name }}"
           else
-            echo "tag=apk-${{ github.sha }}" >> "$GITHUB_OUTPUT"
+            TAG="apk-${{ github.sha }}"
           fi
+          VERSION="${TAG#v}"
+          CODE="$(grep -E '^\s*versionCode\s+[0-9]+' android/app/build.gradle | head -1 | grep -oE '[0-9]+$' || echo 0)"
+          {
+            echo "tag=${TAG}"
+            echo "version=${VERSION}"
+            echo "version_code=${CODE}"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -70,3 +77,48 @@ jobs:
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write apk-latest.json for Pages deploy
+        if: startsWith(steps.meta.outputs.tag, 'v')
+        env:
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          CODE: ${{ steps.meta.outputs.version_code }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const tag = process.env.TAG;
+          const version = process.env.VERSION;
+          const code = Number(process.env.CODE || 0);
+          const owner = process.env.OWNER;
+          const repo = process.env.REPO;
+          const asset = "quicker-pod.apk";
+          const downloadUrl = `https://github.com/${owner}/${repo}/releases/download/${tag}/${asset}`;
+          const payload = {
+            version,
+            versionCode: code,
+            tag,
+            assetName: asset,
+            downloadUrl,
+            releasesPageUrl: `https://github.com/${owner}/${repo}/releases/tag/${tag}`,
+            publishedAt: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
+          };
+          fs.mkdirSync("public", { recursive: true });
+          fs.writeFileSync("public/apk-latest.json", JSON.stringify(payload, null, 2) + "\n");
+          console.log("Wrote public/apk-latest.json for", tag);
+          NODE
+
+      - name: Build static site
+        if: startsWith(steps.meta.outputs.tag, 'v')
+        run: npm run build
+
+      - name: Deploy site with download metadata
+        if: startsWith(steps.meta.outputs.tag, 'v')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: false

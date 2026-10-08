@@ -2,9 +2,8 @@
 # Start the first (or ANDROID_AVD) emulator if none is already online.
 set -euo pipefail
 
-export ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}}"
-export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
-export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+# shellcheck source=android-env.sh
+source "$(cd "$(dirname "$0")" && pwd)/android-env.sh"
 
 ADB="${ANDROID_HOME}/platform-tools/adb"
 EMULATOR_BIN="${ANDROID_HOME}/emulator/emulator"

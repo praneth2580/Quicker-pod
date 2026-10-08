@@ -4,6 +4,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
+# shellcheck source=android-env.sh
+source "$(dirname "$0")/android-env.sh"
+echo "==> Using JAVA_HOME=$JAVA_HOME"
 
 if [[ ! -d android ]]; then
   echo "error: android/ is missing. Run Capacitor init / npm run cap:sync first." >&2

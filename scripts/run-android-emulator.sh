@@ -5,10 +5,9 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
-
-export ANDROID_HOME="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-$HOME/Android/Sdk}}"
-export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
-export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+# shellcheck source=android-env.sh
+source "$(dirname "$0")/android-env.sh"
+echo "==> Using JAVA_HOME=$JAVA_HOME"
 
 APP_ID="com.quickerpod.app"
 ACTIVITY=".MainActivity"
