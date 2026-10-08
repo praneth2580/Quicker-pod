@@ -1,6 +1,6 @@
 {
   "name": "tripper-ble",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Capacitor plugin: Tripper dual-role BLE (GATT client + phone GATT server)",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
