@@ -276,35 +276,42 @@ git tag -a "$TAG" -m "Quicker-pod ${TAG}"
 git push origin "$TAG"
 
 echo "==> Creating GitHub Release ${TAG}"
+RELEASE_BODY="$(cat <<EOF
+Android APK ${NEW_VERSION} (versionCode ${NEW_CODE}) — pairing + Maps notification mirroring.
+
+### Whats new
+- Notification Listener works with a normal (manually installed) APK — no ADB or Play Store required
+- Settings → Notification Access: Status Enabled / Not Enabled; Enable Notification Access opens system settings
+- isEnabled() / openSettings() Capacitor APIs; status re-checks when you return from Settings
+- Service correctly declared in the release APK (BIND_NOTIFICATION_LISTENER_SERVICE + NotificationListenerService intent)
+
+### Install / enable access
+Download: ${DOWNLOAD_URL}
+
+If Play Protect blocks browser install ("sensitive data"), tap Install anyway.
+On Android 13+ after sideload: App info → ⋮ → Allow restricted settings, then enable Quicker Pod under Notification access.
+The app never grants this silently — you toggle it in Android Settings.
+EOF
+)"
+RELEASE_PAYLOAD="$(RELEASE_BODY="$RELEASE_BODY" node -e '
+const payload = {
+  tag_name: process.argv[1],
+  target_commitish: process.argv[2],
+  name: process.argv[3],
+  body: process.env.RELEASE_BODY || "",
+  draft: false,
+  prerelease: false,
+};
+process.stdout.write(JSON.stringify(payload));
+' "$TAG" "$COMMIT_SHA" "Quicker-pod ${TAG}")"
+
 RELEASE_JSON=""
 if RELEASE_JSON="$(api_curl GET "${API}/releases/tags/${TAG}" 2>/dev/null)"; then
   echo "    Release for ${TAG} already exists — will replace APK asset if present"
 else
   if ! RELEASE_JSON="$(api_curl POST "${API}/releases" \
     -H "Content-Type: application/json" \
-    -d "$(node -p "JSON.stringify({
-      tag_name: '${TAG}',
-      target_commitish: '${COMMIT_SHA}',
-      name: 'Quicker-pod ${TAG}',
-      body: [
-        "Android APK ${NEW_VERSION} (versionCode ${NEW_CODE}) — pairing + Maps notification mirroring.",
-        "",
-        "### Whats new",
-        "- Notification Listener works with a normal (manually installed) APK — no ADB or Play Store required",
-        "- Settings → Notification Access: Status Enabled / Not Enabled; Enable Notification Access opens system settings",
-        "- isEnabled() / openSettings() Capacitor APIs; status re-checks when you return from Settings",
-        "- Service correctly declared in the release APK (BIND_NOTIFICATION_LISTENER_SERVICE + NotificationListenerService intent)",
-        "",
-        "### Install / enable access",
-        "Download: ${DOWNLOAD_URL}",
-        "",
-        "If Play Protect blocks browser install (\\"sensitive data\\"), tap Install anyway.",
-        "On Android 13+ after sideload: App info → ⋮ → Allow restricted settings, then enable Quicker Pod under Notification access.",
-        "The app never grants this silently — you toggle it in Android Settings.",
-      ].join("\\n"),
-      draft: false,
-      prerelease: false
-    })")")"; then
+    -d "${RELEASE_PAYLOAD}")"; then
     echo "    Create raced (likely CI) — fetching existing release"
     RELEASE_JSON="$(api_curl GET "${API}/releases/tags/${TAG}")"
   fi
