@@ -45,9 +45,15 @@ function pickApkAsset(
 ): GithubReleaseAsset | undefined {
   if (tagName) {
     const named = apkAssetName(tagName);
+    // Prefer the installable core asset over the optional -maps build.
     const exact = assets.find((asset) => asset.name === named);
     if (exact) return exact;
   }
+  const core = assets.find(
+    (asset) =>
+      isQuickerPodApkAsset(asset.name) && !asset.name.toLowerCase().includes("-maps"),
+  );
+  if (core) return core;
   const versioned = assets.find((asset) => isQuickerPodApkAsset(asset.name));
   if (versioned) return versioned;
   return assets.find((asset) => asset.name.toLowerCase().endsWith(".apk"));

@@ -30,9 +30,18 @@ Tripper BLE write + keepalive (unchanged pairing/GATT server)
 
 Web builds expose a stub: status is `supported: false` and settings show **Android only**.
 
+## Two APK flavors
+
+| Flavor | Asset name | Play Protect (browser install) | Maps auto-mirror |
+|--------|------------|--------------------------------|------------------|
+| **core** (default download) | `quicker-pod-X.Y.Z.apk` | Installs cleanly | No — use Manual guidance |
+| **maps** | `quicker-pod-X.Y.Z-maps.apk` | May block (“sensitive data”) — use `adb install` or Install anyway | Yes — NotificationListener |
+
+Google Play Protect blocks internet-sideloaded apps that declare `NotificationListenerService`. The default **core** APK omits that service so Download APK works; the optional **maps** build re-adds it.
+
 ## Enable notification access (device)
 
-1. Install / run the Quicker Pod **Android APK** (Capacitor).
+1. Install the **maps** APK (`quicker-pod-*-maps.apk`), preferably via `adb install`.
 2. Open **Navigate** or **Settings → Maps notification access**.
 3. Tap **Open notification access** (or: Settings → Apps → Special app access → Notification access).
 4. Enable **Quicker Pod**.

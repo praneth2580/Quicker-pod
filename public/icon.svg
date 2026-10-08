@@ -1,17 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <rect width="512" height="512" rx="96" fill="#111827"/>
-  <!-- Flat BLE signal -->
-  <path d="M256 148v72" stroke="#22d3ee" stroke-width="20" stroke-linecap="round"/>
-  <path d="M220 184c20-20 56-20 72 0" stroke="#22d3ee" stroke-width="20" stroke-linecap="round" fill="none"/>
-  <path d="M196 208c32-32 88-32 120 0" stroke="#22d3ee" stroke-width="20" stroke-linecap="round" fill="none"/>
-  <circle cx="256" cy="220" r="14" fill="#22d3ee"/>
-  <!-- Minimal Q mark -->
-  <path
-    d="M196 308c0-40 26-68 60-68s60 28 60 68-26 68-60 68c-16 0-30-6-40-16l-24 30"
-    stroke="#f9fafb"
-    stroke-width="24"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    fill="none"
-  />
+  <!-- Brand tile: dark slate + teal accent (matches landing) -->
+  <rect width="512" height="512" rx="112" fill="#14201c"/>
+  <rect x="24" y="24" width="464" height="464" rx="96" stroke="#0f766e" stroke-width="20" fill="none" opacity="0.45"/>
+  <!-- Pod display -->
+  <rect x="118" y="150" width="276" height="168" rx="36" fill="#0f766e"/>
+  <rect x="146" y="178" width="220" height="112" rx="20" fill="#e8f5f3"/>
+  <!-- Route / turn chevron on display -->
+  <path d="M236 214h40v36h28l-48 52-48-52h28v-36z" fill="#0f766e"/>
+  <!-- BLE arcs under pod -->
+  <path d="M188 360c36-28 100-28 136 0" stroke="#5eead4" stroke-width="18" stroke-linecap="round" fill="none"/>
+  <path d="M156 396c56-44 144-44 200 0" stroke="#5eead4" stroke-width="18" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <circle cx="256" cy="348" r="12" fill="#5eead4"/>
 </svg>

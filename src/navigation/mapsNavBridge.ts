@@ -69,6 +69,7 @@ export async function startMapsNavBridge(): Promise<void> {
   if (!isMapsNavNative()) {
     useMapsNavStore.getState().setStatus({
       supported: false,
+      listenerAvailable: false,
       enabled: false,
       connected: false,
     });
@@ -81,6 +82,7 @@ export async function startMapsNavBridge(): Promise<void> {
   } catch {
     useMapsNavStore.getState().setStatus({
       supported: true,
+      listenerAvailable: false,
       enabled: false,
       connected: false,
     });
@@ -107,7 +109,12 @@ export async function startMapsNavBridge(): Promise<void> {
 
 export async function refreshMapsNavStatus(): Promise<NavListenerStatus> {
   if (!isMapsNavNative()) {
-    const status = { supported: false, enabled: false, connected: false };
+    const status = {
+      supported: false,
+      listenerAvailable: false,
+      enabled: false,
+      connected: false,
+    };
     useMapsNavStore.getState().setStatus(status);
     return status;
   }

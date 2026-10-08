@@ -22,7 +22,7 @@ const WHY = [
   {
     title: "Maps turns on the pod",
     description:
-      "Mirror Google Maps navigation notifications into Tripper turn packets — keep your eyes on the road.",
+      "Optional maps APK mirrors Google Maps notifications into Tripper turn packets — or send turns manually from Navigate.",
   },
   {
     title: "Open and free",
@@ -35,7 +35,7 @@ const INSTALL_STEPS = [
   {
     n: "01",
     title: "Download the APK",
-    body: "Use Download APK above, or grab quicker-pod-<version>.apk from the latest GitHub Release.",
+    body: "Use Download APK above for the core build (quicker-pod-<version>.apk). It installs without the Play Protect “sensitive data” block.",
   },
   {
     n: "02",
@@ -45,7 +45,7 @@ const INSTALL_STEPS = [
   {
     n: "03",
     title: "Pair & navigate",
-    body: "Connect your Tripper, enable notification access, and start Maps turn-by-turn guidance.",
+    body: "Connect your Tripper. Use Manual guidance, or install the optional -maps APK from the same Release for automatic Maps mirroring.",
   },
 ] as const;
 
@@ -53,12 +53,17 @@ const FAQ = [
   {
     question: "Why download an APK instead of using the website?",
     answer:
-      "Full Tripper pairing and Maps mirroring need the phone to act as a BLE GATT server and read navigation notifications. Browsers cannot do that. The Android APK can.",
+      "Full Tripper pairing needs the phone to act as a BLE GATT server. Browsers cannot do that. The Android APK can.",
+  },
+  {
+    question: "Play Protect says the app can access sensitive data — what do I do?",
+    answer:
+      "Download the core APK from this page (not the -maps file). Core omits notification access so Play Protect allows browser installs. Pairing and manual nav work. The optional -maps APK adds Maps mirroring and may need adb install or Install anyway.",
   },
   {
     question: "Does it work with Google Maps?",
     answer:
-      "Yes on Android. Enable notification access for Quicker Pod, connect your Tripper, then start Maps turn-by-turn. Turns and distance are mirrored to the pod.",
+      "Yes. Install the optional quicker-pod-<version>-maps.apk from GitHub Releases, enable notification access, connect your Tripper, then start Maps turn-by-turn. Or use Manual guidance on the core APK.",
   },
   {
     question: "Is the APK signed for Play Store?",
@@ -125,8 +130,20 @@ function LandingHeader() {
   return (
     <header className="safe-top absolute inset-x-0 top-0 z-40 animate-landing-rise">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
-        <a href="#top" className="font-display text-lg font-bold tracking-tight text-[#1c242c] sm:text-xl">
-          Quicker<span className="text-[#0f766e]">-pod</span>
+        <a
+          href="#top"
+          className="flex items-center gap-2.5 font-display text-lg font-bold tracking-tight text-[#1c242c] sm:text-xl"
+        >
+          <img
+            src={`${import.meta.env.BASE_URL}icon.svg`}
+            alt=""
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-xl shadow-sm ring-1 ring-[#0f766e]/25"
+          />
+          <span>
+            Quicker<span className="text-[#0f766e]">-pod</span>
+          </span>
         </a>
         <nav aria-label="Landing navigation" className="flex items-center gap-4 text-sm font-medium text-[#3d4a57]">
           <a href="#download" className="hidden transition-colors hover:text-[#0f766e] sm:inline">
@@ -417,8 +434,17 @@ function LandingFooter() {
     <footer className="border-t border-[#1c242c]/10 bg-[#e8eef2] px-5 py-10 sm:px-8">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="font-display font-bold text-[#1c242c]">
-            Quicker<span className="text-[#0f766e]">-pod</span>
+          <p className="flex items-center gap-2 font-display font-bold text-[#1c242c]">
+            <img
+              src={`${import.meta.env.BASE_URL}icon.svg`}
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 rounded-lg"
+            />
+            <span>
+              Quicker<span className="text-[#0f766e]">-pod</span>
+            </span>
           </p>
           <p className="mt-1 text-sm text-[#5a6876]">Open navigation companion for Tripper Pod</p>
         </div>

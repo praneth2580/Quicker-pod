@@ -3,7 +3,7 @@ import type { NavListenerStatus, NavNotificationsPlugin } from "./definitions";
 
 export class NavNotificationsWeb extends WebPlugin implements NavNotificationsPlugin {
   async getStatus(): Promise<NavListenerStatus> {
-    return { supported: false, enabled: false, connected: false };
+    return { supported: false, listenerAvailable: false, enabled: false, connected: false };
   }
 
   async openNotificationAccessSettings(): Promise<void> {

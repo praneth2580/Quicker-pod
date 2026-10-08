@@ -19,6 +19,7 @@ export function useMapsNavListener() {
     mirroringEnabled,
     setMirroringEnabled,
     isAndroid: status.supported,
+    listenerAvailable: status.listenerAvailable,
     listenerEnabled: status.enabled,
     listenerConnected: status.connected,
   };

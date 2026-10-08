@@ -11,7 +11,7 @@ interface MapsNavState {
 }
 
 export const useMapsNavStore = create<MapsNavState>((set) => ({
-  status: { supported: false, enabled: false, connected: false },
+  status: { supported: false, listenerAvailable: false, enabled: false, connected: false },
   lastUpdate: null,
   mirroringEnabled: true,
   setStatus: (status) => set({ status }),

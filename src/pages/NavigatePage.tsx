@@ -59,6 +59,7 @@ export function NavigatePage() {
     mirroringEnabled,
     setMirroringEnabled,
     isAndroid,
+    listenerAvailable,
     listenerEnabled,
     listenerConnected,
   } = useMapsNavListener();
@@ -178,14 +179,22 @@ export function NavigatePage() {
               label={
                 !isAndroid
                   ? "Android only"
-                  : listenerConnected
-                    ? "Listening"
-                    : listenerEnabled
-                      ? "Enabled"
-                      : "Off"
+                  : !listenerAvailable
+                    ? "Core build"
+                    : listenerConnected
+                      ? "Listening"
+                      : listenerEnabled
+                        ? "Enabled"
+                        : "Off"
               }
               active={listenerConnected}
-              variant={!isAndroid ? "neutral" : listenerEnabled ? "success" : "warning"}
+              variant={
+                !isAndroid || !listenerAvailable
+                  ? "neutral"
+                  : listenerEnabled
+                    ? "success"
+                    : "warning"
+              }
             />
           </div>
 
@@ -194,6 +203,14 @@ export function NavigatePage() {
               Notification access is available in the Quicker Pod Android APK. On web, use manual
               guidance below to test packets.
             </p>
+          ) : !listenerAvailable ? (
+            <div className="mt-4 space-y-3">
+              <p className="text-sm text-ink-muted">
+                You have the installable <strong>core</strong> build (Play Protect safe). Automatic
+                Maps mirroring needs the optional <code className="text-ink">-maps</code> APK from
+                GitHub Releases, or use Manual guidance below.
+              </p>
+            </div>
           ) : (
             <div className="mt-4 space-y-3">
               <Toggle

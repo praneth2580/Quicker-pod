@@ -63,15 +63,20 @@ jobs:
           fi
           CODE="$(grep -E '^\s*versionCode\s+[0-9]+' android/app/build.gradle | head -1 | grep -oE '[0-9]+$' || echo 0)"
           ASSET="quicker-pod-${VERSION}.apk"
+          MAPS_ASSET="quicker-pod-${VERSION}-maps.apk"
           {
             echo "tag=${TAG}"
             echo "version=${VERSION}"
             echo "version_code=${CODE}"
             echo "asset=${ASSET}"
+            echo "maps_asset=${MAPS_ASSET}"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Build release APK
-        run: APK_VERSION="${{ steps.meta.outputs.version }}" bash scripts/build-apk.sh "${{ steps.meta.outputs.version }}"
+      - name: Build core release APK
+        run: APK_FLAVOR=core APK_VERSION="${{ steps.meta.outputs.version }}" bash scripts/build-apk.sh "${{ steps.meta.outputs.version }}"
+
+      - name: Build maps release APK
+        run: SKIP_WEB_BUILD=1 APK_FLAVOR=maps APK_VERSION="${{ steps.meta.outputs.version }}" bash scripts/build-apk.sh "${{ steps.meta.outputs.version }}"
 
       - name: Upload APK to GitHub Release
         uses: softprops/action-gh-release@v2
@@ -79,7 +84,9 @@ jobs:
           tag_name: ${{ steps.meta.outputs.tag }}
           name: Quicker-pod ${{ steps.meta.outputs.tag }}
           generate_release_notes: true
-          files: dist-apk/${{ steps.meta.outputs.asset }}
+          files: |
+            dist-apk/${{ steps.meta.outputs.asset }}
+            dist-apk/${{ steps.meta.outputs.maps_asset }}
           fail_on_unmatched_files: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -91,6 +98,7 @@ jobs:
           VERSION: ${{ steps.meta.outputs.version }}
           CODE: ${{ steps.meta.outputs.version_code }}
           ASSET: ${{ steps.meta.outputs.asset }}
+          MAPS_ASSET: ${{ steps.meta.outputs.maps_asset }}
           OWNER: ${{ github.repository_owner }}
           REPO: ${{ github.event.repository.name }}
         run: |
@@ -102,19 +110,23 @@ jobs:
           const owner = process.env.OWNER;
           const repo = process.env.REPO;
           const asset = process.env.ASSET;
+          const mapsAsset = process.env.MAPS_ASSET;
           const downloadUrl = `https://github.com/${owner}/${repo}/releases/download/${tag}/${asset}`;
+          const mapsDownloadUrl = `https://github.com/${owner}/${repo}/releases/download/${tag}/${mapsAsset}`;
           const payload = {
             version,
             versionCode: code,
             tag,
             assetName: asset,
             downloadUrl,
+            mapsAssetName: mapsAsset,
+            mapsDownloadUrl,
             releasesPageUrl: `https://github.com/${owner}/${repo}/releases/tag/${tag}`,
             publishedAt: new Date().toISOString().replace(/\.\d{3}Z$/, "Z"),
           };
           fs.mkdirSync("public", { recursive: true });
           fs.writeFileSync("public/apk-latest.json", JSON.stringify(payload, null, 2) + "\n");
-          console.log("Wrote public/apk-latest.json for", tag, asset);
+          console.log("Wrote public/apk-latest.json for", tag, asset, mapsAsset);
           NODE
 
       - name: Build landing site

@@ -16,7 +16,10 @@ export function apkAssetName(version: string): string {
 /** Match versioned release assets; also accepts legacy quicker-pod.apk. */
 export function isQuickerPodApkAsset(name: string): boolean {
   const lower = name.toLowerCase();
-  return lower === "quicker-pod.apk" || /^quicker-pod-\d+\.\d+\.\d+.*\.apk$/.test(lower);
+  return (
+    lower === "quicker-pod.apk" ||
+    /^quicker-pod-\d+\.\d+\.\d+(?:-maps)?\.apk$/.test(lower)
+  );
 }
 
 /** Releases page — exact APK names are versioned, so use apk-latest.json / API for downloads. */

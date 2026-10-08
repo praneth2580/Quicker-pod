@@ -72,6 +72,7 @@ export function SettingsPage() {
   const isUpdating = status === "checking" || status === "reloading";
   const {
     isAndroid,
+    listenerAvailable,
     listenerEnabled,
     listenerConnected,
     mirroringEnabled,
@@ -96,17 +97,47 @@ export function SettingsPage() {
         >
           <div className="mb-3 flex flex-wrap gap-2">
             <StatusBadge
-              label={!isAndroid ? "Android only" : listenerConnected ? "Listening" : listenerEnabled ? "Enabled" : "Disabled"}
+              label={
+                !isAndroid
+                  ? "Android only"
+                  : !listenerAvailable
+                    ? "Core build"
+                    : listenerConnected
+                      ? "Listening"
+                      : listenerEnabled
+                        ? "Enabled"
+                        : "Disabled"
+              }
               active={listenerConnected}
-              variant={!isAndroid ? "neutral" : listenerEnabled ? "success" : "warning"}
+              variant={
+                !isAndroid || !listenerAvailable
+                  ? "neutral"
+                  : listenerEnabled
+                    ? "success"
+                    : "warning"
+              }
             />
           </div>
 
           {!isAndroid ? (
             <p className="text-sm text-ink-muted">
-              Install the Android APK to enable NotificationListenerService. See the docs for how to
-              grant access and test with Google Maps.
+              Install the Android APK for Maps mirroring. The default download installs cleanly;
+              auto Maps needs the optional <code className="text-ink">-maps</code> APK (or use Manual
+              guidance).
             </p>
+          ) : !listenerAvailable ? (
+            <div className="space-y-3">
+              <p className="text-sm text-ink-muted">
+                This installable build omits notification access so Google Play Protect will not block
+                sideload. Pairing and Manual guidance still work. For automatic Google Maps → Tripper
+                mirroring, install the <code className="text-ink">quicker-pod-*-maps.apk</code> release
+                asset via USB (<code className="text-ink">adb install</code>) or tap Install anyway if
+                Play Protect warns about sensitive data.
+              </p>
+              <Button variant="secondary" onClick={() => void refreshMapsNavStatus()}>
+                Refresh
+              </Button>
+            </div>
           ) : (
             <div className="space-y-3">
               <Toggle

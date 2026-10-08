@@ -136,12 +136,14 @@ esac
 
 TAG="v${NEW_VERSION}"
 ASSET_NAME="quicker-pod-${NEW_VERSION}.apk"
+MAPS_ASSET_NAME="quicker-pod-${NEW_VERSION}-maps.apk"
 CURRENT_CODE="$(grep -E '^\s*versionCode\s+[0-9]+' android/app/build.gradle | head -1 | grep -oE '[0-9]+$' || true)"
 if [[ -z "$CURRENT_CODE" ]]; then
   CURRENT_CODE=1
 fi
 NEW_CODE=$((CURRENT_CODE + 1))
 DOWNLOAD_URL="https://github.com/${OWNER}/${REPO}/releases/download/${TAG}/${ASSET_NAME}"
+MAPS_DOWNLOAD_URL="https://github.com/${OWNER}/${REPO}/releases/download/${TAG}/${MAPS_ASSET_NAME}"
 PUBLISHED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 API="https://api.github.com/repos/${OWNER}/${REPO}"
 
@@ -152,7 +154,8 @@ echo "    package.json     ${CURRENT} → ${NEW_VERSION}"
 echo "    Android versionName → ${NEW_VERSION}"
 echo "    Android versionCode ${CURRENT_CODE} → ${NEW_CODE}"
 echo "    tag              ${TAG}"
-echo "    APK              ${ASSET_NAME}"
+echo "    APK (core)       ${ASSET_NAME}  ← landing download (Play Protect safe)"
+echo "    APK (maps)       ${MAPS_ASSET_NAME}  ← optional Maps listener"
 echo "    download URL     ${DOWNLOAD_URL}"
 echo "    then             update landing apk-latest.json + npm run deploy:web"
 echo ""
@@ -242,17 +245,28 @@ cat > public/apk-latest.json <<EOF
   "tag": "${TAG}",
   "assetName": "${ASSET_NAME}",
   "downloadUrl": "${DOWNLOAD_URL}",
+  "mapsAssetName": "${MAPS_ASSET_NAME}",
+  "mapsDownloadUrl": "${MAPS_DOWNLOAD_URL}",
   "releasesPageUrl": "https://github.com/${OWNER}/${REPO}/releases/tag/${TAG}",
   "publishedAt": "${PUBLISHED_AT}"
 }
 EOF
 
-echo "==> Building release APK (${ASSET_NAME})"
-APK_VERSION="${NEW_VERSION}" bash scripts/build-apk.sh "${NEW_VERSION}"
+echo "==> Building core release APK (${ASSET_NAME})"
+APK_FLAVOR=core APK_VERSION="${NEW_VERSION}" bash scripts/build-apk.sh "${NEW_VERSION}"
+
+echo "==> Building maps release APK (${MAPS_ASSET_NAME})"
+# Reuse already-synced web/native; only re-run Gradle for the maps flavor.
+SKIP_WEB_BUILD=1 APK_FLAVOR=maps APK_VERSION="${NEW_VERSION}" bash scripts/build-apk.sh "${NEW_VERSION}"
 
 APK_PATH="dist-apk/${ASSET_NAME}"
+MAPS_APK_PATH="dist-apk/${MAPS_ASSET_NAME}"
 if [[ ! -f "$APK_PATH" ]]; then
   echo "error: missing $APK_PATH" >&2
+  exit 1
+fi
+if [[ ! -f "$MAPS_APK_PATH" ]]; then
+  echo "error: missing $MAPS_APK_PATH" >&2
   exit 1
 fi
 
@@ -284,7 +298,7 @@ else
       tag_name: '${TAG}',
       target_commitish: '${COMMIT_SHA}',
       name: 'Quicker-pod ${TAG}',
-      body: 'Android APK ${NEW_VERSION} (versionCode ${NEW_CODE}).\\n\\nDownload: ${DOWNLOAD_URL}',
+      body: 'Android APK ${NEW_VERSION} (versionCode ${NEW_CODE}).\\n\\n**Core (recommended):** ${DOWNLOAD_URL}\\nInstalls from the browser — pairing + manual nav.\\n\\n**Maps (optional):** ${MAPS_DOWNLOAD_URL}\\nAdds Google Maps notification mirroring. Play Protect may block browser install (\"sensitive data\"); use adb install or Install anyway.',
       draft: false,
       prerelease: false
     })")")"; then
@@ -296,22 +310,32 @@ fi
 UPLOAD_URL="$(node -e "const r=JSON.parse(process.argv[1]); if(!r.upload_url) process.exit(2); process.stdout.write(String(r.upload_url).split('{')[0])" "$RELEASE_JSON")"
 RELEASE_HTML="$(node -e "const r=JSON.parse(process.argv[1]); process.stdout.write(r.html_url||'')" "$RELEASE_JSON")"
 
-EXISTING_ASSET_ID="$(node -e "
+upload_apk_asset() {
+  local name="$1"
+  local path="$2"
+  local existing_id
+  # Refresh release JSON so we see assets uploaded earlier in this run
+  RELEASE_JSON="$(api_curl GET "${API}/releases/tags/${TAG}")"
+  UPLOAD_URL="$(node -e "const r=JSON.parse(process.argv[1]); if(!r.upload_url) process.exit(2); process.stdout.write(String(r.upload_url).split('{')[0])" "$RELEASE_JSON")"
+  existing_id="$(node -e "
 const r=JSON.parse(process.argv[1]);
 const name=process.argv[2];
 const a=(r.assets||[]).find(x => x.name === name);
 process.stdout.write(a ? String(a.id) : '');
-" "$RELEASE_JSON" "$ASSET_NAME")"
-if [[ -n "$EXISTING_ASSET_ID" ]]; then
-  echo "==> Removing previous ${ASSET_NAME} from release"
-  api_curl DELETE "${API}/releases/assets/${EXISTING_ASSET_ID}" >/dev/null
-fi
+" "$RELEASE_JSON" "$name")"
+  if [[ -n "$existing_id" ]]; then
+    echo "==> Removing previous ${name} from release"
+    api_curl DELETE "${API}/releases/assets/${existing_id}" >/dev/null
+  fi
+  echo "==> Uploading ${name}"
+  api_curl POST "${UPLOAD_URL}?name=${name}&label=${name}" \
+    -H "Content-Type: application/vnd.android.package-archive" \
+    --data-binary @"${path}" \
+    >/dev/null
+}
 
-echo "==> Uploading ${ASSET_NAME}"
-api_curl POST "${UPLOAD_URL}?name=${ASSET_NAME}&label=${ASSET_NAME}" \
-  -H "Content-Type: application/vnd.android.package-archive" \
-  --data-binary @"${APK_PATH}" \
-  >/dev/null
+upload_apk_asset "$ASSET_NAME" "$APK_PATH"
+upload_apk_asset "$MAPS_ASSET_NAME" "$MAPS_APK_PATH"
 
 if [[ "$SKIP_WEB_DEPLOY" != "1" ]]; then
   echo "==> Updating landing page download URL (apk-latest.json) + deploying web"
@@ -326,4 +350,5 @@ echo ""
 echo "==> Done"
 echo "    Release:  ${RELEASE_HTML:-https://github.com/${OWNER}/${REPO}/releases/tag/${TAG}}"
 echo "    Download: ${DOWNLOAD_URL}"
+echo "    Maps APK: ${MAPS_DOWNLOAD_URL}"
 echo "    Landing:  https://${OWNER}.github.io/${REPO}/"

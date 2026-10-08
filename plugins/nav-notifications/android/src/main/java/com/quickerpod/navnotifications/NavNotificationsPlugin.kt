@@ -2,6 +2,8 @@ package com.quickerpod.navnotifications
 
 import android.content.ComponentName
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.provider.Settings
 import android.text.TextUtils
 import com.getcapacitor.JSObject
@@ -68,12 +70,33 @@ class NavNotificationsPlugin : Plugin(), MapsNavBridge.Listener {
     }
 
     private fun statusObject(): JSObject {
-        val enabled = isNotificationListenerEnabled()
+        val bundled = isListenerBundled()
+        val enabled = bundled && isNotificationListenerEnabled()
         val obj = JSObject()
         obj.put("supported", true)
+        obj.put("listenerAvailable", bundled)
         obj.put("enabled", enabled)
         obj.put("connected", enabled && MapsNavBridge.serviceConnected)
         return obj
+    }
+
+    /** False on the Play Protect–safe `core` flavor (service not in the merged manifest). */
+    private fun isListenerBundled(): Boolean {
+        return try {
+            val flags =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    PackageManager.MATCH_DISABLED_COMPONENTS
+                } else {
+                    0
+                }
+            context.packageManager.getServiceInfo(
+                ComponentName(context, MapsNotificationListener::class.java),
+                flags,
+            )
+            true
+        } catch (_: PackageManager.NameNotFoundException) {
+            false
+        }
     }
 
     private fun isNotificationListenerEnabled(): Boolean {

@@ -6,12 +6,12 @@ export default defineConfig({
     maskable: {
       sizes: [512],
       padding: 0.3,
-      resizeOptions: { background: "#111827", fit: "contain" },
+      resizeOptions: { background: "#14201c", fit: "contain" },
     },
     apple: {
       sizes: [180],
       padding: 0.3,
-      resizeOptions: { background: "#111827", fit: "contain" },
+      resizeOptions: { background: "#14201c", fit: "contain" },
     },
   },
   images: ["public/icon.svg"],
