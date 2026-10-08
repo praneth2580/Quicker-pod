@@ -18,6 +18,7 @@ export function isMapsNavNative(): boolean {
 
 let started = false;
 const handles: PluginListenerHandle[] = [];
+let visibilityBound = false;
 
 async function applyMapsEvent(event: MapsNavUpdateEvent): Promise<void> {
   useMapsNavStore.getState().setLastUpdate(event);
@@ -62,6 +63,22 @@ async function applyMapsEvent(event: MapsNavUpdateEvent): Promise<void> {
   }
 }
 
+function bindResumeRefresh(): void {
+  if (visibilityBound || typeof document === "undefined") return;
+  visibilityBound = true;
+
+  const refresh = () => {
+    if (document.visibilityState === "visible") {
+      void refreshMapsNavStatus();
+    }
+  };
+
+  document.addEventListener("visibilitychange", refresh);
+  window.addEventListener("focus", () => {
+    void refreshMapsNavStatus();
+  });
+}
+
 export async function startMapsNavBridge(): Promise<void> {
   if (started) return;
   started = true;
@@ -75,6 +92,8 @@ export async function startMapsNavBridge(): Promise<void> {
     });
     return;
   }
+
+  bindResumeRefresh();
 
   try {
     const status = await NavNotifications.getStatus();
@@ -127,5 +146,21 @@ export async function openMapsNotificationAccessSettings(): Promise<void> {
   if (!isMapsNavNative()) {
     throw new Error("Maps notification mirroring is Android-only.");
   }
-  await NavNotifications.openNotificationAccessSettings();
+  // Prefer openSettings alias; fall back for older plugin builds.
+  if (typeof NavNotifications.openSettings === "function") {
+    await NavNotifications.openSettings();
+  } else {
+    await NavNotifications.openNotificationAccessSettings();
+  }
+}
+
+/** Explicit enabled check (does not assume Settings return = granted). */
+export async function isMapsNotificationAccessEnabled(): Promise<boolean> {
+  if (!isMapsNavNative()) return false;
+  if (typeof NavNotifications.isEnabled === "function") {
+    const result = await NavNotifications.isEnabled();
+    return result.enabled;
+  }
+  const status = await NavNotifications.getStatus();
+  return status.enabled;
 }

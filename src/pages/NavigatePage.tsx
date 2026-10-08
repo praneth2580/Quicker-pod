@@ -97,8 +97,8 @@ export function NavigatePage() {
 
   const openAccess = async () => {
     try {
+      // Status is re-checked on app resume (native + visibility) — do not assume grant.
       await openMapsNotificationAccessSettings();
-      setTimeout(() => void refreshMapsNavStatus(), 800);
     } catch (error) {
       setStatusMsg(error instanceof Error ? error.message : String(error));
     }
@@ -203,15 +203,22 @@ export function NavigatePage() {
                 onChange={setMirroringEnabled}
               />
 
+              <p className="text-sm text-ink">
+                Status:{" "}
+                <span className={listenerEnabled ? "font-semibold text-success" : "font-semibold text-warning"}>
+                  {listenerEnabled ? "Enabled" : "Not Enabled"}
+                </span>
+              </p>
+
               {!listenerEnabled ? (
                 <div className="rounded-2xl border border-warning/30 bg-warning/10 p-4">
                   <p className="text-sm text-ink">
-                    Enable <strong>Notification access</strong> for Quicker Pod so it can read Maps
-                    turn banners. After a sideload, you may need App info → ⋮ →{" "}
-                    <strong>Allow restricted settings</strong> first.
+                    Enable Notification access for Quicker Pod so it can read Maps turn banners.
+                    On Android 13+ after a manual APK install, you may need App info → ⋮ →{" "}
+                    <strong>Allow restricted settings</strong> before the toggle works.
                   </p>
                   <Button className="mt-3" fullWidth variant="primary" onClick={() => void openAccess()}>
-                    Open notification access
+                    Enable Notification Access
                   </Button>
                   <Button
                     className="mt-2"

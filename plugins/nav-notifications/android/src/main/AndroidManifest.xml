@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
+        <!--
+          Special App Access: Notification Listener.
+          BIND_NOTIFICATION_LISTENER_SERVICE is the *service protection* permission
+          (only the system may bind). Do NOT declare it as a <uses-permission>.
+        -->
         <service
-            android:name=".MapsNotificationListener"
-            android:label="Quicker Pod Maps nav"
+            android:name="com.quickerpod.navnotifications.MapsNotificationListener"
+            android:label="@string/notification_listener_label"
             android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
             android:exported="true">
             <intent-filter>

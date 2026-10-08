@@ -35,8 +35,17 @@ export interface MapsNavUpdateEvent {
 export interface NavNotificationsPlugin {
   getStatus(): Promise<NavListenerStatus>;
 
+  /**
+   * Whether notification listener access is currently enabled for this package.
+   * Reads Settings.Secure.ENABLED_NOTIFICATION_LISTENERS on Android.
+   */
+  isEnabled(): Promise<{ enabled: boolean; listenerAvailable: boolean }>;
+
   /** Open system Notification access settings so the user can enable this app. */
   openNotificationAccessSettings(): Promise<void>;
+
+  /** Alias for {@link openNotificationAccessSettings}. */
+  openSettings(): Promise<void>;
 
   /**
    * Ask the listener service to emit the current Maps navigation notification

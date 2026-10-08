@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/Card";
 import { Toggle } from "@/components/ui/Toggle";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { StatusBadge } from "@/components/ui/StatusBadge";
 import { useSettingsStore } from "@/store/settingsStore";
 import { usePwaUpdateStore } from "@/store/pwaUpdateStore";
 import { usePwaInstall } from "@/hooks/usePwaInstall";
@@ -91,29 +90,21 @@ export function SettingsPage() {
         </Card>
 
         <Card
-          title="Maps notification access"
+          title="Notification Access"
           subtitle="Required for Google Maps → Tripper mirroring"
         >
-          <div className="mb-3 flex flex-wrap gap-2">
-            <StatusBadge
-              label={
-                !isAndroid
-                  ? "Android only"
-                  : listenerConnected
-                    ? "Listening"
-                    : listenerEnabled
-                      ? "Enabled"
-                      : "Disabled"
-              }
-              active={listenerConnected}
-              variant={!isAndroid ? "neutral" : listenerEnabled ? "success" : "warning"}
-            />
-          </div>
+          <p className="mb-3 text-sm text-ink">
+            Status:{" "}
+            <span className={listenerEnabled ? "text-success font-semibold" : "text-warning font-semibold"}>
+              {!isAndroid ? "Android only" : listenerEnabled ? "Enabled" : "Not Enabled"}
+            </span>
+            {isAndroid && listenerConnected ? " · Listening" : null}
+          </p>
 
           {!isAndroid ? (
             <p className="text-sm text-ink-muted">
-              Install the Android APK to enable NotificationListenerService. See the docs for how to
-              grant access and test with Google Maps.
+              Install the Android APK to use NotificationListenerService. You will enable access
+              manually in Android Settings — the app never grants it silently.
             </p>
           ) : (
             <div className="space-y-3">
@@ -122,23 +113,37 @@ export function SettingsPage() {
                 description="Uses applyExternalNavUpdate on the existing nav write path"
                 checked={mirroringEnabled}
                 onChange={setMirroringEnabled}
+                disabled={!listenerEnabled}
               />
-              <p className="text-sm text-ink-muted">
-                If the toggle is greyed out after sideload: App info → ⋮ → Allow restricted settings,
-                then Settings → Apps → Special app access → Notification access → enable{" "}
-                <strong>Quicker Pod</strong>.
-              </p>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant="primary"
-                  onClick={() => void openMapsNotificationAccessSettings()}
-                >
-                  Open access
-                </Button>
-                <Button variant="secondary" onClick={() => void refreshMapsNavStatus()}>
-                  Refresh
-                </Button>
-              </div>
+              {!listenerEnabled ? (
+                <>
+                  <p className="text-sm text-ink-muted">
+                    Tap the button to open Android Notification access. Select{" "}
+                    <strong>Quicker Pod</strong> and turn it on, then return here — status is
+                    re-checked automatically.
+                  </p>
+                  <p className="text-sm text-ink-muted">
+                    On Android 13+, after a manual APK install you may first need App info → ⋮ →{" "}
+                    <strong>Allow restricted settings</strong> before the Notification access
+                    toggle is available (OS policy for sideloaded apps; not required for ADB/Play).
+                  </p>
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={() => void openMapsNotificationAccessSettings()}
+                  >
+                    Enable Notification Access
+                  </Button>
+                </>
+              ) : (
+                <p className="text-sm text-ink-muted">
+                  Notification Listener access is on. You can disable it anytime in Android
+                  Settings → Notification access.
+                </p>
+              )}
+              <Button variant="secondary" fullWidth onClick={() => void refreshMapsNavStatus()}>
+                Refresh status
+              </Button>
             </div>
           )}
         </Card>

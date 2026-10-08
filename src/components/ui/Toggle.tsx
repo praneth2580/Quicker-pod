@@ -3,11 +3,16 @@ interface ToggleProps {
   description?: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
+  disabled?: boolean;
 }
 
-export function Toggle({ label, description, checked, onChange }: ToggleProps) {
+export function Toggle({ label, description, checked, onChange, disabled = false }: ToggleProps) {
   return (
-    <label className="flex min-h-14 cursor-pointer items-center justify-between gap-4 rounded-2xl border border-line/70 bg-canvas-sunk/50 px-4 py-3">
+    <label
+      className={`flex min-h-14 items-center justify-between gap-4 rounded-2xl border border-line/70 bg-canvas-sunk/50 px-4 py-3 ${
+        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+      }`}
+    >
       <div>
         <span className="block font-medium text-ink">{label}</span>
         {description && <span className="text-sm text-ink-muted">{description}</span>}
@@ -16,7 +21,11 @@ export function Toggle({ label, description, checked, onChange }: ToggleProps) {
         type="button"
         role="switch"
         aria-checked={checked}
-        onClick={() => onChange(!checked)}
+        aria-disabled={disabled}
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) onChange(!checked);
+        }}
         className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${checked ? "bg-accent" : "bg-line"}`}
       >
         <span

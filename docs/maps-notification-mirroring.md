@@ -32,24 +32,22 @@ Web builds expose a stub: status is `supported: false` and settings show **Andro
 
 ## One APK
 
-There is a single release APK (`quicker-pod-X.Y.Z.apk`) with BLE pairing and Maps notification mirroring.
+There is a single release APK (`quicker-pod-X.Y.Z.apk`) with BLE pairing and Maps notification mirroring. The merged release manifest always includes `MapsNotificationListener` with `BIND_NOTIFICATION_LISTENER_SERVICE` (service protection) and the `NotificationListenerService` intent filter.
 
-Play Protect may block **browser** installs because the app declares a Notification Listener (“sensitive data”). Prefer:
+Play Protect may warn on **browser** installs because the APK declares a Notification Listener (“sensitive data”). Tap **Install anyway** if shown — ADB/Play Store are not required for the listener to work.
 
-```bash
-adb install quicker-pod-X.Y.Z.apk
-```
+### Why ADB/Play vs sideload can feel different
 
-or tap **Install anyway** if shown. After install on Android 13+, you may also need **App info → ⋮ → Allow restricted settings** before enabling Notification access.
+Notification Listener is **Special App Access**, not a runtime permission. On **Android 13+**, apps installed from unknown sources (manual APK / Files / browser) often cannot flip the Notification access toggle until the user enables **App info → ⋮ → Allow restricted settings**. Installs via **ADB** or **Play Store** typically skip that gate. The app cannot grant or bypass this; it only opens Settings and re-checks `ENABLED_NOTIFICATION_LISTENERS` when you return.
 
 ## Enable notification access (device)
 
-1. Install / run the Quicker Pod **Android APK** (Capacitor).
-2. If needed: Settings → Apps → Quicker Pod → ⋮ → **Allow restricted settings**.
-3. Open **Navigate** or **Settings → Maps notification access**.
-4. Tap **Open notification access** (or: Settings → Apps → Special app access → Notification access).
-5. Enable **Quicker Pod**.
-6. Return to the app and tap **Refresh** if the status still says Disabled.
+1. Install / run the Quicker Pod **Android APK** (Capacitor) — any normal install path.
+2. If the Notification access toggle is greyed out (Android 13+ sideload): Settings → Apps → Quicker Pod → ⋮ → **Allow restricted settings**.
+3. Open **Navigate** or **Settings → Notification Access**.
+4. Tap **Enable Notification Access** (opens `ACTION_NOTIFICATION_LISTENER_SETTINGS`, or the per-app detail page on API 30+).
+5. Select **Quicker Pod** and turn access **on** yourself.
+6. Return to the app — status is re-checked on resume (or tap **Refresh status**). Do not assume grant just because Settings closed.
 7. Pair / reconnect your Tripper on **Connect**.
 8. Leave **Forward to Tripper** on (Navigate / Settings).
 
