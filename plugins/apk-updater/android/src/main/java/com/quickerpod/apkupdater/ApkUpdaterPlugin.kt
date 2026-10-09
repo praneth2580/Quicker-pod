@@ -85,7 +85,7 @@ class ApkUpdaterPlugin : Plugin() {
             call.reject(
                 "Install permission required",
                 "INSTALL_PERMISSION",
-                null,
+                null as Exception?,
             )
             return
         }
@@ -107,7 +107,7 @@ class ApkUpdaterPlugin : Plugin() {
 
                 if (cancelFlag.get()) {
                     apkFile.delete()
-                    call.reject("Download cancelled", "CANCELLED", null)
+                    call.reject("Download cancelled", "CANCELLED", null as Exception?)
                     return@thread
                 }
 
@@ -123,7 +123,7 @@ class ApkUpdaterPlugin : Plugin() {
                 }
             } catch (e: Exception) {
                 if (cancelFlag.get()) {
-                    call.reject("Download cancelled", "CANCELLED", null)
+                    call.reject("Download cancelled", "CANCELLED", null as Exception?)
                 } else {
                     call.reject("Download failed: ${e.message}")
                 }
