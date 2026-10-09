@@ -93,10 +93,21 @@ class NavNotificationsPlugin : Plugin(), MapsNavBridge.Listener {
         if (parsed.distanceM != null) obj.put("distanceM", parsed.distanceM) else obj.put("distanceM", JSONObject.NULL)
         if (parsed.etaSeconds != null) obj.put("etaSeconds", parsed.etaSeconds) else obj.put("etaSeconds", JSONObject.NULL)
         if (parsed.maneuverName != null) obj.put("maneuverName", parsed.maneuverName) else obj.put("maneuverName", JSONObject.NULL)
+        if (parsed.streetName != null) obj.put("streetName", parsed.streetName) else obj.put("streetName", JSONObject.NULL)
         obj.put("rerouting", parsed.rerouting)
         obj.put("stopped", parsed.stopped)
         obj.put("timestamp", System.currentTimeMillis())
         notifyListeners("navUpdate", obj)
+    }
+
+    override fun onCallUpdate(parsed: CallNotificationParser.ParsedCall) {
+        val obj = JSObject()
+        obj.put("packageName", parsed.packageName)
+        obj.put("active", parsed.active)
+        if (parsed.callerName != null) obj.put("callerName", parsed.callerName) else obj.put("callerName", JSONObject.NULL)
+        if (parsed.text != null) obj.put("text", parsed.text) else obj.put("text", JSONObject.NULL)
+        obj.put("timestamp", System.currentTimeMillis())
+        notifyListeners("callUpdate", obj)
     }
 
     override fun onListenerConnected(connected: Boolean) {

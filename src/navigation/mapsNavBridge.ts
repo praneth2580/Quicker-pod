@@ -6,11 +6,13 @@
 import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import {
   NavNotifications,
+  type CallUpdateEvent,
   type MapsNavUpdateEvent,
   type NavListenerStatus,
 } from "nav-notifications";
 import { tripperNavSession } from "@/bluetooth/tripper/navSession";
 import { useMapsNavStore } from "@/store/mapsNavStore";
+import { useSettingsStore } from "@/store/settingsStore";
 
 export function isMapsNavNative(): boolean {
   return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
@@ -34,11 +36,16 @@ async function applyMapsEvent(event: MapsNavUpdateEvent): Promise<void> {
     return;
   }
 
+  const nightMode = useSettingsStore.getState().nightMode;
+  tripperNavSession.setNightMode(nightMode);
+
   if (event.rerouting) {
     try {
       await tripperNavSession.applyExternalNavUpdate({
-        idle: true,
-        distanceM: 0,
+        rerouting: true,
+        distanceM: event.distanceM ?? 0,
+        etaSeconds: event.etaSeconds ?? undefined,
+        nightMode,
       });
       tripperNavSession.setKeepaliveEnabled(true);
     } catch {
@@ -52,7 +59,7 @@ async function applyMapsEvent(event: MapsNavUpdateEvent): Promise<void> {
     distanceM,
     etaSeconds: event.etaSeconds ?? undefined,
     maneuverName: event.maneuverName ?? undefined,
-    maneuverByte: event.maneuverName ? undefined : 0x00,
+    nightMode,
   };
 
   try {
@@ -116,6 +123,13 @@ export async function startMapsNavBridge(): Promise<void> {
   handles.push(
     await NavNotifications.addListener("navUpdate", (event: MapsNavUpdateEvent) => {
       void applyMapsEvent(event);
+    }),
+  );
+
+  handles.push(
+    await NavNotifications.addListener("callUpdate", (event: CallUpdateEvent) => {
+      useMapsNavStore.getState().setCall(event);
+      tripperNavSession.setCallIconActive(event.active);
     }),
   );
 

@@ -8,6 +8,8 @@ import { useTripperNav } from "@/hooks/useTripperNav";
 import { useMapsNavListener } from "@/hooks/useMapsNavListener";
 import { NotificationAccessGuide } from "@/components/maps/NotificationAccessGuide";
 import { GOOGLE_MANEUVERS } from "@/bluetooth/tripper/maneuvers";
+import { useSettingsStore } from "@/store/settingsStore";
+import { useMapsNavStore } from "@/store/mapsNavStore";
 
 const QUICK_MANEUVERS = [
   { name: "STRAIGHT", label: "Straight" },
@@ -43,9 +45,17 @@ export function NavigatePage() {
     setKeepaliveEnabled,
     sendNavIdle,
     sendStopNav,
-    sendGoogleManeuver,
+    sendDetailedManeuver,
+    setNightMode: setSessionNightMode,
     setCallIconActive,
   } = useTripperNav();
+  const nightMode = useSettingsStore((s) => s.nightMode);
+  const compassWhenIdle = useSettingsStore((s) => s.compassWhenIdle);
+  const setNightMode = useSettingsStore((s) => s.setNightMode);
+  const setCompassWhenIdle = useSettingsStore((s) => s.setCompassWhenIdle);
+  const callActive = useMapsNavStore((s) => s.callActive);
+  const callerName = useMapsNavStore((s) => s.callerName);
+  const callText = useMapsNavStore((s) => s.callText);
   const {
     lastUpdate,
     mirroringEnabled,
@@ -78,8 +88,12 @@ export function NavigatePage() {
   const disabled = busy || sending;
   const liveTurn =
     lastUpdate && !lastUpdate.stopped
-      ? lastUpdate.turnText ?? lastUpdate.maneuverName ?? null
+      ? lastUpdate.rerouting
+        ? "Recalculating"
+        : lastUpdate.turnText ?? lastUpdate.maneuverName ?? null
       : null;
+  const liveStreet =
+    lastUpdate && !lastUpdate.stopped && !lastUpdate.rerouting ? lastUpdate.streetName : null;
   const liveDistance = lastUpdate && !lastUpdate.stopped ? lastUpdate.distanceM : null;
   const liveEta = lastUpdate && !lastUpdate.stopped ? lastUpdate.etaSeconds : null;
 
@@ -105,6 +119,15 @@ export function NavigatePage() {
           <h1 className="relative mt-2 font-display text-3xl font-extrabold leading-tight tracking-tight text-ink sm:text-4xl">
             {liveTurn ?? (lastLabel !== "NAV IDLE" ? lastLabel : "Waiting for guidance")}
           </h1>
+          {liveStreet && (
+            <p className="relative mt-2 text-sm text-ink-muted">{liveStreet}</p>
+          )}
+          {callActive && (
+            <p className="relative mt-3 text-sm font-medium text-accent">
+              {callerName ? `Call · ${callerName}` : "Call in progress"}
+              {callText ? ` · ${callText}` : ""}
+            </p>
+          )}
 
           <div className="relative mt-6 grid grid-cols-2 gap-4">
             <div>
@@ -188,8 +211,27 @@ export function NavigatePage() {
               onChange={setKeepaliveEnabled}
             />
             <Toggle
+              label="Night mode"
+              description="Marks the approach byte the way the official app does after dark"
+              checked={nightMode}
+              onChange={(enabled) => {
+                setNightMode(enabled);
+                setSessionNightMode(enabled);
+              }}
+            />
+            <Toggle
+              label="Compass when idle"
+              description="Send the phone heading while Maps is not guiding"
+              checked={compassWhenIdle}
+              onChange={setCompassWhenIdle}
+            />
+            <Toggle
               label="Call icon"
-              description="Show call icon instead of last turn while keepalive runs"
+              description={
+                callActive
+                  ? "On for this call. The name stays on the phone."
+                  : "Phone calls turn this on. You can also set it by hand."
+              }
               checked={callIconActive}
               onChange={setCallIconActive}
             />
@@ -279,7 +321,11 @@ export function NavigatePage() {
                     onClick={() => {
                       setManeuverName(m.name);
                       void run(m.label, () =>
-                        sendGoogleManeuver(m.name, distanceM, etaMinutes),
+                        sendDetailedManeuver({
+                          maneuverName: m.name,
+                          distanceM,
+                          etaSeconds: etaMinutes * 60,
+                        }),
                       );
                     }}
                   >
@@ -294,7 +340,11 @@ export function NavigatePage() {
                 disabled={disabled}
                 onClick={() =>
                   void run(maneuverName, () =>
-                    sendGoogleManeuver(maneuverName, distanceM, etaMinutes),
+                    sendDetailedManeuver({
+                      maneuverName,
+                      distanceM,
+                      etaSeconds: etaMinutes * 60,
+                    }),
                   )
                 }
               >

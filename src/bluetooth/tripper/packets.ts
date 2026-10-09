@@ -18,6 +18,7 @@ import {
   NAV_SUBCMD,
   ROAD_STREET,
   SCREEN_LOCKED,
+  SCREEN_RECALC,
   SCREEN_STOP,
 } from "./constants";
 import { appendTripperCrc, blankPayload } from "./crc";
@@ -156,30 +157,40 @@ export function buildNavFromManeuver(
   });
 }
 
+/**
+ * Live guidance frame used by the official app (`sendManeuverToTripper`).
+ * Byte 2 is the current maneuver (or the stop / recalc screen). Byte 7 is the next maneuver.
+ */
 export function buildNavManeuverPacket(options: {
-  screen: number;
+  /** Current maneuver icon. Ignored when `screen` is stop or recalc. */
   maneuverDetail: number;
   distanceM: number;
+  nextManeuver?: number;
   etaSeconds?: number;
   totalDistanceM?: number;
   nightMode?: boolean;
   etaAsArrival?: boolean;
   use12hClock?: boolean;
+  roadType?: number;
+  /** `SCREEN_STOP` or `SCREEN_RECALC` replaces the maneuver at byte 2. */
+  screen?: number;
 }): Uint8Array {
   const payload = blankPayload();
   payload[0] = CMD_NAVIGATE;
   payload[1] = NAV_SUBCMD;
-  payload[2] = options.screen & 0xff;
+  const screen = options.screen;
+  const screenOverridesManeuver = screen === SCREEN_STOP || screen === SCREEN_RECALC;
+  payload[2] = (screenOverridesManeuver ? screen : options.maneuverDetail) & 0xff;
 
   const [dHi, dLo, unit] = encodeDistance(options.distanceM);
   payload[3] = dHi;
   payload[4] = dLo;
   payload[5] = unit;
   payload[6] = calcIntensity(options.distanceM, options.nightMode);
-  payload[7] = options.maneuverDetail & 0xff;
+  payload[7] = (options.nextManeuver ?? 0xff) & 0xff;
   payload[8] = 0xff;
   payload[9] = 0xff;
-  payload[10] = ROAD_STREET;
+  payload[10] = (options.roadType ?? ROAD_STREET) & 0xff;
 
   const etaSeconds = options.etaSeconds ?? 0;
   const totalDistanceM = options.totalDistanceM ?? 0;
@@ -196,10 +207,11 @@ export function buildNavManeuverPacket(options: {
       }
       payload[12] = Math.min(arrival.getMinutes(), 59) & 0xff;
     } else {
-      payload[11] = Math.min(Math.floor(etaSeconds / 60), 23) & 0xff;
-      payload[12] = Math.min(etaSeconds % 60, 59) & 0xff;
+      const etaMinutes = Math.floor(etaSeconds / 60);
+      payload[11] = Math.min(Math.floor(etaMinutes / 60), 23) & 0xff;
+      payload[12] = Math.min(etaMinutes % 60, 59) & 0xff;
     }
-    payload[13] = 0;
+    payload[13] = 0x01;
   } else if (totalDistanceM > 0) {
     const [tHi, tLo, tUnit] = encodeDistance(totalDistanceM);
     payload[11] = tHi;

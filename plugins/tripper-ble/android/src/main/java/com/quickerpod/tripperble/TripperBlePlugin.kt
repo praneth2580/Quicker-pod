@@ -30,18 +30,24 @@ import com.getcapacitor.annotation.PermissionCallback
             ],
             alias = "bleModern",
         ),
+        Permission(
+            strings = [Manifest.permission.POST_NOTIFICATIONS],
+            alias = "notifications",
+        ),
     ],
 )
 class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
     private var manager: TripperBleManager? = null
     private var pendingPairingCall: PluginCall? = null
     private var pendingPermissionAction: String? = null
+    private var pendingKeepAliveCall: PluginCall? = null
 
     private fun ensureManager(): TripperBleManager {
         val existing = manager
         if (existing != null) return existing
         val created = TripperBleManager(context.applicationContext, this)
         manager = created
+        TripperBleRuntime.manager = created
         return created
     }
 
@@ -164,15 +170,87 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
         pendingPairingCall?.reject("Disconnected")
         pendingPairingCall = null
         manager?.disconnect()
+        stopKeepAliveInternal()
+        call.resolve()
+    }
+
+    @PluginMethod
+    fun startKeepAlive(call: PluginCall) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (getPermissionState("notifications") != PermissionState.GRANTED) {
+                pendingKeepAliveCall = call
+                call.setKeepAlive(true)
+                requestPermissionForAlias("notifications", call, "notificationPermsCallback")
+                return
+            }
+        }
+        beginKeepAlive(call)
+    }
+
+    @PluginMethod
+    fun updateKeepAlive(call: PluginCall) {
+        val deviceName = call.getString("deviceName")
+        val text = call.getString("text")
+        try {
+            RideKeepAliveService.update(context.applicationContext, deviceName, text)
+            call.resolve()
+        } catch (e: Exception) {
+            call.reject(e.message ?: "updateKeepAlive failed", e)
+        }
+    }
+
+    @PluginMethod
+    fun stopKeepAlive(call: PluginCall) {
+        stopKeepAliveInternal()
         call.resolve()
     }
 
     override fun handleOnDestroy() {
         pendingPairingCall = null
-        manager?.release()
+        pendingKeepAliveCall = null
+        stopKeepAliveInternal()
+        val mgr = manager
         manager = null
+        if (TripperBleRuntime.manager === mgr) {
+            TripperBleRuntime.manager = null
+        }
+        mgr?.release()
         super.handleOnDestroy()
     }
+
+    // region keep-alive
+
+    private fun beginKeepAlive(call: PluginCall) {
+        val deviceName = call.getString("deviceName") ?: "Tripper"
+        val text = call.getString("text")
+            ?: "Linked — keeping Bluetooth alive for navigation"
+        try {
+            RideKeepAliveService.start(context.applicationContext, deviceName, text)
+            val ret = JSObject()
+            ret.put("started", true)
+            call.resolve(ret)
+        } catch (e: Exception) {
+            call.reject(e.message ?: "startKeepAlive failed", e)
+        }
+    }
+
+    private fun startKeepAliveInternal(deviceName: String, text: String) {
+        try {
+            RideKeepAliveService.start(context.applicationContext, deviceName, text)
+        } catch (_: Exception) {
+            /* best-effort — JS may retry after notification permission */
+        }
+    }
+
+    private fun stopKeepAliveInternal() {
+        try {
+            RideKeepAliveService.stop(context.applicationContext)
+        } catch (_: Exception) {
+            /* ignore */
+        }
+    }
+
+    // endregion
 
     // region permissions
 
@@ -213,6 +291,14 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
         pendingPermissionAction = null
     }
 
+    @PermissionCallback
+    private fun notificationPermsCallback(call: PluginCall) {
+        val pending = pendingKeepAliveCall ?: call
+        pendingKeepAliveCall = null
+        // Start keep-alive even if the user denied notifications — the FGS still helps.
+        beginKeepAlive(pending)
+    }
+
     // endregion
 
     // region TripperBleManager.Listener
@@ -232,6 +318,7 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
     }
 
     override fun onConnected(address: String, name: String) {
+        startKeepAliveInternal(name, "Connecting — keeping the session alive")
         val event = JSObject()
         event.put("address", address)
         event.put("name", name)
@@ -239,6 +326,7 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
     }
 
     override fun onReadyForPin(address: String, name: String) {
+        startKeepAliveInternal(name, "Enter the PIN on your phone — session protected")
         val event = JSObject()
         event.put("address", address)
         event.put("name", name)
@@ -246,6 +334,7 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
     }
 
     override fun onAlreadyPaired(address: String, name: String) {
+        startKeepAliveInternal(name, "Linked — keeping Bluetooth alive for navigation")
         val event = JSObject()
         event.put("address", address)
         event.put("name", name)
@@ -267,12 +356,16 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
     }
 
     override fun onDisconnected(reason: String?) {
+        stopKeepAliveInternal()
         val event = JSObject()
         if (reason != null) event.put("reason", reason)
         notifyListeners("disconnected", event)
     }
 
     override fun onPairingComplete(address: String, name: String, readyForPin: Boolean) {
+        if (!readyForPin) {
+            startKeepAliveInternal(name, "Linked — keeping Bluetooth alive for navigation")
+        }
         val call = pendingPairingCall ?: return
         pendingPairingCall = null
         val ret = JSObject()
@@ -283,6 +376,7 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
     }
 
     override fun onPairingFailed(message: String) {
+        stopKeepAliveInternal()
         val call = pendingPairingCall
         pendingPairingCall = null
         call?.reject(message)

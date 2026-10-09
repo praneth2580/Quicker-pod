@@ -37,6 +37,13 @@ export interface WritePacketOptions {
   hex: string;
 }
 
+export interface KeepAliveOptions {
+  /** Device name shown in the ongoing notification. */
+  deviceName?: string;
+  /** Subtitle / body text for the notification. */
+  text?: string;
+}
+
 export type TripperBleEventName =
   | "connected"
   | "readyForPin"
@@ -95,6 +102,19 @@ export interface TripperBlePlugin {
   writePacket(options: WritePacketOptions): Promise<void>;
 
   disconnect(): Promise<void>;
+
+  /**
+   * Start the ride foreground service + ongoing notification.
+   * Keeps the process alive for BLE while the app is backgrounded.
+   * Requests POST_NOTIFICATIONS on Android 13+ when needed.
+   */
+  startKeepAlive(options?: KeepAliveOptions): Promise<{ started: boolean }>;
+
+  /** Update the ongoing keep-alive notification text. */
+  updateKeepAlive(options?: KeepAliveOptions): Promise<void>;
+
+  /** Stop the foreground service and dismiss the notification. */
+  stopKeepAlive(): Promise<void>;
 
   addListener(
     eventName: "connected",

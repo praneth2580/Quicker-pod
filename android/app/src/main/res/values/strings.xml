@@ -8,4 +8,5 @@
     <string name="widget_ride_subtitle">Connect Tripper</string>
     <string name="widget_ride_compact">Connect</string>
     <string name="widget_ride_description">Opens Quicker Pod and reconnects to your paired Tripper. Does not run in the background.</string>
+    <string name="ride_keepalive_channel">Ride session</string>
 </resources>

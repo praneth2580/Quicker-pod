@@ -15,10 +15,15 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { ProtocolLabPage } from "@/features/protocol-lab/pages/ProtocolLabPage";
 import { FuzzerPage } from "@/features/fuzzer/pages/FuzzerPage";
 import { BleDebugPage } from "@/pages/BleDebugPage";
+import { OpcodeProbePage } from "@/pages/OpcodeProbePage";
 import { startMapsNavBridge } from "@/navigation/mapsNavBridge";
 import { useRideLaunch } from "@/hooks/useRideLaunch";
 import { useApkUpdateInit } from "@/hooks/useApkUpdateInit";
+import { useRideKeepAlive } from "@/hooks/useRideKeepAlive";
+import { useRideCompass } from "@/hooks/useRideCompass";
+import { tripperNavSession } from "@/bluetooth/tripper/navSession";
 import { useConnectionStore } from "@/store/connectionStore";
+import { useSettingsStore } from "@/store/settingsStore";
 
 function LegacyProtocolLabRedirect({ legacyPath }: { legacyPath: string }) {
   const tab = LEGACY_ROUTE_TABS[legacyPath] ?? "explorer";
@@ -42,6 +47,12 @@ export default function App() {
   useDbInit();
   useRideLaunch();
   useApkUpdateInit();
+  useRideKeepAlive();
+  useRideCompass();
+  const nightMode = useSettingsStore((s) => s.nightMode);
+  useEffect(() => {
+    tripperNavSession.setNightMode(nightMode);
+  }, [nightMode]);
   useEffect(() => {
     void startMapsNavBridge();
   }, []);
@@ -119,6 +130,14 @@ export default function App() {
         element={
           <Guarded>
             <BleDebugPage />
+          </Guarded>
+        }
+      />
+      <Route
+        path="/opcode-probe"
+        element={
+          <Guarded>
+            <OpcodeProbePage />
           </Guarded>
         }
       />

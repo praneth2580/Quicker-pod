@@ -28,6 +28,7 @@ object MapsNavParser {
         val distanceM: Int?,
         val etaSeconds: Int?,
         val maneuverName: String?,
+        val streetName: String?,
         val rerouting: Boolean,
         val stopped: Boolean = false,
     )
@@ -102,6 +103,7 @@ object MapsNavParser {
         val maneuverName = matchManeuver(text.ifBlank { title })
             ?: matchManeuver(combined)
         val turnText = text.ifBlank { title }.takeIf { it.isNotBlank() }
+        val streetName = parseStreet(text) ?: parseStreet(title)
 
         // Require at least a distance or recognizable turn — reduces spam from Maps UI toasts.
         if (!rerouting && distanceM == null && maneuverName == null) {
@@ -116,6 +118,7 @@ object MapsNavParser {
             distanceM = distanceM,
             etaSeconds = etaSeconds,
             maneuverName = maneuverName,
+            streetName = streetName,
             rerouting = rerouting,
         )
     }
@@ -129,6 +132,7 @@ object MapsNavParser {
             distanceM = null,
             etaSeconds = null,
             maneuverName = null,
+            streetName = null,
             rerouting = false,
             stopped = true,
         )
@@ -169,6 +173,22 @@ object MapsNavParser {
         val minutes = matcher.group(4)?.toIntOrNull()
         if (minutes != null) return minutes * 60
         return null
+    }
+
+    private val STREET_PATTERN = Pattern.compile(
+        "(?i)\\b(?:onto|on to|on)\\s+([^·\\n]+)",
+    )
+
+    fun parseStreet(input: String): String? {
+        if (input.isBlank()) return null
+        val matcher = STREET_PATTERN.matcher(input)
+        if (!matcher.find()) return null
+        val street = matcher.group(1)
+            ?.replace(Regex("(?i)\\s+\\d+(?:[.,]\\d+)?\\s*(?:m|km|mi|ft)\\b.*$"), "")
+            ?.trim()
+            ?.trim(',', '.', '-', ' ')
+        if (street.isNullOrBlank() || street.length < 2) return null
+        return street
     }
 
     fun matchManeuver(input: String): String? {

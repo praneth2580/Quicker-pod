@@ -66,6 +66,12 @@ plugins/*/android/*.iml
 # Nested Android intermediates anywhere under plugins
 plugins/**/build/
 plugins/**/.gradle/
+plugins/**/.cxx/
+plugins/**/.externalNativeBuild/
+
+# Kotlin / Java compiler output (plugin builds live outside android/)
+*.class
+*.hprof
 
 # Generated APKs / bundles
 *.apk

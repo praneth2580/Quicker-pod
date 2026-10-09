@@ -28,6 +28,9 @@ export function useTripperNav() {
     sendStopNav: () => tripperNavSession.sendStopNav(),
     sendGuidance: tripperNavSession.sendGuidance.bind(tripperNavSession),
     sendGoogleManeuver: tripperNavSession.sendGoogleManeuver.bind(tripperNavSession),
+    sendDetailedManeuver: tripperNavSession.sendDetailedManeuver.bind(tripperNavSession),
+    sendCompass: tripperNavSession.sendCompass.bind(tripperNavSession),
+    setNightMode: (enabled: boolean) => tripperNavSession.setNightMode(enabled),
     sendPresetTurn: tripperNavSession.sendPresetTurn.bind(tripperNavSession),
     applyExternalNavUpdate:
       tripperNavSession.applyExternalNavUpdate.bind(tripperNavSession),

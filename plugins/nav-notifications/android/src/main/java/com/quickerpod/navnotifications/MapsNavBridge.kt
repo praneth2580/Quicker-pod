@@ -9,6 +9,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 object MapsNavBridge {
     interface Listener {
         fun onNavUpdate(parsed: MapsNavParser.ParsedNav)
+        fun onCallUpdate(parsed: CallNotificationParser.ParsedCall)
         fun onListenerConnected(connected: Boolean)
     }
 
@@ -33,5 +34,9 @@ object MapsNavBridge {
 
     fun emit(parsed: MapsNavParser.ParsedNav) {
         listeners.forEach { it.onNavUpdate(parsed) }
+    }
+
+    fun emitCall(parsed: CallNotificationParser.ParsedCall) {
+        listeners.forEach { it.onCallUpdate(parsed) }
     }
 }

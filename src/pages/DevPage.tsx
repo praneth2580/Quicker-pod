@@ -4,6 +4,12 @@ import { Card } from "@/components/ui/Card";
 
 const DEV_TOOLS = [
   {
+    path: "/opcode-probe",
+    title: "Opcode probe",
+    description:
+      "Send unused opcodes and the gaps after 0x50, and record the BLE notification.",
+  },
+  {
     path: "/nav-lab",
     title: "Nav Lab",
     description:

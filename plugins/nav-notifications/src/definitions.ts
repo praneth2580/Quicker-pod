@@ -25,10 +25,21 @@ export interface MapsNavUpdateEvent {
   etaSeconds: number | null;
   /** Mapped Google-style maneuver name (TURN_LEFT, …) when recognized. */
   maneuverName: string | null;
+  /** Street pulled from "onto …" in the instruction, when present. */
+  streetName: string | null;
   /** True when Maps posted a rerouting / unknown-direction state. */
   rerouting: boolean;
   /** True when navigation notification was removed / dismissed. */
   stopped: boolean;
+  timestamp: number;
+}
+
+export interface CallUpdateEvent {
+  packageName: string;
+  active: boolean;
+  callerName: string | null;
+  /** Notification body, often "Incoming call" or the number type. */
+  text: string | null;
   timestamp: number;
 }
 
@@ -67,6 +78,11 @@ export interface NavNotificationsPlugin {
   addListener(
     eventName: "statusChange",
     listenerFunc: (event: NavListenerStatus) => void,
+  ): Promise<PluginListenerHandle>;
+
+  addListener(
+    eventName: "callUpdate",
+    listenerFunc: (event: CallUpdateEvent) => void,
   ): Promise<PluginListenerHandle>;
 
   removeAllListeners(): Promise<void>;

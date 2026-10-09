@@ -50,6 +50,52 @@ export function getGoogleManeuver(name: string): GoogleManeuverDef | undefined {
 }
 
 /**
+ * Google maneuver name → detailed icon byte from NavManeuver.toByte.
+ * These are the values the official app writes for live guidance.
+ * Names the coarse table collapses (slight / sharp / fork) stay distinct here.
+ */
+const DETAIL_BYTE_BY_NAME: Record<string, number> = {
+  DEPART: 0x3c,
+  STRAIGHT: 0x00,
+  DESTINATION_LEFT: 0x3d,
+  DESTINATION_RIGHT: 0x3d,
+  TURN_SLIGHT_LEFT: 0x18,
+  TURN_LEFT: 0x18,
+  TURN_SHARP_LEFT: 0x19,
+  TURN_SLIGHT_RIGHT: 0x22,
+  TURN_RIGHT: 0x20,
+  TURN_SHARP_RIGHT: 0x1f,
+  TURN_U_TURN_CLOCKWISE: 0x1a,
+  TURN_U_TURN_COUNTERCLOCKWISE: 0x1a,
+  MERGE_LEFT: 0x08,
+  MERGE_RIGHT: 0x07,
+  FORK_LEFT: 0x16,
+  FORK_RIGHT: 0x17,
+  KEEP_LEFT: 0x16,
+  KEEP_RIGHT: 0x17,
+  TURN_KEEP_LEFT: 0x16,
+  TURN_KEEP_RIGHT: 0x17,
+  ON_RAMP_LEFT: 0x60,
+  ON_RAMP_RIGHT: 0x60,
+  OFF_RAMP_LEFT: 0x1e,
+  OFF_RAMP_RIGHT: 0x1d,
+  ROUNDABOUT_LEFT_CLOCKWISE: 0x30,
+  ROUNDABOUT_RIGHT_CLOCKWISE: 0x30,
+  ROUNDABOUT_STRAIGHT_CLOCKWISE: 0x30,
+  ROUNDABOUT_EXIT_CLOCKWISE: 0x30,
+  ROUNDABOUT_U_TURN_CLOCKWISE: 0x1a,
+  ROUNDABOUT_LEFT_COUNTERCLOCKWISE: 0x30,
+  ROUNDABOUT_RIGHT_COUNTERCLOCKWISE: 0x30,
+  ROUNDABOUT_EXIT_COUNTERCLOCKWISE: 0x30,
+};
+
+/** Detailed Tripper icon for a Google maneuver name, or null when the name is unknown. */
+export function detailByteForManeuverName(name: string): number | null {
+  const byte = DETAIL_BYTE_BY_NAME[name];
+  return byte == null ? null : byte;
+}
+
+/**
  * Map Google Navigation SDK maneuver id to Tripper maneuver byte (NavManeuver.toByte).
  * Returns 0xFF for unknown maneuvers.
  */

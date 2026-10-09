@@ -24,6 +24,12 @@ class MapsNotificationListener : NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         if (sbn == null) return
+        val call = CallNotificationParser.parse(sbn)
+        if (call != null) {
+            Log.d(TAG, "Call: ${call.callerName ?: "unknown"}")
+            MapsNavBridge.emitCall(call)
+            return
+        }
         if (!MapsNavParser.isNavigationPackage(sbn.packageName)) return
         val parsed = MapsNavParser.parse(sbn) ?: return
         Log.d(TAG, "Maps nav: ${parsed.maneuverName} ${parsed.distanceM}m — ${parsed.turnText}")
@@ -32,6 +38,22 @@ class MapsNotificationListener : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         if (sbn == null) return
+        val notification = sbn.notification
+        if (notification != null && CallNotificationParser.isCall(sbn.packageName, notification)) {
+            val stillCalling = try {
+                activeNotifications?.any {
+                    it.key != sbn.key &&
+                        it.notification != null &&
+                        CallNotificationParser.isCall(it.packageName, it.notification)
+                } == true
+            } catch (_: SecurityException) {
+                false
+            }
+            if (!stillCalling) {
+                MapsNavBridge.emitCall(CallNotificationParser.ended(sbn.packageName))
+            }
+            return
+        }
         if (!MapsNavParser.isNavigationPackage(sbn.packageName)) return
         // Only stop if no other Maps nav notification remains.
         val stillActive = try {
@@ -51,6 +73,8 @@ class MapsNotificationListener : NotificationListenerService() {
         try {
             val notifications = activeNotifications ?: return
             for (sbn in notifications) {
+                val call = CallNotificationParser.parse(sbn)
+                if (call != null) MapsNavBridge.emitCall(call)
                 if (!MapsNavParser.isNavigationPackage(sbn.packageName)) continue
                 val parsed = MapsNavParser.parse(sbn) ?: continue
                 MapsNavBridge.emit(parsed)

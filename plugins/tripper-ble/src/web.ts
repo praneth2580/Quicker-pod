@@ -1,5 +1,6 @@
 import { WebPlugin } from "@capacitor/core";
 import type {
+  KeepAliveOptions,
   ReconnectOptions,
   StartPairingOptions,
   SubmitPinOptions,
@@ -34,5 +35,17 @@ export class TripperBleWeb extends WebPlugin implements TripperBlePlugin {
 
   async disconnect(): Promise<void> {
     // no-op on web
+  }
+
+  async startKeepAlive(_options?: KeepAliveOptions): Promise<{ started: boolean }> {
+    return { started: false };
+  }
+
+  async updateKeepAlive(_options?: KeepAliveOptions): Promise<void> {
+    /* no-op on web */
+  }
+
+  async stopKeepAlive(): Promise<void> {
+    /* no-op on web */
   }
 }

@@ -35,7 +35,7 @@ const navItems = [
   {
     path: "/settings",
     label: "Settings",
-    match: ["/settings", "/dev", "/protocol-lab", "/fuzzer", "/ble-debug", "/nav-lab"],
+    match: ["/settings", "/dev", "/protocol-lab", "/fuzzer", "/ble-debug", "/nav-lab", "/opcode-probe"],
     icon: (
       <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" aria-hidden>
         <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75" />

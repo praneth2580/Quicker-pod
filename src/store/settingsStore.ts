@@ -9,6 +9,10 @@ interface SettingsState {
   iosInstallHintOpen: boolean;
   /** When true, try reconnecting the saved Tripper when the app opens/resumes. */
   autoReconnectOnOpen: boolean;
+  /** Adds 1 to the approach-intensity byte (official night-mode flag). */
+  nightMode: boolean;
+  /** While Maps is not guiding, send the compass heading to the pod. */
+  compassWhenIdle: boolean;
   pairingServiceUuid: string;
   pairingWriteUuid: string;
   pairingNotifyUuid: string;
@@ -19,6 +23,8 @@ interface SettingsState {
   setExperimentalMode: (enabled: boolean) => void;
   setIosInstallHintOpen: (open: boolean) => void;
   setAutoReconnectOnOpen: (enabled: boolean) => void;
+  setNightMode: (enabled: boolean) => void;
+  setCompassWhenIdle: (enabled: boolean) => void;
   setPairingUuids: (serviceUuid: string, writeUuid: string, notifyUuid: string) => void;
   setPinEncoding: (encoding: PinEncoding) => void;
 }
@@ -31,6 +37,8 @@ export const useSettingsStore = create<SettingsState>()(
       experimentalMode: false,
       iosInstallHintOpen: false,
       autoReconnectOnOpen: true,
+      nightMode: false,
+      compassWhenIdle: false,
       pairingServiceUuid: "",
       pairingWriteUuid: "",
       pairingNotifyUuid: "",
@@ -47,6 +55,8 @@ export const useSettingsStore = create<SettingsState>()(
       setExperimentalMode: (enabled) => set({ experimentalMode: enabled }),
       setIosInstallHintOpen: (open) => set({ iosInstallHintOpen: open }),
       setAutoReconnectOnOpen: (enabled) => set({ autoReconnectOnOpen: enabled }),
+      setNightMode: (enabled) => set({ nightMode: enabled }),
+      setCompassWhenIdle: (enabled) => set({ compassWhenIdle: enabled }),
       setPairingUuids: (serviceUuid, writeUuid, notifyUuid) =>
         set({ pairingServiceUuid: serviceUuid, pairingWriteUuid: writeUuid, pairingNotifyUuid: notifyUuid }),
       setPinEncoding: (encoding) => set({ pinEncoding: encoding }),
@@ -58,6 +68,8 @@ export const useSettingsStore = create<SettingsState>()(
         debugMode: state.debugMode,
         experimentalMode: state.experimentalMode,
         autoReconnectOnOpen: state.autoReconnectOnOpen,
+        nightMode: state.nightMode,
+        compassWhenIdle: state.compassWhenIdle,
         pairingServiceUuid: state.pairingServiceUuid,
         pairingWriteUuid: state.pairingWriteUuid,
         pairingNotifyUuid: state.pairingNotifyUuid,

@@ -33,6 +33,11 @@ const DEV_LINKS = [
     description: "Handshake and TX/RX console",
   },
   {
+    path: "/opcode-probe",
+    title: "Opcode probe",
+    description: "Unused opcodes and notification replies",
+  },
+  {
     path: "/nav-lab",
     title: "Nav Lab",
     description: "Cycle maneuvers on the pod",

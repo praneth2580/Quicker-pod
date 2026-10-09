@@ -19,12 +19,14 @@ import {
   MAN_LEFT,
   MAN_RIGHT_SOFT,
   ROAD_STREET,
+  SCREEN_STOP,
   SCREEN_TBT,
   TRIPPER_CHAR_UUID,
   TRIPPER_SERVICE_UUID,
 } from "./constants";
 import {
   buildCallIconKeepalive,
+  buildCompassPacket,
   buildKeepalive,
   buildNavFromManeuver,
   buildNavManeuverPacket,
@@ -32,7 +34,11 @@ import {
   PKT_NAV_IDLE,
   PKT_STOP_NAV,
 } from "./packets";
-import { getGoogleManeuver, type GoogleManeuverDef } from "./maneuvers";
+import {
+  detailByteForManeuverName,
+  getGoogleManeuver,
+  type GoogleManeuverDef,
+} from "./maneuvers";
 
 export interface NavGuidanceOptions {
   screen?: number;
@@ -58,6 +64,8 @@ export interface ExternalNavUpdate {
   stopped?: boolean;
   /** When true, show idle (no active guidance). */
   idle?: boolean;
+  /** Maps is recalculating. Byte 2 becomes the stop screen; the last icon is kept. */
+  rerouting?: boolean;
 }
 
 export type NavSessionListener = (state: NavSessionSnapshot) => void;
@@ -87,6 +95,9 @@ class TripperNavSession {
   private locked = false;
   private sending = false;
   private lastError: string | null = null;
+  private nightMode = false;
+  /** Last detailed icon. Distance-only updates reuse it instead of drawing straight. */
+  private lastDetailByte: number | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   private listeners = new Set<NavSessionListener>();
   private disconnectBound = false;
@@ -138,8 +149,24 @@ class TripperNavSession {
   }
 
   setCallIconActive(active: boolean): void {
+    const changed = this.callIconActive !== active;
     this.callIconActive = active;
     this.emit();
+    if (!changed || !bluetoothManager.isConnected()) return;
+    const write = active
+      ? this.writeRaw(buildCallIconKeepalive(), "CALL ICON", false)
+      : this.writeRaw(this.lastPacket, this.lastLabel, false);
+    void write.catch(() => undefined);
+  }
+
+  setNightMode(enabled: boolean): void {
+    this.nightMode = enabled;
+  }
+
+  /** Compass rose. Updates the keepalive cache so the heading stays on screen. */
+  async sendCompass(direction: number): Promise<void> {
+    const packet = buildCompassPacket(direction, this.nightMode);
+    await this.sendNavPacket(packet, "COMPASS");
   }
 
   setKeepaliveEnabled(enabled: boolean): void {
@@ -248,20 +275,46 @@ class TripperNavSession {
   async sendManeuverDetail(options: {
     screen?: number;
     maneuverDetail: number;
+    nextManeuver?: number;
     distanceM: number;
     etaSeconds?: number;
     totalDistanceM?: number;
     nightMode?: boolean;
+    label?: string;
   }): Promise<void> {
+    const nightMode = options.nightMode ?? this.nightMode;
     const packet = buildNavManeuverPacket({
-      screen: options.screen ?? SCREEN_TBT,
+      screen: options.screen,
       maneuverDetail: options.maneuverDetail,
+      nextManeuver: options.nextManeuver,
       distanceM: options.distanceM,
       etaSeconds: options.etaSeconds,
       totalDistanceM: options.totalDistanceM,
-      nightMode: options.nightMode,
+      nightMode,
     });
-    await this.sendNavPacket(packet, "NAV MANEUVER");
+    await this.sendNavPacket(packet, options.label ?? "NAV MANEUVER");
+  }
+
+  /** Live guidance: detailed icon, encoded distance, hours/minutes ETA. */
+  async sendDetailedManeuver(options: {
+    maneuverName: string;
+    distanceM: number;
+    etaSeconds?: number;
+    nightMode?: boolean;
+  }): Promise<void> {
+    const detail = detailByteForManeuverName(options.maneuverName);
+    if (detail == null) {
+      throw new Error(`Unknown maneuver: ${options.maneuverName}`);
+    }
+    this.lastDetailByte = detail;
+    const gm = getGoogleManeuver(options.maneuverName);
+    await this.sendManeuverDetail({
+      maneuverDetail: detail,
+      distanceM: options.distanceM,
+      etaSeconds: options.etaSeconds,
+      nightMode: options.nightMode,
+      label: `NAV ${gm?.displayName ?? options.maneuverName}`,
+    });
   }
 
   /** Send CMD_KEEPALIVE control frame (not the nav re-tx timer). */
@@ -274,38 +327,50 @@ class TripperNavSession {
    * Translates a high-level update into Tripper nav writes without touching pairing.
    */
   async applyExternalNavUpdate(update: ExternalNavUpdate): Promise<void> {
+    if (update.nightMode != null) this.nightMode = update.nightMode;
+
     if (update.idle) {
+      this.lastDetailByte = null;
       await this.sendNavIdle();
       return;
     }
     if (update.stopped) {
+      this.lastDetailByte = null;
       await this.sendStopNav();
       return;
     }
-    if (update.maneuverName) {
-      await this.sendGoogleManeuver(
-        update.maneuverName,
-        update.distanceM,
-        update.etaSeconds != null ? Math.floor(update.etaSeconds / 60) : 0,
-      );
-      return;
-    }
-    if (update.nextManeuverByte != null || update.maneuverByte != null) {
+    if (update.rerouting) {
       await this.sendManeuverDetail({
-        screen: update.screen,
-        maneuverDetail: update.nextManeuverByte ?? update.maneuverByte ?? 0xff,
+        screen: SCREEN_STOP,
+        maneuverDetail: this.lastDetailByte ?? 0xff,
         distanceM: update.distanceM,
         etaSeconds: update.etaSeconds,
-        totalDistanceM: update.totalDistanceM,
-        nightMode: update.nightMode,
+        label: "NAV REROUTE",
       });
       return;
     }
-    await this.sendGuidance({
-      screen: update.screen,
-      distMeters: update.distanceM,
-      maneuver: update.maneuverByte ?? MAN_FORWARD,
-      etaMinutes: update.etaSeconds != null ? Math.floor(update.etaSeconds / 60) : 0,
+
+    const named = update.maneuverName
+      ? detailByteForManeuverName(update.maneuverName)
+      : null;
+    const explicit =
+      update.maneuverByte != null && update.maneuverByte !== 0x00
+        ? update.maneuverByte
+        : null;
+    const detail = named ?? explicit ?? this.lastDetailByte;
+
+    // No icon yet, and Maps did not name one: leave the pod on the last frame.
+    if (detail == null) return;
+
+    if (named != null || explicit != null) this.lastDetailByte = detail;
+    const gm = update.maneuverName ? getGoogleManeuver(update.maneuverName) : undefined;
+    await this.sendManeuverDetail({
+      maneuverDetail: detail,
+      nextManeuver: update.nextManeuverByte,
+      distanceM: update.distanceM,
+      etaSeconds: update.etaSeconds,
+      totalDistanceM: update.totalDistanceM,
+      label: gm ? `NAV ${gm.displayName}` : "NAV MANEUVER",
     });
   }
 
