@@ -19,4 +19,16 @@
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
         <item name="android:background">@drawable/splash</item>
     </style>
+
+    <style name="WidgetPodCell" parent="@android:style/Widget.TextView">
+        <item name="android:background">@drawable/widget_pod_background</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:gravity">center</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:maxLines">3</item>
+        <item name="android:padding">4dp</item>
+        <item name="android:textColor">#E8F5F3</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

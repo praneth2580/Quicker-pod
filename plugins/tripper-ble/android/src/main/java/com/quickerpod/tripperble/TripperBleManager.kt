@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 @SuppressLint("MissingPermission")
 class TripperBleManager(
     private val context: Context,
-    private val listener: Listener,
+    initialListener: Listener,
 ) {
     interface Listener {
         fun onLog(message: String, level: String = "info", data: Map<String, Any?>? = null)
@@ -66,6 +66,57 @@ class TripperBleManager(
         private val NAME_PREFIXES = listOf("RE_", "RE_DISP")
     }
 
+    private val listeners = java.util.concurrent.CopyOnWriteArrayList<Listener>()
+    private val listener = object : Listener {
+        override fun onLog(message: String, level: String, data: Map<String, Any?>?) {
+            listeners.forEach { it.onLog(message, level, data) }
+        }
+
+        override fun onConnected(address: String, name: String) {
+            listeners.forEach { it.onConnected(address, name) }
+        }
+
+        override fun onReadyForPin(address: String, name: String) {
+            listeners.forEach { it.onReadyForPin(address, name) }
+        }
+
+        override fun onAlreadyPaired(address: String, name: String) {
+            listeners.forEach { it.onAlreadyPaired(address, name) }
+        }
+
+        override fun onRx(hex: String, label: String?) {
+            listeners.forEach { it.onRx(hex, label) }
+        }
+
+        override fun onAuth(hex: String, accepted: Boolean) {
+            listeners.forEach { it.onAuth(hex, accepted) }
+        }
+
+        override fun onDisconnected(reason: String?) {
+            listeners.forEach { it.onDisconnected(reason) }
+        }
+
+        override fun onPairingComplete(address: String, name: String, readyForPin: Boolean) {
+            listeners.forEach { it.onPairingComplete(address, name, readyForPin) }
+        }
+
+        override fun onPairingFailed(message: String) {
+            listeners.forEach { it.onPairingFailed(message) }
+        }
+    }
+
+    init {
+        listeners.add(initialListener)
+    }
+
+    fun addListener(extra: Listener) {
+        if (!listeners.contains(extra)) listeners.add(extra)
+    }
+
+    fun removeListener(extra: Listener) {
+        listeners.remove(extra)
+    }
+
     private val mainHandler = Handler(Looper.getMainLooper())
     private val bluetoothManager =
         context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -73,6 +124,8 @@ class TripperBleManager(
 
     private var gattServer: BluetoothGattServer? = null
     private var gattClient: BluetoothGatt? = null
+    /** Previous client closed by a new connect. Its disconnect must not abort the new attempt. */
+    private var retiredGatt: BluetoothGatt? = null
     private var writeCharacteristic: BluetoothGattCharacteristic? = null
 
     private var currentDevice: BluetoothDevice? = null
@@ -326,6 +379,10 @@ class TripperBleManager(
 
     private val gattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
+            if (gatt == retiredGatt) {
+                if (newState == BluetoothProfile.STATE_DISCONNECTED) retiredGatt = null
+                return
+            }
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 log("GATT client CONNECTED", data = mapOf("status" to status))
                 val address = gatt.device.address
@@ -523,12 +580,16 @@ class TripperBleManager(
         writeQueue.clear()
         writeInFlight = false
         writeCharacteristic = null
-        try {
-            gattClient?.disconnect()
-            gattClient?.close()
-        } catch (_: Exception) {
-        }
+        val previous = gattClient
         gattClient = null
+        if (previous != null) {
+            retiredGatt = previous
+            try {
+                previous.disconnect()
+                previous.close()
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun failPairing(message: String) {

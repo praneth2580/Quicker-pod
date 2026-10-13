@@ -1,12 +1,22 @@
 export const SITE_URL = "https://praneth2580.github.io/Quicker-pod/";
 export const SITE_NAME = "Quicker-pod";
-export const SITE_TAGLINE = "Open navigation companion for Royal Enfield Tripper Pod";
+export const SITE_TAGLINE =
+  "Free open-source Android companion for Royal Enfield Tripper Pod — a SuperTripper alternative";
 export const SITE_DESCRIPTION =
-  "Quicker-pod is a free, open-source Android companion for the Royal Enfield Tripper Pod. Sideload the APK for full BLE pairing, Google Maps turn mirroring, and live navigation on your pod — no account, no store fees.";
+  "Quicker-pod is a free, open-source Android companion for the Royal Enfield Tripper Pod and a SuperTripper / Super TripperPod alternative. Sideload the APK for BLE pairing, Google Maps turn mirroring, and live navigation on your pod — no account, no store fees.";
 export const SITE_OG_IMAGE = `${SITE_URL}screenshots/mobile-wide.png`;
 export const GITHUB_OWNER = "praneth2580";
 export const GITHUB_REPO = "Quicker-pod";
 export const GITHUB_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}`;
+
+/** Marketing site paths (basename-aware via react-router). */
+export const SITE_PATHS = {
+  home: "/",
+  vsSuperTripper: "/vs-supertripper",
+  install: "/install",
+  faq: "/faq",
+} as const;
+
 /** APK filename for a given semver (e.g. quicker-pod-1.2.0.apk). */
 export function apkAssetName(version: string): string {
   const v = version.replace(/^v/, "").match(/^\d+\.\d+\.\d+/)?.[0] ?? version.replace(/^v/, "");
@@ -30,6 +40,9 @@ export const GITHUB_RELEASES_PAGE_URL = `${GITHUB_URL}/releases/latest`;
 export const SEO_KEYWORDS = [
   "Royal Enfield Tripper Pod",
   "Tripper Pod app alternative",
+  "SuperTripper alternative",
+  "Super TripperPod alternative",
+  "SuperTripper APK alternative",
   "free Tripper Pod APK",
   "Tripper Pod navigation app",
   "Google Maps Tripper Pod",
@@ -40,4 +53,6 @@ export const SEO_KEYWORDS = [
   "Royal Enfield navigation pod",
   "Android Tripper pairing",
   "Maps turn-by-turn Tripper",
+  "Tripper Pod companion app",
+  "com.supertripper.app alternative",
 ].join(", ");

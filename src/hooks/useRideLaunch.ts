@@ -4,7 +4,8 @@ import { App as CapApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { useSettingsStore } from "@/store/settingsStore";
 import { useConnectionStore } from "@/store/connectionStore";
-import { isRideDeepLink, requestRideReconnect } from "@/ride/rideReconnect";
+import { isRideDeepLink, requestRideReconnect, rideDeviceIdFromUrl } from "@/ride/rideReconnect";
+import { publishWidgetPodsIfReady } from "@/ride/widgetPods";
 
 /**
  * Foreground-only ride launch:
@@ -25,7 +26,7 @@ export function useRideLaunch(): void {
     const runDeepLink = async (url: string) => {
       if (!isRideDeepLink(url) || cancelled) return;
       navigate("/connect", { replace: false });
-      const result = await requestRideReconnect("deep_link");
+      const result = await requestRideReconnect("deep_link", rideDeviceIdFromUrl(url));
       if (!result.ok && result.message) {
         useConnectionStore.setState({ lastError: result.message });
       }
@@ -47,6 +48,7 @@ export function useRideLaunch(): void {
     };
 
     void (async () => {
+      publishWidgetPodsIfReady(useConnectionStore.getState().knownDevices);
       if (Capacitor.isNativePlatform()) {
         try {
           const launch = await CapApp.getLaunchUrl();
@@ -66,7 +68,9 @@ export function useRideLaunch(): void {
 
         listeners.push(
           await CapApp.addListener("appStateChange", ({ isActive }) => {
-            if (isActive) void runAutoOpen();
+            if (!isActive) return;
+            publishWidgetPodsIfReady(useConnectionStore.getState().knownDevices);
+            void runAutoOpen();
           }),
         );
       }

@@ -1,5 +1,5 @@
 import { WebPlugin } from "@capacitor/core";
-import type { NfcAvailability, RideLaunchPlugin, WriteNfcResult } from "./definitions";
+import type { NfcAvailability, RideLaunchPlugin, WidgetPod, WriteNfcResult } from "./definitions";
 
 export class RideLaunchWeb extends WebPlugin implements RideLaunchPlugin {
   async getNfcStatus(): Promise<NfcAvailability> {
@@ -12,5 +12,9 @@ export class RideLaunchWeb extends WebPlugin implements RideLaunchPlugin {
 
   async cancelNfcWrite(): Promise<void> {
     /* no-op on web */
+  }
+
+  async syncPods(options: { pods: WidgetPod[] }): Promise<void> {
+    void options.pods;
   }
 }

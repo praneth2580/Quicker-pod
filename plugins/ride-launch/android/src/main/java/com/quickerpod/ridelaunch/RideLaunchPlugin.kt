@@ -1,6 +1,10 @@
 package com.quickerpod.ridelaunch
 
 import android.app.Activity
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.nfc.NdefMessage
 import android.nfc.NdefRecord
 import android.nfc.NfcAdapter
@@ -15,11 +19,18 @@ import com.getcapacitor.PluginMethod
 import com.getcapacitor.annotation.CapacitorPlugin
 import java.io.IOException
 import java.nio.charset.Charset
+import org.json.JSONArray
+import org.json.JSONObject
 
 @CapacitorPlugin(name = "RideLaunch")
 class RideLaunchPlugin : Plugin() {
     companion object {
         const val RIDE_URI = "quickerpod://ride"
+
+        /** Shared with com.quickerpod.app.WidgetPodStore. */
+        private const val WIDGET_PREFS = "quickerpod_widget"
+        private const val WIDGET_PODS_KEY = "pods"
+        private const val WIDGET_PROVIDER = "com.quickerpod.app.RideConnectWidgetProvider"
     }
 
     private var pendingWrite: PluginCall? = null
@@ -92,6 +103,32 @@ class RideLaunchPlugin : Plugin() {
         call.resolve()
     }
 
+    /**
+     * Mirror saved Tripper pods into app prefs and refresh the home-screen widget.
+     * Each entry is `{ id, name }`, most recently connected first.
+     */
+    @PluginMethod
+    fun syncPods(call: PluginCall) {
+        val arr = call.getArray("pods")
+        val out = JSONArray()
+        if (arr != null) {
+            for (i in 0 until arr.length()) {
+                val item = arr.optJSONObject(i) ?: continue
+                val id = item.optString("id", "").trim()
+                if (id.isEmpty()) continue
+                val name = item.optString("name", "").trim().ifEmpty { "Tripper" }
+                out.put(JSONObject().put("id", id).put("name", name))
+            }
+        }
+        context
+            .getSharedPreferences(WIDGET_PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putString(WIDGET_PODS_KEY, out.toString())
+            .commit()
+        requestWidgetUpdate()
+        call.resolve()
+    }
+
     override fun handleOnPause() {
         // Keep reader mode across brief pauses; cancel only on destroy / explicit cancel.
         super.handleOnPause()
@@ -102,6 +139,19 @@ class RideLaunchPlugin : Plugin() {
         pendingWrite = null
         activity?.let { cancelReaderMode(it) }
         super.handleOnDestroy()
+    }
+
+    private fun requestWidgetUpdate() {
+        val ctx = context
+        val component = ComponentName(ctx.packageName, WIDGET_PROVIDER)
+        val manager = AppWidgetManager.getInstance(ctx)
+        val ids = manager.getAppWidgetIds(component)
+        if (ids.isEmpty()) return
+        val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE).apply {
+            this.component = component
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
+        }
+        ctx.sendBroadcast(intent)
     }
 
     private fun cancelReaderMode(activity: Activity) {

@@ -10,4 +10,6 @@ pwa-assets-generator
 node scripts/generate-screenshots.mjs
 tsc -b
 vite build
+echo "==> Emitting SEO route HTML shells"
+node scripts/seo-static-routes.mjs
 echo "==> Site build ready in dist-site/"

@@ -12,8 +12,12 @@ export interface RideReconnectResult {
 let inflight: Promise<RideReconnectResult> | null = null;
 let abortController: AbortController | null = null;
 
-function resolveKnownRideDeviceId(): string | null {
+function resolveKnownRideDeviceId(preferredDeviceId?: string | null): string | null {
   const { currentDevice, knownDevices } = useConnectionStore.getState();
+  if (preferredDeviceId) {
+    const match = knownDevices.find((d) => d.id === preferredDeviceId);
+    return match?.id ?? null;
+  }
   if (currentDevice?.pinPaired) return currentDevice.id;
   const known = knownDevices.find((d) => d.pinPaired);
   return known?.id ?? null;
@@ -44,20 +48,26 @@ function sleep(ms: number, signal: AbortSignal): Promise<void> {
  */
 export async function requestRideReconnect(
   _source: RideReconnectSource = "manual",
+  preferredDeviceId?: string | null,
 ): Promise<RideReconnectResult> {
   if (inflight) return inflight;
 
   const run = async (): Promise<RideReconnectResult> => {
     const store = useConnectionStore.getState();
+    const deviceId = resolveKnownRideDeviceId(preferredDeviceId);
     if (store.connected) {
-      return { ok: true, reason: "already_connected" };
+      const connectedId = store.device?.id ?? store.currentDevice?.id;
+      if (!deviceId || deviceId === connectedId) {
+        return { ok: true, reason: "already_connected" };
+      }
     }
-    const deviceId = resolveKnownRideDeviceId();
     if (!deviceId) {
       return {
         ok: false,
         reason: "no_device",
-        message: "Pair your Tripper once (PIN) before using auto-reconnect.",
+        message: preferredDeviceId
+          ? "That Tripper is no longer saved. Pair it again from Connect."
+          : "Pair your Tripper once (PIN) before using auto-reconnect.",
       };
     }
     if (store.connecting || store.pairingPhase === "awaiting_pin") {
@@ -133,6 +143,23 @@ export async function requestRideReconnect(
 export function cancelRideReconnect(): void {
   abortController?.abort();
   abortController = null;
+}
+
+export function rideDeviceIdFromUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const id = new URL(url).searchParams.get("device")?.trim();
+    return id ? id : null;
+  } catch {
+    const match = /[?&]device=([^&#]+)/.exec(url);
+    if (!match?.[1]) return null;
+    try {
+      const id = decodeURIComponent(match[1]).trim();
+      return id ? id : null;
+    } catch {
+      return match[1];
+    }
+  }
 }
 
 export function isRideDeepLink(url: string | null | undefined): boolean {

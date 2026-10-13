@@ -25,9 +25,15 @@ class RideKeepAliveService : Service() {
         const val ACTION_STOP = "com.quickerpod.tripperble.KEEPALIVE_STOP"
         const val ACTION_UPDATE = "com.quickerpod.tripperble.KEEPALIVE_UPDATE"
         const val ACTION_DISCONNECT = "com.quickerpod.tripperble.KEEPALIVE_DISCONNECT"
+        const val ACTION_CONNECT = "com.quickerpod.tripperble.KEEPALIVE_CONNECT"
+        const val ACTION_FAIL = "com.quickerpod.tripperble.KEEPALIVE_FAIL"
 
         const val EXTRA_DEVICE_NAME = "deviceName"
         const val EXTRA_TEXT = "text"
+        const val EXTRA_ADDRESS = "address"
+
+        private const val ALERT_CHANNEL_ID = "quicker_pod_ride_alert"
+        private const val FAILURE_NOTIFICATION_ID = 7102
 
         fun start(context: Context, deviceName: String?, text: String? = null) {
             val intent = Intent(context, RideKeepAliveService::class.java).apply {
@@ -57,6 +63,16 @@ class RideKeepAliveService : Service() {
             }
             context.startService(intent)
         }
+
+        /** Widget connect failed. Shows a dismissible notice and ends the foreground session. */
+        fun fail(context: Context, deviceName: String?, message: String) {
+            val intent = Intent(context, RideKeepAliveService::class.java).apply {
+                action = ACTION_FAIL
+                putExtra(EXTRA_DEVICE_NAME, deviceName)
+                putExtra(EXTRA_TEXT, message)
+            }
+            context.startService(intent)
+        }
     }
 
     private var deviceName: String = "Tripper"
@@ -78,6 +94,22 @@ class RideKeepAliveService : Service() {
             }
             ACTION_DISCONNECT -> {
                 TripperBleRuntime.requestDisconnect()
+                stopForegroundCompat()
+                stopSelf()
+                return START_NOT_STICKY
+            }
+            ACTION_CONNECT -> {
+                applyExtras(intent)
+                bodyText = "Connecting…"
+                startAsForeground()
+                val address = intent?.getStringExtra(EXTRA_ADDRESS).orEmpty()
+                WidgetPodConnect.start(applicationContext, address, deviceName)
+                return START_STICKY
+            }
+            ACTION_FAIL -> {
+                applyExtras(intent)
+                startAsForeground()
+                notifyFailure(bodyText)
                 stopForegroundCompat()
                 stopSelf()
                 return START_NOT_STICKY
@@ -130,17 +162,44 @@ class RideKeepAliveService : Service() {
     private fun ensureChannel() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
         val nm = getSystemService(NotificationManager::class.java) ?: return
-        val existing = nm.getNotificationChannel(CHANNEL_ID)
-        if (existing != null) return
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            "Ride session",
-            NotificationManager.IMPORTANCE_LOW,
-        ).apply {
-            description = "Keeps Quicker Pod linked to your Tripper while you ride"
-            setShowBadge(false)
+        if (nm.getNotificationChannel(CHANNEL_ID) == null) {
+            nm.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ID,
+                    "Ride session",
+                    NotificationManager.IMPORTANCE_LOW,
+                ).apply {
+                    description = "Keeps Quicker Pod linked to your Tripper while you ride"
+                    setShowBadge(false)
+                },
+            )
         }
-        nm.createNotificationChannel(channel)
+        if (nm.getNotificationChannel(ALERT_CHANNEL_ID) == null) {
+            nm.createNotificationChannel(
+                NotificationChannel(
+                    ALERT_CHANNEL_ID,
+                    "Tripper connection",
+                    NotificationManager.IMPORTANCE_DEFAULT,
+                ).apply {
+                    description = "Lets you know when a widget connect fails"
+                    setShowBadge(false)
+                },
+            )
+        }
+    }
+
+    private fun notifyFailure(message: String) {
+        ensureChannel()
+        val nm = getSystemService(NotificationManager::class.java) ?: return
+        val notification = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            .setContentTitle("Couldn't connect ${deviceName}")
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
+            .build()
+        nm.notify(FAILURE_NOTIFICATION_ID, notification)
     }
 
     private fun buildNotification(): Notification {

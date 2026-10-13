@@ -11,6 +11,7 @@ import { DEFAULT_PAIRING_CONFIG } from "@/bluetooth/pairingConfig";
 import { upsertDevice, removeDevice as removeDeviceFromDb } from "@/db/repository";
 import { useDeviceStore } from "@/store/deviceStore";
 import { useSettingsStore } from "@/store/settingsStore";
+import { publishWidgetPodsIfReady, markWidgetPodsHydrated, noteWidgetPodsHydrated } from "@/ride/widgetPods";
 
 interface ConnectionState {
   connected: boolean;
@@ -308,11 +309,21 @@ export const useConnectionStore = create<ConnectionState>()(
         currentDevice: state.currentDevice,
         knownDevices: state.knownDevices,
       }),
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => (state, error) => {
         if (state?.currentDevice) {
           state.device = toDeviceInfo(state.currentDevice);
         }
+        if (error) {
+          noteWidgetPodsHydrated();
+          return;
+        }
+        markWidgetPodsHydrated(state?.knownDevices ?? []);
       },
     },
   ),
 );
+
+useConnectionStore.subscribe((state, prev) => {
+  if (state.knownDevices === prev.knownDevices) return;
+  publishWidgetPodsIfReady(state.knownDevices);
+});

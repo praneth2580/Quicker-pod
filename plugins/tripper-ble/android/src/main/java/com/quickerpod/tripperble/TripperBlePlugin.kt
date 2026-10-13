@@ -45,6 +45,12 @@ class TripperBlePlugin : Plugin(), TripperBleManager.Listener {
     private fun ensureManager(): TripperBleManager {
         val existing = manager
         if (existing != null) return existing
+        val runtime = TripperBleRuntime.manager
+        if (runtime != null) {
+            runtime.addListener(this)
+            manager = runtime
+            return runtime
+        }
         val created = TripperBleManager(context.applicationContext, this)
         manager = created
         TripperBleRuntime.manager = created
